@@ -14,8 +14,10 @@ using namespace AbstractOS;
 #include "TestDataGenerator.h"
 #include "Gpio.h"
 #include "Leds.h"
+#include "Switch.h"
 
-#define DATA_UDP_PORT 			7
+#define DATA_UDP_PORT 			26090
+#define REMOTE_IP_CFG           IP4_ADDR(&RemoteAddr,  192, 168, 1, 20)
 
 class DataUDPThread : public Thread
 {
@@ -33,8 +35,10 @@ private:
 	void print_app_header();
 
 	Leds leds;
+	Switch sw;
 	int counter;
-	LynxRecord lynxRecord;
+	LRECORD lxRecord;
+	TestDataGenerator dataGenerator;
 	// Global Variables to store results and handle data flow
 	char HelloStr[256];
 };

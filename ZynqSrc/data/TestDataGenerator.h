@@ -25,8 +25,8 @@ public:
 
 protected:
 	int32_t GenSine(int channel);
+	void AddCheckSum(LRECORD *pLxRecord);
 
-	LRECORD m_LRECORD;
 	bool m_generatePulse;
 	double m_omega;
 	int m_n;

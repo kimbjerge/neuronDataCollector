@@ -5,7 +5,7 @@
  *      Author: au288681
  */
 /******************************************************************************
-* echoUDP.c
+* DataUDPThread.cpp
 *
 *  Created on: 27. nov. 2018
 *      Author: Kim Bjerge
@@ -105,18 +105,18 @@ void DataUDPThread::run()
 	err_t udpsenderr;
 	int status = 0;
 	u8			Error;
-	bool ledOn = true;
+	bool ledOn = false;
 
 	memset(HelloStr, 0, sizeof(HelloStr));
 	strcpy(HelloStr, "UDP packet from Zynq Board\n\r");
 
     print_app_header();
 
-    IP4_ADDR(&RemoteAddr,  192, 168, 1, 20);
+    REMOTE_IP_CFG;
 	printf("Remote IP settings: \r\n");
 	print_ip((char*)"Board IP: ", &RemoteAddr);
 
-	/* start the application (web server, rxtest, txtest, etc..) */
+	/* start the application server */
 	status = create_bind_socket(RemotePort);
 	if (status != 0){
 		xil_printf("Error in creating and binding UDP receive socket with code: %d\n\r", status);
@@ -126,22 +126,21 @@ void DataUDPThread::run()
     SendResults = 1;
     Error = 0;
     counter = 0;
-	//vTaskDelay( pdMS_TO_TICKS( 10 ) );
 
-	/* receive and process packets */
+	/* transmit packets */
 	while (Error==0) {
 
-		/* Send results back from time to time */
-		if (SendResults == 1) {
+		if (sw.isOn(Switch::SW0)) {
 			//SendResults = 0;
 
-			// Send out the centroid result over UDP
-			psnd = pbuf_alloc(PBUF_TRANSPORT, sizeof(HelloStr), PBUF_REF);
-			psnd->payload = HelloStr;
+			// Send out the lxRecord over UDP
+			dataGenerator.GenerateSampleRecord(&lxRecord);
+			psnd = pbuf_alloc(PBUF_TRANSPORT, sizeof(lxRecord), PBUF_REF);
+			psnd->payload = &lxRecord;
 			udpsenderr = udp_sendto(&send_pcb, psnd, &RemoteAddr, RemotePort);
 			//printf("%d\r", counter++);
-			leds.setOn(Leds::LED0, ledOn);
 			ledOn = !ledOn;
+			leds.setOn(Leds::LED0, ledOn);
 			counter++;
 			if (udpsenderr != ERR_OK){
 				xil_printf("UDP Send failed with Error %d\n\r", udpsenderr);
@@ -149,14 +148,27 @@ void DataUDPThread::run()
 				goto ErrorOrDone;
 			}
 			pbuf_free(psnd);
+		} else
+		{
+			if (ledOn) {
+				ledOn = false;
+				leds.setOn(Leds::LED0, ledOn);
+			}
 		}
 		//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
-		vTaskDelay( pdMS_TO_TICKS( 100 ) );
+		vTaskDelay( pdMS_TO_TICKS( 1 ) );
 	}
 
 	// Jump point for failure
 ErrorOrDone:
+	leds.setOn(Leds::LED0, false);
 	xil_printf("Catastrophic Error! Shutting down and exiting...\n\r");
+	while (1) {
+		// Blinking with led
+		ledOn = !ledOn;
+		leds.setOn(Leds::LED0, ledOn);
+		vTaskDelay( pdMS_TO_TICKS( 200 ) );
+	}
     vTaskDelete(NULL);
 }
 
