@@ -35,6 +35,6 @@
 void demo_udp_thread(void *);
 void echo_tcp_thread(void *);
 
-void init_net_server(void (*net_thread)(void *));
+void init_net_server(void (*net_thread)(void *), void *param);
 
 #endif /* SRC_DEFS_H_ */

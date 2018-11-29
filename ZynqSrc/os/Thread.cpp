@@ -14,7 +14,7 @@ using namespace AbstractOS;
 //--------------------------------------------------------
 Thread::Thread()
 {
-	priority = PRIORITY_LOW;
+	priority = PRIORITY_NORMAL;
 	handle = NULL;
 }
 

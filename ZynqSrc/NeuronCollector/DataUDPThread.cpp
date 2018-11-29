@@ -1,3 +1,9 @@
+/*
+ * DataThread.cpp
+ *
+ *  Created on: 29. nov. 2018
+ *      Author: au288681
+ */
 /******************************************************************************
 * echoUDP.c
 *
@@ -14,36 +20,28 @@
 // Include our own definitions
 #include <defsNet.h>
 
+#include "DataUDPThread.h"
+
 void print_ip(char *msg, struct ip_addr *ip);
 
-// Global variables for data flow
-volatile u32		EthBytesReceived;
-volatile u8			SendResults;
-volatile u8			Error;
-
-// Global Variables for Ethernet handling
-u16_t    			RemotePort = FF_UDP_PORT;
-struct ip_addr  	RemoteAddr;
-struct udp_pcb 		send_pcb;
-
-// Global Variables to store results and handle data flow
-char                HelloStr[256];
-
-int transfer_data() {
-	return 0;
-}
-
 /* print_app_header: function to print a header at start time */
-void print_app_header()
+void DataUDPThread::print_app_header()
 {
-	xil_printf("\n\r\n\r------lwIP UDP Demo Application------\n\r");
-	xil_printf("UDP packets sent to port 7 will be processed\n\r");
+	xil_printf("\n\r\n\r------ lwIP UDP Neuron Data Transmitter  ------\n\r");
+	xil_printf("UDP packets send to port %d will be transmitted\n\r", DATA_UDP_PORT);
 }
+
+// Global variable to synchronize recv_callback
+static volatile short SendResults = 0;
 
 /* recv_callback: function that handles responding to UDP packets */
-void recv_callback(void *arg, struct udp_pcb *upcb,
-                              struct pbuf *p, struct ip_addr *addr, u16_t port)
+static void recv_callback(void *arg, struct udp_pcb *upcb,
+                               struct pbuf *p, struct ip_addr *addr, u16_t port)
 {
+	u16_t    			RemotePort;
+	struct ip_addr  	RemoteAddr;
+	struct udp_pcb 		send_pcb;
+
 	/* Do not read the packet if we are not in ESTABLISHED state */
 	if (!p) {
 		udp_disconnect(upcb);
@@ -59,9 +57,7 @@ void recv_callback(void *arg, struct udp_pcb *upcb,
 
 	/********************** WAVE ARRAY ********************************/
 	// Determine the number of bytes received and copy this segment to the temp array
-	EthBytesReceived = p->len;
 	xil_printf("L%d\r\n", p->len );
-	//memcpy(&WaveformArr[0], (u32*)p->payload, EthBytesReceived);
 	SendResults = 1;
 
 	/* free the received pbuf */
@@ -71,11 +67,10 @@ void recv_callback(void *arg, struct udp_pcb *upcb,
 }
 
 /* start_application: function to set up UDP listener */
-static int create_bind_socket()
+int  DataUDPThread::create_bind_socket(unsigned port)
 {
 	struct udp_pcb *pcb;
 	err_t err;
-	unsigned port = FF_UDP_PORT;
 
 	/* create new UDP PCB structure */
 	pcb = udp_new();
@@ -94,17 +89,23 @@ static int create_bind_socket()
 	/* specify callback to use for incoming connections */
 	udp_recv(pcb, recv_callback, NULL);
 
-	xil_printf("UDP echo server started @ port %d\n\r", port);
+	xil_printf("UDP server started @ port %d\n\r", port);
 
 	return 0;
 }
 
-void demo_udp_thread(void *)
+// Global Variables for Ethernet handling
+static u16_t    			RemotePort = DATA_UDP_PORT;
+static struct ip_addr  		RemoteAddr;
+static struct udp_pcb 		send_pcb;
+
+void DataUDPThread::run()
 {
 	struct pbuf * psnd;
 	err_t udpsenderr;
 	int status = 0;
-	int counter = 0;
+	u8			Error;
+	bool ledOn = true;
 
 	memset(HelloStr, 0, sizeof(HelloStr));
 	strcpy(HelloStr, "UDP packet from Zynq Board\n\r");
@@ -112,18 +113,20 @@ void demo_udp_thread(void *)
     print_app_header();
 
     IP4_ADDR(&RemoteAddr,  192, 168, 1, 20);
-	xil_printf("Remote IP settings: \r\n");
-	//print_ip_settings(&RemoteAddr, &Remotenetmask, &Remotegw);
+	printf("Remote IP settings: \r\n");
 	print_ip((char*)"Board IP: ", &RemoteAddr);
 
 	/* start the application (web server, rxtest, txtest, etc..) */
-	status = create_bind_socket();
+	status = create_bind_socket(RemotePort);
 	if (status != 0){
 		xil_printf("Error in creating and binding UDP receive socket with code: %d\n\r", status);
 		goto ErrorOrDone;
 	}
 
     SendResults = 1;
+    Error = 0;
+    counter = 0;
+	//vTaskDelay( pdMS_TO_TICKS( 10 ) );
 
 	/* receive and process packets */
 	while (Error==0) {
@@ -136,7 +139,10 @@ void demo_udp_thread(void *)
 			psnd = pbuf_alloc(PBUF_TRANSPORT, sizeof(HelloStr), PBUF_REF);
 			psnd->payload = HelloStr;
 			udpsenderr = udp_sendto(&send_pcb, psnd, &RemoteAddr, RemotePort);
-			xil_printf("%d\r", counter++);
+			//printf("%d\r", counter++);
+			leds.setOn(Leds::LED0, ledOn);
+			ledOn = !ledOn;
+			counter++;
 			if (udpsenderr != ERR_OK){
 				xil_printf("UDP Send failed with Error %d\n\r", udpsenderr);
 				SendResults = 0;
@@ -153,4 +159,6 @@ ErrorOrDone:
 	xil_printf("Catastrophic Error! Shutting down and exiting...\n\r");
     vTaskDelete(NULL);
 }
+
+
 

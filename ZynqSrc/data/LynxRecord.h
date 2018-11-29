@@ -153,11 +153,12 @@ public:
 
 	void AppendMemPoolIntConsole()
 	{
-		char dataStr[1024];
-		dataStr[0] = 0;
+		//char dataStr[1024];
+		//dataStr[0] = 0;
 		semaWaitForData.wait();
-		LxBoardsData *pBoardsData = (LxBoardsData *) pMemPoolReadPtr;
-		LxBoardsData *pMemPoolEndPtr = (LxBoardsData *)(pMemPoolWritePtr-RecordSize);
+		//LxBoardsData *pBoardsData = (LxBoardsData *) pMemPoolReadPtr;
+		//LxBoardsData *pMemPoolEndPtr = (LxBoardsData *)(pMemPoolWritePtr-RecordSize);
+		/*
 		while (pBoardsData <= pMemPoolEndPtr) {
 			for (int j = 0; j < NUM_BOARDS; j++)
 				sprintf(dataStr, "%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, \n",
@@ -198,6 +199,7 @@ public:
 			pBoardsData++;
 			pMemPoolReadPtr = (int32_t *)pBoardsData;
 		}
+		*/
 	}
 
 private:

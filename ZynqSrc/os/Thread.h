@@ -47,17 +47,18 @@ namespace AbstractOS
 	  void yield(void);
 	  void kill();
 
+	  static void threadMapper(void* p)
+	  {
+		((Thread*)p)->run();
+		return;
+	  }
+
 	protected:
 	  ThreadPriority priority;
 	  string name;
 
 	private:
 	  TaskHandle_t handle;
-	  static void threadMapper(void* p)
-	  {
-		((Thread*)p)->run();
-		return;
-	  }
 
 	};
 

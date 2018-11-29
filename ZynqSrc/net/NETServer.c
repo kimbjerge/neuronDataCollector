@@ -53,7 +53,9 @@ err_t dhcp_start(struct netif *netif);
 /* set up netif stuctures */
 static struct netif server_netif;
 
+/* Pointers to socket thread and parameter */
 void (*socket_thread)(void *) = 0;
+void *thread_param = 0;
 
 void
 print_ip(char *msg, struct ip_addr *ip)
@@ -93,7 +95,7 @@ static void network_thread(void *p)
 
     /* print out IP settings of the board */
     xil_printf("\r\n\r\n");
-    xil_printf("----- lwIP Netork Server Starting ------\r\n");
+    xil_printf("----- lwIP Network Server Starting ------\r\n");
 
 #if LWIP_DHCP==0
 	xil_printf("Board IP settings: \r\n");
@@ -134,9 +136,11 @@ static void network_thread(void *p)
 	}
 #else
     /* start packet receive thread - required for lwIP operation */
-    sys_thread_new("socket_thread", (void(*)(void*))socket_thread, 0,
+    sys_thread_new("socket_thread", (void(*)(void*))socket_thread, thread_param,
 					THREAD_STACKSIZE,
 					DEFAULT_THREAD_PRIO);
+
+    xil_printf("NETWORK thread terminated\r\n");
     vTaskDelete(NULL);
 #endif
     return;
@@ -163,7 +167,7 @@ int main_net_thread()
 			xil_printf("DHCP request success\r\n");
 			print_ip_settings(&(server_netif.ip_addr), &(server_netif.netmask), &(server_netif.gw));
 		    /* start socket thread - required for lwIP operation */
-		    sys_thread_new("socket_thrd", (void(*)(void*))socket_thread, 0,
+		    sys_thread_new("socket_thrd", (void(*)(void*))socket_thread, thread_param,
 							THREAD_STACKSIZE,
 							DEFAULT_THREAD_PRIO);
 			break;
@@ -177,7 +181,7 @@ int main_net_thread()
 			IP4_ADDR(&(server_netif.gw),  192, 168, 1, 1);
 			print_ip_settings(&(server_netif.ip_addr), &(server_netif.netmask), &(server_netif.gw));
 		    /* start socket thread - required for lwIP operation */
-		    sys_thread_new("socket_thrd", (void(*)(void*))socket_thread, 0,
+		    sys_thread_new("socket_thrd", (void(*)(void*))socket_thread, thread_param,
 							THREAD_STACKSIZE,
 							DEFAULT_THREAD_PRIO);
 			break;
@@ -185,13 +189,15 @@ int main_net_thread()
 	}
 #endif
 
+    xil_printf("MAIN NET thread terminated\r\n");
     vTaskDelete(NULL);
     return 0;
 }
 
-void init_net_server(void (*net_thread)(void *))
+void init_net_server(void (*net_thread)(void *), void *param)
 {
 	socket_thread = net_thread;
+	thread_param = param;
 	if (socket_thread != 0)
 		sys_thread_new("main_net_thrd", (void(*)(void*))main_net_thread, 0,
 						THREAD_STACKSIZE,
