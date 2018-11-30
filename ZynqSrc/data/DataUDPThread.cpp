@@ -107,68 +107,66 @@ void DataUDPThread::run()
 	u8			Error;
 	bool ledOn = false;
 
-	memset(HelloStr, 0, sizeof(HelloStr));
-	strcpy(HelloStr, "UDP packet from Zynq Board\n\r");
-
     print_app_header();
 
     REMOTE_IP_CFG;
 	printf("Remote IP settings: \r\n");
 	print_ip((char*)"Board IP: ", &RemoteAddr);
 
-	/* start the application server */
-	status = create_bind_socket(RemotePort);
+	/* start the receiving application server */
+	//status = create_bind_socket(RemotePort); // Do not receive UDP data yet!
 	if (status != 0){
 		xil_printf("Error in creating and binding UDP receive socket with code: %d\n\r", status);
 		goto ErrorOrDone;
 	}
 
-    SendResults = 1;
     Error = 0;
     counter = 0;
+    running = true;
 
 	/* transmit packets */
-	while (Error==0) {
+	while (Error==0 && running) {
 
 		if (sw.isOn(Switch::SW0)) {
-			//SendResults = 0;
+
+			//printf("%d\r", counter++);
+			ledOn = !ledOn;
+			leds.setOn(Leds::LED0, ledOn);
 
 			// Send out the lxRecord over UDP
 			dataGenerator.GenerateSampleRecord(&lxRecord);
 			psnd = pbuf_alloc(PBUF_TRANSPORT, sizeof(lxRecord), PBUF_REF);
 			psnd->payload = &lxRecord;
 			udpsenderr = udp_sendto(&send_pcb, psnd, &RemoteAddr, RemotePort);
-			//printf("%d\r", counter++);
-			ledOn = !ledOn;
-			leds.setOn(Leds::LED0, ledOn);
-			counter++;
+			pbuf_free(psnd);
 			if (udpsenderr != ERR_OK){
 				xil_printf("UDP Send failed with Error %d\n\r", udpsenderr);
-				SendResults = 0;
-				goto ErrorOrDone;
+				Error = 1;
 			}
-			pbuf_free(psnd);
-		} else
-		{
+			counter++;
+		} else {
 			if (ledOn) {
 				ledOn = false;
 				leds.setOn(Leds::LED0, ledOn);
 			}
 		}
-		//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
-		vTaskDelay( pdMS_TO_TICKS( 1 ) );
+
+		vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
+		//vTaskDelay( pdMS_TO_TICKS( 1 ) );
 	}
 
 	// Jump point for failure
 ErrorOrDone:
-	leds.setOn(Leds::LED0, false);
-	xil_printf("Catastrophic Error! Shutting down and exiting...\n\r");
-	while (1) {
-		// Blinking with led
+	xil_printf("Shutting down and exiting...\n\r");
+
+	while (Error != 0) {
+		// Blinking with led when error
 		ledOn = !ledOn;
 		leds.setOn(Leds::LED0, ledOn);
 		vTaskDelay( pdMS_TO_TICKS( 200 ) );
 	}
+
+	leds.setOn(Leds::LED0, false);
     vTaskDelete(NULL);
 }
 

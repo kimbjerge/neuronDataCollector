@@ -26,9 +26,11 @@ public:
 	DataUDPThread()
 	{
 		 counter = 0;
+		 running = true;
 	}
 
 	virtual void run();
+	void setStreaming(bool run) { running = run; }
 
 private:
 	int create_bind_socket(unsigned port);
@@ -37,10 +39,9 @@ private:
 	Leds leds;
 	Switch sw;
 	int counter;
+	bool running;
 	LRECORD lxRecord;
 	TestDataGenerator dataGenerator;
-	// Global Variables to store results and handle data flow
-	char HelloStr[256];
 };
 
 

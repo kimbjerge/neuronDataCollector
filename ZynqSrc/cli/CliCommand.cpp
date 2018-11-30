@@ -239,7 +239,7 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 			break;
 
 		case 'e': // Stop UDP Stream of neuron samples
-			m_pDataThread->kill();
+			m_pDataThread->setStreaming(false);
 			strcpy(pAnswer, "ok\n");
 			length = 4;
 			break;
