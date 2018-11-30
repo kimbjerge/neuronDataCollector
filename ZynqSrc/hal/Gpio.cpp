@@ -13,12 +13,12 @@ Gpio::Gpio(int deviceID)
 	mChannel = 1;
 }
 
-void Gpio::write(int val)
+void Gpio::writeio(int val)
 {
 	XGpio_DiscreteWrite(&mGpioHandle, mChannel, val);
 }
 
-int Gpio::read(void)
+int Gpio::readio(void)
 {
 	return XGpio_DiscreteRead(&mGpioHandle, mChannel);
 }

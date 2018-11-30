@@ -15,8 +15,8 @@ class Gpio
 {
 public:
 	Gpio(int deviceID);
-	int read(void);
-	void write(int val);
+	int readio(void);
+	void writeio(int val);
 private:
 	XGpio mGpioHandle;
 	int mChannel;

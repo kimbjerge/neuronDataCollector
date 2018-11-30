@@ -11,7 +11,7 @@
 
 #include "Gpio.h"
 
-class Buttons : Gpio
+class Buttons : public Gpio
 {
 public:
 
@@ -27,7 +27,7 @@ public:
 
 	bool isOn(ButtonTypes btn)
 	{
-		int val = read();
+		int val = readio();
 		if (val & btn)
 			return true;
 		else

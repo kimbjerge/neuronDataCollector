@@ -10,16 +10,25 @@
  */
 #include <defsNet.h>
 
+#include "NeuronChannels.h"
+#include "CliCommand.h"
 #include "DataUDPThread.h"
+#include "CliTCPThread.h"
 #include "UserThread.h"
 
+NeuronChannels neuronChannels;
 DataUDPThread dataThread;
+CliCommand    cliCommand(&neuronChannels, &dataThread);
+CliTCPThread  cliThread;
 
 int main()
 {
 	//init_net_server(echo_tcp_thread, 0);
 	//init_net_server(demo_udp_thread, 0);
-	init_net_server(dataThread.threadMapper, &dataThread);
+	//init_net_server(dataThread.threadMapper, &dataThread);
+
+	cliThread.addCommand(&cliCommand);
+	init_net_server(cliThread.threadMapper, &cliThread);
 
 	UserThread mUserThread(Thread::PRIORITY_NORMAL, "UserControlThread");
 

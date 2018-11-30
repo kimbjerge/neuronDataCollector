@@ -10,7 +10,7 @@
 
 #include "Gpio.h"
 
-class Switch : Gpio
+class Switch : public Gpio
 {
 public:
 
@@ -27,12 +27,12 @@ public:
 
 	Switch() : Gpio(XPAR_SWITCH_DEVICE_ID)
 	{
-		mSwitchValues = read();
+		mSwitchValues = readio();
 	};
 
 	bool isOn(SwitchTypes sw)
 	{
-		mSwitchValues = read();
+		mSwitchValues = readio();
 		if (mSwitchValues & sw)
 			return true;
 		else

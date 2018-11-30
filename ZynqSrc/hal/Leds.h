@@ -8,7 +8,7 @@
 #ifndef SRC_HAL_LEDS_H_
 #define SRC_HAL_LEDS_H_
 
-class Leds : Gpio
+class Leds : public Gpio
 {
 public:
 
@@ -27,7 +27,7 @@ public:
 
 	void setOn(LedTypes led, bool on)
 	{
-		int bits = read();
+		int bits = readio();
 
         if (on)
         	bits |= 1 << led;
@@ -35,7 +35,7 @@ public:
         	bits &= ~(1 << led);
         }
 
-		write(bits);
+		writeio(bits);
 	}
 
 };

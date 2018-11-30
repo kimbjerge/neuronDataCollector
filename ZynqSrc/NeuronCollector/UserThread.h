@@ -26,7 +26,7 @@ public:
 	{
 		while (counter > 0) {
 
-			printf("%s - %d\r\n", getName().c_str(), counter--);
+			//printf("%s - %d\r\n", getName().c_str(), counter--);
 			Sleep(1000);
 		}
 	}
