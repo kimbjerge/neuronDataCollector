@@ -65,6 +65,7 @@ void NeuronChannels::setTestMode(int on)
 int NeuronChannels::getTestMode(void)
 {
 	//return XAdc_merge_GetTestmode(&adcLtc2380_);
+	return 0;
 }
 
 void NeuronChannels::enable(int on)
@@ -75,6 +76,7 @@ void NeuronChannels::enable(int on)
 int NeuronChannels::getEnable(void)
 {
 	//return XAdc_merge_GetStart(&adcLtc2380_);
+	return 0;
 }
 
 void NeuronChannels::setAverage(int avg)
