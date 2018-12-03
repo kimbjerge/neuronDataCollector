@@ -12,6 +12,8 @@
 #include "Gpio.h"
 #include "Switch.h"
 
+void TestFileSDCard(void);
+
 #define CMD_DELIMITER    ","
 
 CliCommand::CliCommand(NeuronChannels *pNeuronChannels, DataUDPThread *pDataThread)
@@ -106,6 +108,11 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 					m_pNeuronChannels->enable(value);
 					ok = 1;
 				}
+				break;
+
+			case 'f': //  Enable/disable audio streaming
+				TestFileSDCard();
+				ok = 1;
 				break;
 
 			case 'm': //  Set audio streaming mode
@@ -298,6 +305,9 @@ int CliCommand::printCommands(void)
 	sprintf(string, "s,e,<start 1|0> enable sampling audio\n\r");
 	strcat(commandsText, string);
 	sprintf(string, "g,e read audio enable sampling\n\r");
+	strcat(commandsText, string);
+
+	sprintf(string, "s,f test writing and reading file on SD card\n\r");
 	strcat(commandsText, string);
 
 	sprintf(string, "s,m,<mode 0|1> set audio test mode\n\r");
