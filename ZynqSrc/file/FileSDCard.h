@@ -15,17 +15,17 @@ class FileSDCard
 {
 public:
 
-	FileSDCard(char* name)
+	FileSDCard(char* path)
 	{
-		strcpy(pathName, "0:/");
-		strcpy(fileName, name);
+		strcpy(pathName, path);
+		strcpy(fileName, "");
 	}
 
-	int mount(bool remount); // Mount SD card to FAT file system
+	int mount(bool remount=false); // Mount SD card to FAT file system
 
-    int open(BYTE mode); // mode = FA_OPEN_EXISTING | FA_CREATE_ALWAYS | FA_WRITE | FA_READ - see ff.h
-    int read(void *buffer, int size, bool fromStart); // Default read from start of file (fromStart=true)
-    int write(const void* buffer, int size, bool append); // Default write to start of file (append=true)
+    int open(char *name, BYTE mode); // mode = FA_OPEN_EXISTING | FA_CREATE_ALWAYS | FA_WRITE | FA_READ - see ff.h
+    int read(void *buffer, int size, bool fromStart=true); // Default read from start of file (fromStart=true)
+    int write(const void* buffer, int size, bool append=false); // Default write to start of file (append=false)
     int close();
 
 	static bool m_mounted;

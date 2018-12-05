@@ -15,28 +15,28 @@ static char readText[256];
 void TestFileSDCard(void)
 {
 	int result;
-	FileSDCard file((char*)"README.txt");
+	FileSDCard file((char*)"0:/");
 
-	result = file.mount(true);
+	result = file.mount();
 	if (result != XST_SUCCESS) printf("Failed to mount SD card\r\n");
 
 	// Create a new file if doesn't exist
-	result = file.open(FA_CREATE_ALWAYS | FA_WRITE);
+	result = file.open((char*)"README.txt", FA_CREATE_ALWAYS | FA_WRITE);
 	if (result != XST_SUCCESS) printf("Failed open file for writing\r\n");
 
 	// Write to start of file
-	result = file.write((void *)writeText, sizeof(writeText), false);
+	result = file.write((void *)writeText, sizeof(writeText));
 	if (result != XST_SUCCESS) printf("Failed writing to file\r\n");
 
 	result = file.close();
 	if (result != XST_SUCCESS) printf("Failed closing file\r\n");
 
 	// Open created test file
-	result = file.open(FA_OPEN_EXISTING | FA_READ);
+	result = file.open((char*)"README.txt", FA_OPEN_EXISTING | FA_READ);
 	if (result != XST_SUCCESS) printf("Failed open file for reading\r\n");
 
 	// Read contents of test file
-	result = file.read((void *)readText, sizeof(readText), true);
+	result = file.read((void *)readText, sizeof(readText));
 	if (result != XST_SUCCESS) printf("Failed reading from file\r\n");
 
 	printf(readText);

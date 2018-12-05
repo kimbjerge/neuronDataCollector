@@ -23,12 +23,13 @@ int FileSDCard::mount(bool remount)
 	return XST_SUCCESS;
 }
 
-int FileSDCard::open(BYTE mode)
+int FileSDCard::open(char *name, BYTE mode)
 {
 	FRESULT Res;
 	if (!m_mounted) {
 		return XST_FAILURE;
 	}
+	strcpy(fileName, name);
 
 	Res = f_open(&m_fil, fileName, mode);
 	if (Res) {
