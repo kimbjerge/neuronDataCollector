@@ -177,7 +177,11 @@ void vSetup_HPP_GPIO()
 		logic_status = logic_status & 0x00000007;
 		xil_printf(".");
 		usleep(250000);
+#ifdef ZEDBOARD_DEBUG // Inserted for debugging on ZedBoard
+	}while(logic_status != 0);
+#else
 	}while(logic_status != 7);
+#endif
 
 	xil_printf("\n\r");
 

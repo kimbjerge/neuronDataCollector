@@ -96,7 +96,10 @@ unsigned int XUartPs_SendBuffer( XUartPs *InstancePtr );
 }
 
 //KBE???
-//#define XPAR_PS7_UART_0_BASEADDR 	XPAR_PS7_UART_1_BASEADDR
+#ifdef ZEDBOARD_DEBUG
+#define XPAR_PS7_UART_0_BASEADDR 	XPAR_PS7_UART_1_BASEADDR
+#endif
+
 /* The UART interrupts of interest when receiving. */
 #define serRECEIVE_INTERRUPT_MASK	( XUARTPS_IXR_RXOVR | XUARTPS_IXR_RXFULL | XUARTPS_IXR_TOUT )
 

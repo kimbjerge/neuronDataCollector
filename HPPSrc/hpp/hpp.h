@@ -32,15 +32,36 @@
 #define ALL_LOW 				0x00000000
 #define ALL_HIGH 				0xFFFFFFFF
 
+
+#ifdef ZEDBOARD_DEBUG
+
+// Define virtual HPP address space in RAM 1 memory
+#define HPP_DATA_ADDR 			0xFFFF0000
+#define HPP_DATA_ADDR_HIGH		0xFFFFFDF0
+
+#define CHEETAH_CMD_ADDR 			0xFFFF0000
+#define XPAR_ANALOG_M_AXI_BASEADDR 	0xFFFF0000
+
+#define FILE_EXE_ADDR			0xFFFF0400
+#define FILE_BASE_ADDR			0xFFFF0000
+#define FILE_TRANSFER_ADDR		0xFFFF0400
+#define FILE_STORAGE_BASE_ADDR	0xFFFF0000
+#define FILE_HIGH_ADDR			0xFFFF0000
+#define BIT_EXE_ADDR			0xFFFF0000
+
+#define CHEETAH_ACK_ADDR 		0xFFFFF000
+#define CHEETAH_ACK_ADDR_HIGH	0xFFFFFBFF
+
+#define PL_INTERRUPTS_ADDR		0xFFFFE000
+
+#else
+
 #define HPP_DATA_ADDR 			0x30000000
 #define HPP_DATA_ADDR_HIGH		0x3FFFFFFF
 
 //May need to update ASCII command interface depending on size of transfers... (STM 23June14)
 //Address 0x43C00000
 #define CHEETAH_CMD_ADDR 		XPAR_ASCII_M_AXI_BASEADDR
-//#define CHEETAH_CMD_ADDR 		0x1F000000 // Use DDR memory instead KBE???
-//#define XPAR_ANALOG_M_AXI_BASEADDR 0x1F00000 // Use DDR memory instead KBE???
-
 
 #define FILE_EXE_ADDR			0x20000400
 #define FILE_BASE_ADDR			0x20000000
@@ -53,6 +74,8 @@
 #define CHEETAH_ACK_ADDR_HIGH	0x2FFFFBFF
 
 #define PL_INTERRUPTS_ADDR		0x2FFFE000
+
+#endif
 
 #define HPPSTX 					0x00000800
 #define HPPPID 					0x00000001
