@@ -137,10 +137,10 @@ void CliTCPThread::run()
 
 	while (1) {
 		if ((new_sd = lwip_accept(sock, (struct sockaddr *)&remote, (socklen_t *)&size)) > 0) {
-			sys_thread_new("echos", process_echo_request,
+			sys_thread_new("CliTCPThread", process_echo_request,
 				(void*)new_sd,
 				THREAD_STACKSIZE,
-				DEFAULT_THREAD_PRIO);
+				TCPIP_THREAD_PRIO);
 		}
 	}
 }

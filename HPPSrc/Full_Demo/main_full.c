@@ -151,7 +151,8 @@
 
 // The stack size and priority used by the UART command console task.
 #define mainUART_COMMAND_CONSOLE_STACK_SIZE	(uint16_t)50000
-#define mainUART_COMMAND_CONSOLE_TASK_PRIORITY	( configMAX_PRIORITIES - 2 )
+// KBE??? changed
+#define mainUART_COMMAND_CONSOLE_TASK_PRIORITY	( 2 )
 
 /* KBE???
 // Priorities for the demo application tasks.
