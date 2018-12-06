@@ -38,6 +38,8 @@
 //May need to update ASCII command interface depending on size of transfers... (STM 23June14)
 //Address 0x43C00000
 #define CHEETAH_CMD_ADDR 		XPAR_ASCII_M_AXI_BASEADDR
+//#define CHEETAH_CMD_ADDR 		0x1F000000 // Use DDR memory instead KBE???
+//#define XPAR_ANALOG_M_AXI_BASEADDR 0x1F00000 // Use DDR memory instead KBE???
 
 
 #define FILE_EXE_ADDR			0x20000400
