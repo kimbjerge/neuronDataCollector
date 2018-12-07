@@ -17,10 +17,7 @@ TestDataGenerator::TestDataGenerator()
 	const double fs = 30000;
 	const double fc = FC;
 	m_omega = 2 * 3.14159265359 * fc / fs; 
-	m_generatePulse = true;
-	m_n = 0;
 }
-
 
 TestDataGenerator::~TestDataGenerator()
 {
@@ -33,15 +30,6 @@ int32_t TestDataGenerator::GenSine(int channel)
 	return int32_t(round(sample));
 }
 
-// Computes and verifies checksum of record
-void TestDataGenerator::AddCheckSum(LRECORD *pLxRecord)
-{
-	uint32_t *pStart = (uint32_t *)pLxRecord;
-	uint32_t checksum = 0;
-	for (int i = 0; i < (int)(sizeof(LxRecord)/sizeof(uint32_t))-1; i++)
-		checksum = checksum ^ pStart[i];
-	pLxRecord->checksum = checksum;
-}
 void TestDataGenerator::GenerateSampleRecord(LRECORD *pLxRecord)
 {
 	pLxRecord->header.packetId = 1;

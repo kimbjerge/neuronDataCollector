@@ -134,7 +134,7 @@ void DataUDPThread::run()
 			leds.setOn(Leds::LED0, ledOn);
 
 			// Send out the lxRecord over UDP
-			dataGenerator.GenerateSampleRecord(&lxRecord);
+			pNeuronData->GenerateSampleRecord(&lxRecord);
 			psnd = pbuf_alloc(PBUF_TRANSPORT, sizeof(lxRecord), PBUF_REF);
 			psnd->payload = &lxRecord;
 			udpsenderr = udp_sendto(&send_pcb, psnd, &RemoteAddr, RemotePort);

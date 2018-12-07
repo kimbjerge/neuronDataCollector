@@ -253,7 +253,7 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 
 		case '?':
 			length = printCommands();
-			printf(commandsText);
+			//printf(commandsText);
 			strcpy(pAnswer, commandsText);
 			break;
 	}

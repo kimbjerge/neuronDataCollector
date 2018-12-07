@@ -4,6 +4,7 @@
  *  Created on: 2. dec. 2018
  *      Author: Kim Bjerge
  */
+#include "stdio.h"
 #include "FileSDCard.h"
 
 static FATFS m_fatfs;
@@ -57,6 +58,7 @@ int FileSDCard::read(void *buffer, int size, bool fromStart)
 	if (Res) {
 		return XST_FAILURE;
 	}
+	printf("%d number of bytes read\r\n", NumBytesRead);
 	return XST_SUCCESS;
 }
 

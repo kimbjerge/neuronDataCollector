@@ -11,7 +11,7 @@
 #include "Thread.h"
 using namespace AbstractOS;
 #include "LynxRecord.h"
-#include "TestDataGenerator.h"
+#include "NeuronData.h"
 #include "Gpio.h"
 #include "Leds.h"
 #include "Switch.h"
@@ -23,10 +23,11 @@ class DataUDPThread : public Thread
 {
 public:
 
-	DataUDPThread()
+	DataUDPThread(NeuronData *neuronData)
 	{
 		 counter = 0;
 		 running = true;
+		 pNeuronData = neuronData;
 	}
 
 	virtual void run();
@@ -41,7 +42,7 @@ private:
 	int counter;
 	bool running;
 	LRECORD lxRecord;
-	TestDataGenerator dataGenerator;
+	NeuronData *pNeuronData;
 };
 
 

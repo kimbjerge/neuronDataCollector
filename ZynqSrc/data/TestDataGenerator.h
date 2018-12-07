@@ -5,31 +5,24 @@
 //  Original author: Kim Bjerge
 ///////////////////////////////////////////////////////////
 
-#if !defined(EA_6A44561D_E653_418c_AA0E_EB74C9963716__INCLUDED_)
-#define EA_6A44561D_E653_418c_AA0E_EB74C9963716__INCLUDED_
+#if !defined(TESTDATAGENERATOR_INCLUDED_)
+#define TESTDATAGENERATOR_INCLUDED_
 
-#include "LxRecord.h"
+#include "NeuronData.h"
 
-class TestDataGenerator
+class TestDataGenerator : public NeuronData
 {
 
 public:
 	TestDataGenerator();
 	virtual ~TestDataGenerator();
 
-	void SetPulseActive(bool generate) {
-		m_generatePulse = generate;
-	}
-
 	virtual void GenerateSampleRecord(LRECORD *pLxRecord);
 
 protected:
 	int32_t GenSine(int channel);
-	void AddCheckSum(LRECORD *pLxRecord);
 
-	bool m_generatePulse;
 	double m_omega;
-	int m_n;
 };
 
-#endif // !defined(EA_6A44561D_E653_418c_AA0E_EB74C9963716__INCLUDED_)
+#endif // !defined(TESTDATAGENERATOR_INCLUDED_)
