@@ -167,8 +167,12 @@ static void prvUARTCommandConsoleTask( void *pvParameters )
 		{
 			// Receive input characters
 			value = inbyte();
+			if (value == 127) { // Backspace
+				if (idx > 0) idx = idx - 1;
+			} else {
+				cInputString[idx++] = value;
+			}
 			outbyte(value);
-			cInputString[idx++] = value;
 		} while (value != '\r'); // Terminate when CR received
 		cInputString[--idx] = 0;
 

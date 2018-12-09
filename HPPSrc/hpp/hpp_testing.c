@@ -1542,7 +1542,7 @@ void vTestDemoApps(void)
 		params.templates[i] = 0;
 	}
 
-	xReturn = xTaskCreate(vSpikeDetect, "vSpikeDetect", (uint16_t)50000, (void *)&params, 5, NULL);
+	xReturn = xTaskCreate(vSpikeDetect, "vSpikeDetect", (uint16_t)50000, (void *)&params, TASK_PRIORITY, NULL);
 	xil_printf("vSpikeDetect created with return value of %d\n\r", xReturn);
 
 	//xReturn = xTaskCreate(vTimeStampCheck, "vTimeStampCheck", (uint16_t)50000, NULL, 3, NULL);

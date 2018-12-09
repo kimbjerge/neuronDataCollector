@@ -1045,7 +1045,7 @@ void vExperimentControl(void *parameters)
 		pulse_params.portnum = portnum;
 		pulse_params.high_time_ms = pulse_high;
 		pulse_params.low_time_ms = pulse_low;
-		xTaskCreate(vPulseTrain, "PulseTrain", 5000, NULL, configMAX_PRIORITIES-1, NULL);
+		xTaskCreate(vPulseTrain, "PulseTrain", 5000, NULL, TASK_PRIORITY, NULL); // KBE???
 	}
 
 	pulse_high = params[0].high_time_ms;
@@ -1306,7 +1306,7 @@ portBASE_TYPE Start_Spike_Detect(char *pcWriteBuffer, size_t xWriteBufferLen, co
 			params.templates[i] = 0;
 		}
 
-		xReturn = xTaskCreate(vSpikeDetect, "vSpikeDetect", (uint16_t)50000, (void *)&params, 5, &xSpike_Detect_Handle);
+		xReturn = xTaskCreate(vSpikeDetect, "vSpikeDetect", (uint16_t)50000, (void *)&params, TASK_PRIORITY, &xSpike_Detect_Handle);
 		sprintf(pcWriteBuffer,"\n\rvSpikeDetect created with return value of %d\n\r", (int)xReturn);
 	}
 	return pdFALSE; //No more lines for the command line to be generated
@@ -1450,7 +1450,7 @@ portBASE_TYPE Start_Ensemble_Detect(char *pcWriteBuffer, size_t xWriteBufferLen,
 			params.templates[i] = 0;
 		}
 
-		xReturn = xTaskCreate(vNeuralEnsembles, "vNeuralEnsembles", (uint16_t)65535, (void *)&params, 5, &xEnsemble_Detect_Handle);
+		xReturn = xTaskCreate(vNeuralEnsembles, "vNeuralEnsembles", (uint16_t)65535, (void *)&params, TASK_PRIORITY, &xEnsemble_Detect_Handle);
 		sprintf(pcWriteBuffer,"vNeuralEnsembles created with return value of %d\n\r", (int)xReturn);
 	}
 	return pdFALSE; //No more lines for the command line to be generated
@@ -1507,7 +1507,7 @@ portBASE_TYPE Start_Burst_Analysis(char *pcWriteBuffer, size_t xWriteBufferLen, 
 			params.ch_to_match[i] = i;
 		}
 
-		xReturn = xTaskCreate(vBurstAnalysis, "vBurstAnalysis", (uint16_t)65535, (void *)&params, 5, (void**)xBurst_Analysis_Handle);
+		xReturn = xTaskCreate(vBurstAnalysis, "vBurstAnalysis", (uint16_t)65535, (void *)&params, TASK_PRIORITY, (void**)xBurst_Analysis_Handle);
 		sprintf(pcWriteBuffer,"vBurstAnalysis created with return value of %d\n\r", (int)xReturn);
 	}
 	return pdFALSE; //No more lines for the command line to be generated

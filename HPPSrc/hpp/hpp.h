@@ -31,7 +31,7 @@
 #define DIR_OUTPUT 				0xffffffff
 #define ALL_LOW 				0x00000000
 #define ALL_HIGH 				0xFFFFFFFF
-
+#define TASK_PRIORITY           2  // KBE??? change from 5 to 2
 
 #ifdef ZEDBOARD_DEBUG
 

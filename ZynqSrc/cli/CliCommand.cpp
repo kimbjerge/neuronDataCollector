@@ -240,7 +240,8 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 			break;
 
 		case 'b': // Start UDP stream of neuron samples
-			m_pDataThread->runThread(Thread::PRIORITY_NORMAL, "DataUDPThread");
+			//m_pDataThread->runThread(Thread::PRIORITY_NORMAL, "DataUDPThread"); //KBE?? not blocking priority
+			m_pDataThread->runThread(Thread::PRIORITY_ABOVE_NORMAL, "DataUDPThread");
 			strcpy(pAnswer, "ok\n");
 			length = 4;
 			break;

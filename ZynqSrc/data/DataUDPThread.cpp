@@ -149,6 +149,7 @@ void DataUDPThread::run()
 				ledOn = false;
 				leds.setOn(Leds::LED0, ledOn);
 			}
+			vTaskDelay( pdMS_TO_TICKS( 100 ) );
 		}
 
 		vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );

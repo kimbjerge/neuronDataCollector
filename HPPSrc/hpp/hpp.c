@@ -162,7 +162,7 @@ void vSetupHPP(void)
 	vSetup_HPP_GPIO();
 
 
-	xReturn = xTaskCreate(vFile_System_Task, "vFile_System_Task", (uint16_t)65535, NULL, 5, NULL);
+	xReturn = xTaskCreate(vFile_System_Task, "vFile_System_Task", (uint16_t)65535, NULL, TASK_PRIORITY, NULL); //KBE??? priority change from 5 to 2
 	xil_printf("vFile_System_Task created with return value of %d\n\r", xReturn);
 }
 
