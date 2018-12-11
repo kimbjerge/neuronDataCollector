@@ -671,6 +671,7 @@ void vPrintTimeStamp()
 {
 	u32 cur_index = 0;
 	cur_index = (num_data_buffers_loaded - 1) & AVAILABLE_BUFFERS_MASK;
+	xil_printf("Num data buffers loaded %d\n\r", num_data_buffers_loaded);
 	xil_printf("\n\rCurrent TimeStamp = 0x%x%x", HPP_Data[cur_index].TimeStamp_High, HPP_Data[cur_index].TimeStamp_Low);
 }
 

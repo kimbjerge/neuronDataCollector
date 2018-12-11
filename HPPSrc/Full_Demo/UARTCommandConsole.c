@@ -149,19 +149,25 @@ static void prvUARTCommandConsoleTask( void *pvParameters )
 
 	while (1) {
 
+		outbyte('>');
+		outbyte(' ');
+
 		/* Tested with HPP
 		value= getc(stdin);
 		idx = 0;
 		while (value > 0x19)
 		{   // Echo the character back.
 			putc(value, stdout);
-			cInputString[idx++] = value;
+			if (value == 127) { // Backspace
+				if (idx > 0) idx = idx - 1;
+			} else {
+				cInputString[idx++] = value;
+			}
 			value = getc(stdin);
 		}
 		cInputString[idx] = 0;
 		*/
-		outbyte('>');
-		outbyte(' ');
+
 		idx = 0;
 		do
 		{
