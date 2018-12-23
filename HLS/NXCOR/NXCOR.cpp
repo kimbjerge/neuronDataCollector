@@ -5,6 +5,7 @@
 //  Original author: Kim Bjerge
 ///////////////////////////////////////////////////////////
 
+//#include <systemc.h>
 #include "NXCOR.h"
 
 /*----------------------------------------------------------------------------*/
@@ -64,6 +65,8 @@ void NXCOR(T *result, T *varSig,
 {
 	int64_t xcorr;     // Cross correlation between template and pixel area
 	int64_t varSignal; // Variance signal buffer
+	//sc_int<48> xcorr;     // Cross correlation between template and pixel area
+	//sc_int<48> varSignal; // Variance signal buffer
 	int32_t avgSignal; // Average signal buffer
 	uint16_t i, j;
 

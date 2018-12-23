@@ -1,4 +1,5 @@
 #include "FIRFilter.h"
+#include <systemc.h>
 
 static int32_t bn[NUM_TAPS];
 static int32_t xn[DATA_CHANNELS*NUM_TAPS];
@@ -8,7 +9,7 @@ void initFIR(void) {
 
 	for (int16_t ch = 0; ch < DATA_CHANNELS; ch++)
 		for (int16_t i = 0; i < NUM_TAPS;  i++)
-			xn[i + DATA_CHANNELS*ch] = INIT_VALUE;
+			xn[i + NUM_TAPS*ch] = INIT_VALUE;
 }
 
 /**
@@ -22,24 +23,26 @@ void initFIR(void) {
 */
 int32_t fir(int32_t sample, int16_t channel)
 {
-	int32_t yn;
+	sc_int<48> yn;
+	int32_t result;
 	int16_t i;
 
 	// Shift delay line
 	fir_label1:for (i = NUM_TAPS-1; i > 0; i--)
-		xn[i + DATA_CHANNELS*channel] = xn[i-1 + DATA_CHANNELS*channel];
+		xn[i + NUM_TAPS*channel] = xn[i-1 + NUM_TAPS*channel];
 
 	// Insert new sample
-	xn[DATA_CHANNELS*channel] = sample;
+	xn[NUM_TAPS*channel] = sample;
 
 	// Perform filtering
 	yn = 0;
 	fir_label2:for (i = 0; i < NUM_TAPS; i++)
-		yn += bn[i]*xn[i + DATA_CHANNELS*channel];
+		yn += bn[i]*xn[i + NUM_TAPS*channel];
 
 	// Scale filter result and return
-	yn >>= ALGO_BITS;
-	return yn;
+	result = yn >> (ALGO_BITS-1);
+	//printf("%d, %d\r\n", channel, result);
+	return result;
 }
 
 /**
