@@ -11,7 +11,7 @@ void FirFilter::updateCoefficients(int *coefficients)
 {
 	while (XFirfilter_IsReady(&mFirfilter) == 0); // Polling ready register
 	XFirfilter_Set_operation(&mFirfilter, 0); // Set operation to update coefficients
-	XFirfilter_Write_samples_Words(&mFirfilter, 0, coefficients, mNumTaps);
+	XFirfilter_Write_coeff_Words(&mFirfilter, 0, coefficients, mNumTaps);
 	XFirfilter_Start(&mFirfilter);
 	while (XFirfilter_IsDone(&mFirfilter) == 0); // Polling done register
 	XFirfilter_Set_operation(&mFirfilter, 1); // Set operation back to filtering

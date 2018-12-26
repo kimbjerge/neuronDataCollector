@@ -34,7 +34,7 @@ private:
 	volatile int mResultAvailHlsNXCOR;
 	int mLength;
 	int mWidth;
-	float mVarianceTemplate; // TODO calculate variance of template
+	float mVarianceTemplate;
 	float mResult;
 	float mVarianceSignal;
 

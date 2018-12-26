@@ -10,8 +10,24 @@
 #include "xparameters.h"
 #include "FIRFilter_coeffs.h"
 
-int TemplateMatch::Init(string *pTempNames[TEMP_NUM], IRQ* pIrq)
+TemplateMatch::~TemplateMatch()
 {
+	if (mNumSamples > 0) {
+		for (int i = 0; i < FIR_NUM; i++) {
+			delete(pFirFilter[i]);
+		}
+		for (int i = 0; i < TEMP_NUM; i++) {
+			delete(pNXCOR[i]);
+			delete(pTemplate[i]);
+			delete(pResultNXCOR[i]);
+		}
+		delete(pResultFIR);
+	}
+}
+
+int TemplateMatch::Init(string *pTempNames[TEMP_NUM], int numSamples, IRQ* pIrq)
+{
+
 	for (int i = 0; i < FIR_NUM; i++) {
 		pFirFilter[i] = new FirFilter(XPAR_FIRFILTER_0_DEVICE_ID+i, FIR_SIZE, FIR_TAPS);
 		pFirFilter[i]->Init(pIrq, XPAR_FABRIC_FIRFILTER_0_INTERRUPT_INTR+i);
@@ -22,7 +38,13 @@ int TemplateMatch::Init(string *pTempNames[TEMP_NUM], IRQ* pIrq)
 		pTemplate[i] = new Template();
 		// Load template from file defined by pTempNames
 		pTemplate[i]->loadTemplate(*pTempNames[i]);
+		pResultNXCOR[i] = new ResultFile<float>();
+		pResultNXCOR[i]->allocateContent(numSamples);
 	}
+	pResultFIR = new ResultFile<int>();
+	pResultFIR->allocateContent(numSamples*NUM_CHANNELS);
+	mNumSamples = numSamples;
+
 	return 0;
 }
 
@@ -30,7 +52,7 @@ int TemplateMatch::updateCoefficients()
 {
 	// Updating coefficients based on table with double numbers
 	for (int i = 0; i < FIR_TAPS; i++) {
-		mCoeff[i] = (int)round(FIR_coeffs[i]*pow(2,15)); // Convert to format 1.15
+		mCoeff[i] = (int)round(FIR_coeffs[i]*pow(2,FIR_FORMAT)); // Convert to format 1.FIR_FORMAT
 	}
 	for (int i = 0; i < FIR_NUM; i++) {
 		pFirFilter[i]->updateCoefficients(mCoeff);
@@ -57,13 +79,14 @@ void TemplateMatch::processResults(void) {
 
 void TemplateMatch::run()
 {
+	int count = mNumSamples;
     bool firstTime = true;
     int *pSampleData = (int *)lxRecord.board[0].data;
 
     updateCoefficients();
     updateTemplates();
 
-	while (1) {
+	while (count > 0) {
 
 		// Get next sample from data generator
 		pNeuronData->GenerateSampleRecord(&lxRecord);
@@ -90,11 +113,25 @@ void TemplateMatch::run()
 
 		processResults();
 
+		// Append test result to memory
+		pResultFIR->appendData(mFiltered, NUM_CHANNELS);
+		for (int i = 0; i < TEMP_NUM; i++) {
+			pResultNXCOR[i]->appendData(&mNXCORRes[i], 1);
+		}
+
 		// Wait for one sample delay
 		vTaskDelay( pdMS_TO_TICKS( 100 ) );
 		//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
 
 		firstTime = false;
+		count--;
 	}
+
+	printf("Neuron template matching completed on %d samples\r\n", mNumSamples);
+	// Save test result from memory to files
+	pResultFIR->saveContent("FIRFiltered.bin");
+	pResultNXCOR[0]->saveContent("NXCORTemp1.bin");
+	pResultNXCOR[1]->saveContent("NXCORTemp2.bin");
+	printf("Saved result to files FIRFiltered.bin, NXCORTemp1.bin and NXCORTemp2.bin\r\n");
 }
 
