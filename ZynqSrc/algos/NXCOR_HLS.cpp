@@ -8,12 +8,11 @@
 #include "NXCOR_HLS.h"
 #include <math.h>
 
-void NXCOR::updateTemplate(int *temp)
+void NXCOR::updateTemplate(int *temp, int avgTemp)
 {
 	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
 	XNxcor_Write_templateData_Words(&mNXCOR, 0, temp, mLength*mWidth);
-	XNxcor_Start(&mNXCOR);
-	while (XNxcor_IsDone(&mNXCOR) == 0); // Polling done register
+	XNxcor_Set_avgTemp(&mNXCOR, avgTemp);
 }
 
 void NXCOR::startNXCOR(int *samples)
@@ -25,7 +24,7 @@ void NXCOR::startNXCOR(int *samples)
 	XNxcor_Start(&mNXCOR);
 }
 
-float NXCOR::readResultNXCOR(void)
+float NXCOR::readResultNXCOR(float varTemplate)
 {
 	u64 u64Result, u64Variance;
 	float result;
@@ -39,6 +38,7 @@ float NXCOR::readResultNXCOR(void)
 	u64Variance = XNxcor_Get_varSig(&mNXCOR);
 	mResult = u64Result;
 	mVarianceSignal = u64Variance;
+	mVarianceTemplate = varTemplate;
 	result = mResult / sqrt(mVarianceSignal * mVarianceTemplate);
     return result;
 }

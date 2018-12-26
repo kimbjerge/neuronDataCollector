@@ -23,9 +23,9 @@ public:
 	void Disable(void);
 	void Enable(void);
 
-	void updateTemplate(int *temp);
+	void updateTemplate(int *temp, int avgTemp);
 	void startNXCOR(int *samples);
-	float readResultNXCOR(void);
+	float readResultNXCOR(float varTemplate);
 
 private:
 	static void hls_NXCOR_isr(void *InstancePtr);

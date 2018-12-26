@@ -1,15 +1,16 @@
 /*
- * FirHLS.cpp
+ * TemplateMatch.cpp
  *
- *  Created on: 16. aug. 2017
+ *  Created on: 25. dec. 2018
  *      Author: Kim Bjerge
  */
 
+#include <math.h>
 #include "TemplateMatch.h"
 #include "xparameters.h"
+#include "FIRFilter_coeffs.h"
 
-
-int TemplateMatch::Init(IRQ* pIrq)
+int TemplateMatch::Init(string *pTempNames[TEMP_NUM], IRQ* pIrq)
 {
 	for (int i = 0; i < FIR_NUM; i++) {
 		pFirFilter[i] = new FirFilter(XPAR_FIRFILTER_0_DEVICE_ID+i, FIR_SIZE, FIR_TAPS);
@@ -18,34 +19,40 @@ int TemplateMatch::Init(IRQ* pIrq)
 	for (int i = 0; i < TEMP_NUM; i++) {
 		pNXCOR[i] = new NXCOR(XPAR_NXCOR_0_DEVICE_ID+i, TEMP_LENGTH, TEMP_WIDTH);
 		pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_0_INTERRUPT_INTR+i);
+		pTemplate[i] = new Template();
+		// Load template from file defined by pTempNames
+		pTemplate[i]->loadTemplate(*pTempNames[i]);
 	}
 	return 0;
 }
 
 int TemplateMatch::updateCoefficients()
 {
-	// TODO implement setting coefficients
+	// Updating coefficients based on table with double numbers
+	for (int i = 0; i < FIR_TAPS; i++) {
+		mCoeff[i] = (int)round(FIR_coeffs[i]*pow(2,15)); // Convert to format 1.15
+	}
 	for (int i = 0; i < FIR_NUM; i++) {
 		pFirFilter[i]->updateCoefficients(mCoeff);
 	}
 	for (int i = 0; i < NUM_CHANNELS; i++)
 		mFiltered[i] = 0;
-
 	return 0;
 }
 
 int TemplateMatch::updateTemplates()
 {
-	// TODO implement updating of templates
+	// Update template in HLS IP core
 	for (int i = 0; i < TEMP_NUM; i++) {
-		pNXCOR[i]->updateTemplate((int *)&mTemplates[i*TEMP_SIZE]);
+		pNXCOR[i]->updateTemplate(pTemplate[i]->getTemplate(), pTemplate[i]->getMean());
 	}
 	return 0;
 }
 
 void TemplateMatch::processResults(void) {
 	// TODO implement threshold selection
-
+	printf("NXCOR template1 %f\r\n", mNXCORRes[0]);
+	printf("NXCOR template2 %f\r\n", mNXCORRes[1]);
 }
 
 void TemplateMatch::run()
@@ -68,7 +75,7 @@ void TemplateMatch::run()
 			}
 			// Read result of normalized cross core correlation
 			for (int i = 0; i < TEMP_NUM; i++) {
-				mNXCORRes[i] = pNXCOR[i]->readResultNXCOR();
+				mNXCORRes[i] = pNXCOR[i]->readResultNXCOR(pTemplate[i]->getVariance());
 			}
 		}
 
@@ -78,7 +85,7 @@ void TemplateMatch::run()
 		}
 		// Start normalized cross core correlation of filtered samples
 		for (int i = 0; i < TEMP_NUM; i++) {
-			pNXCOR[i]->startNXCOR((int *)&mFiltered[i]);
+			pNXCOR[i]->startNXCOR((int *)&mFiltered[i+pTemplate[i]->getChOffset()]);
 		}
 
 		processResults();
