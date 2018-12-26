@@ -73,8 +73,8 @@ int TemplateMatch::updateTemplates()
 
 void TemplateMatch::processResults(void) {
 	// TODO implement threshold selection
-	printf("NXCOR template1 %f\r\n", mNXCORRes[0]);
-	printf("NXCOR template2 %f\r\n", mNXCORRes[1]);
+	//printf("NXCOR template1 %f\r\n", mNXCORRes[0]);
+	//printf("NXCOR template2 %f\r\n", mNXCORRes[1]);
 }
 
 void TemplateMatch::run()
@@ -83,8 +83,10 @@ void TemplateMatch::run()
     bool firstTime = true;
     int *pSampleData = (int *)lxRecord.board[0].data;
 
+	printf("Updating FIR coefficients and template 1+2\r\n");
     updateCoefficients();
     updateTemplates();
+	printf("Neuron template matching running\r\n");
 
 	while (count > 0) {
 
@@ -120,7 +122,8 @@ void TemplateMatch::run()
 		}
 
 		// Wait for one sample delay
-		vTaskDelay( pdMS_TO_TICKS( 100 ) );
+		printf(".");
+		vTaskDelay( pdMS_TO_TICKS( 1 ) );
 		//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
 
 		firstTime = false;
@@ -129,9 +132,9 @@ void TemplateMatch::run()
 
 	printf("Neuron template matching completed on %d samples\r\n", mNumSamples);
 	// Save test result from memory to files
-	pResultFIR->saveContent("FIRFiltered.bin");
-	pResultNXCOR[0]->saveContent("NXCORTemp1.bin");
-	pResultNXCOR[1]->saveContent("NXCORTemp2.bin");
-	printf("Saved result to files FIRFiltered.bin, NXCORTemp1.bin and NXCORTemp2.bin\r\n");
+	pResultFIR->saveContent("FIRFilt.bin");
+	pResultNXCOR[0]->saveContent("NXCORT1.bin");
+	pResultNXCOR[1]->saveContent("NXCORT2.bin");
+	printf("Saved result to files FIRFilt.bin, NXCORT1.bin and NXCORT2.bin\r\n");
 }
 

@@ -35,9 +35,10 @@ template <class T>
 int ResultFile<T>::allocateContent(int size)
 {
 	mFileContent = (T*)malloc(size*sizeof(T));
-	if (mFileContent)
+	if (mFileContent) {
+		mContentSize = size;
 		return 0;
-	else {
+	} else {
 		printf("Failed to allocate content of size %d for test file\r\n", size);
 		return -1;
 	}
@@ -60,9 +61,12 @@ int ResultFile<T>::saveContent(string name)
 {
 	int result;
 
+	result = m_file.mount();
+	if (result != XST_SUCCESS) printf("Failed to mount SD card\r\n");
+
 	// Update template from file and compute variance and mean
 	result = m_file.open((char *)name.c_str(), FA_CREATE_ALWAYS | FA_WRITE);
-	if (result != XST_SUCCESS) printf("Failed open file %s for reading\r\n", name.c_str());
+	if (result != XST_SUCCESS) printf("Failed open file %s for writing\r\n", name.c_str());
 
 	result = m_file.write((void *)mFileContent, mIdxWrite*sizeof(T));
 	if (result != XST_SUCCESS) printf("Failed writing to file %s\r\n", name.c_str());

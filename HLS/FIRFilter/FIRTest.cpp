@@ -11,7 +11,9 @@ void setCoeff(int32_t *coeff)
 	initFIR();
 
 	for (i = 0; i < NUM_TAPS; i++) {
-		coeff[i] = i*100;
+		coeff[i] = (i*1000) << (ALGO_BITS-15); // Samples is 1.15 format
+		//coeff[i] = -8388608+i-NUM_TAPS;
+		//coeff[i] = 1048000+i-NUM_TAPS;
 	}
 
 	FIRFilter(NULL,
@@ -43,7 +45,7 @@ int main ()
   int i;
   for (i=0; i<SAMPLES; i++) {
 	  if(i==0)
-		  setValue(samples, 0x4000);
+		  setValue(samples, 0x8000); // Impulse response with 1.15 format
 	  else
 		  setValue(samples, 0);
 	  

@@ -12,7 +12,7 @@
 #define 				DATA_CHANNELS 						8
 #define					NUM_TAPS							60
 #define                 INIT_VALUE                          0x00000000
-#define 				ALGO_BITS							15  // 15 bits resolution of samples
+#define 				ALGO_BITS							23  // 15 or 23 bits resolution of coefficients
 
 void initFIR(void);
 

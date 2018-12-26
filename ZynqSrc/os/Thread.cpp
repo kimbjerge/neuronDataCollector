@@ -47,7 +47,7 @@ void Thread::start(void)
 {
 	xTaskCreate(threadMapper, 					/* The function that implements the task. */
 				( const char * ) name.c_str(), 	/* Text name for the task, provided to assist debugging only. */
-				configMINIMAL_STACK_SIZE, 	    /* The stack allocated to the task. */
+				configMINIMAL_STACK_SIZE*10, 	    /* The stack allocated to the task. */
 				this, 						    /* The task parameter is pointer to the thread class. */
 				tskIDLE_PRIORITY + priority,	/* The task runs at the idle priority. */
 				&handle );

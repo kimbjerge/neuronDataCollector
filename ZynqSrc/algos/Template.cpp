@@ -15,7 +15,7 @@ void Template::readChOffset(string name)
 	int i, posOffset = name.find("_") + 1;
 	char asciiOffset[3];
 	for (i = 0; i < 2; i++)
-		asciiOffset[i] = name[posOffset];
+		asciiOffset[i] = name[posOffset++];
 	asciiOffset[i] = '\0';
 	mChOffset = atoi(asciiOffset);
 	if (mChOffset > NUM_CHANNELS-TEMP_WIDTH) {
@@ -38,6 +38,9 @@ int Template::loadTemplate(string name)
 	result = m_file.close();
 	if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name.c_str());
 
+	for(int i = 0; i < TEMP_SIZE; i++)
+		mTemplateInt[i] = mTemplate[i]*pow(2, DATA_FORMAT);
+
 	readChOffset(name);
 	calcMeanVariance();
 	return result;
@@ -47,14 +50,14 @@ void Template::calcMeanVariance(void)
 {
 	mMean = 0.0;
 	for (int i = 0; i < TEMP_LENGTH; i++)
-		for (int j = 0; j > TEMP_WIDTH; j++)
-			mMean += mTemplate[j + i*TEMP_WIDTH];
+		for (int j = 0; j < TEMP_WIDTH; j++)
+			mMean += mTemplateInt[j + i*TEMP_WIDTH];
 	mMean /= TEMP_SIZE;
 
 	mVariance = 0;
 	for (int i = 0; i < TEMP_LENGTH; i++)
-		for (int j = 0; j > TEMP_WIDTH; j++)
-			mVariance += pow((mTemplate[j + i*TEMP_WIDTH] - mMean), 2);
+		for (int j = 0; j < TEMP_WIDTH; j++)
+			mVariance += pow((mTemplateInt[j + i*TEMP_WIDTH] - mMean), 2);
 
 	mVariance /= (TEMP_SIZE - 1);
 }

@@ -24,6 +24,8 @@ void initFIR(void) {
 int32_t fir(int32_t sample, int16_t channel)
 {
 	sc_int<48> yn;
+	sc_int<48> x;
+	sc_int<48> b;
 	int32_t result;
 	int16_t i;
 
@@ -36,11 +38,14 @@ int32_t fir(int32_t sample, int16_t channel)
 
 	// Perform filtering
 	yn = 0;
-	fir_label2:for (i = 0; i < NUM_TAPS; i++)
-		yn += bn[i]*xn[i + NUM_TAPS*channel];
+	fir_label2:for (i = 0; i < NUM_TAPS; i++) {
+		x = xn[i + NUM_TAPS*channel];
+		b = bn[i];
+		yn += b*x;
+	}
 
 	// Scale filter result and return
-	result = yn >> (ALGO_BITS-1);
+	result = yn >> ALGO_BITS;
 	//printf("%d, %d\r\n", channel, result);
 	return result;
 }

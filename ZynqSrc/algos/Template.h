@@ -12,6 +12,7 @@
 using namespace std;
 #include "FileSDCard.h"
 
+#define DATA_FORMAT     15  // Number of bits used for data and template
 #define TEMP_WIDTH  	8	// Template width
 #define TEMP_LENGTH     16  // Template length
 #define TEMP_SIZE       (TEMP_WIDTH*TEMP_LENGTH)
@@ -22,7 +23,7 @@ public:
 	Template() : mMean(0.0), mVariance(0.0), mChOffset(0),  m_file((char *)"0:/") { }
 
 	int loadTemplate(std::string name);
-	int *getTemplate(void) { return mTemplate; }
+	int *getTemplate(void) { return mTemplateInt; }
 	float getVariance(void) { return mVariance; }
 	float getMean(void) { return mMean; }
 	int getChOffset(void) { return mChOffset; }
@@ -30,7 +31,8 @@ public:
 private:
 	void calcMeanVariance(void);
 	void readChOffset(string name);
-    int mTemplate[TEMP_SIZE];
+    float mTemplate[TEMP_SIZE];
+    int mTemplateInt[TEMP_SIZE];
     float mMean;
     float mVariance;
     int mChOffset;
