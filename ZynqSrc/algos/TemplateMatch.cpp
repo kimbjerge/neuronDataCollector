@@ -73,8 +73,8 @@ int TemplateMatch::updateTemplates()
 
 void TemplateMatch::processResults(void) {
 	// TODO implement threshold selection
-	//printf("NXCOR template1 %f\r\n", mNXCORRes[0]);
-	//printf("NXCOR template2 %f\r\n", mNXCORRes[1]);
+	//printf("NXCT1 %f\r\n", mNXCORRes[0]);
+	//printf("NXCT2 %f\r\n", mNXCORRes[1]);
 }
 
 void TemplateMatch::run()
@@ -122,8 +122,8 @@ void TemplateMatch::run()
 		}
 
 		// Wait for one sample delay
-		printf(".");
-		vTaskDelay( pdMS_TO_TICKS( 1 ) );
+		//printf(".");
+		//vTaskDelay( pdMS_TO_TICKS( 1 ) );
 		//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
 
 		firstTime = false;

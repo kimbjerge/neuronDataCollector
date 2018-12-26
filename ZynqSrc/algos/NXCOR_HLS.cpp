@@ -12,7 +12,9 @@ void NXCOR::updateTemplate(int *temp, int avgTemp)
 {
 	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
 	XNxcor_Write_templateData_Words(&mNXCOR, 0, temp, mLength*mWidth);
-	XNxcor_Set_avgTemp(&mNXCOR, avgTemp);
+
+	//XNxcor_Set_avgTemp(&mNXCOR, average);
+	*(volatile int*)(mNXCOR.Axilites_BaseAddress + XNXCOR_AXILITES_ADDR_AVGTEMP_DATA) = avgTemp;
 }
 
 void NXCOR::startNXCOR(int *samples)
@@ -26,7 +28,10 @@ void NXCOR::startNXCOR(int *samples)
 
 float NXCOR::readResultNXCOR(float varTemplate)
 {
-	u64 u64Result, u64Variance;
+	uint64_t u64Variance;
+	uint32_t u32ResultLow;
+	int64_t i64ResultHigh;
+	int64_t i64Result;
 	float result;
 
 	//if (mpIrq != 0)	// Busy wait for fir irq
@@ -34,9 +39,13 @@ float NXCOR::readResultNXCOR(float varTemplate)
 	//else
 		while (XNxcor_IsDone(&mNXCOR) == 0); // Polling done register
 
-	u64Result = XNxcor_Get_result(&mNXCOR);
+	//i64Result = XNxcor_Get_result(&mNXCOR);
+	u32ResultLow = *(volatile uint32_t*)(mNXCOR.Axilites_BaseAddress + XNXCOR_AXILITES_ADDR_RESULT_DATA);
+	i64ResultHigh = *(volatile int32_t*)(mNXCOR.Axilites_BaseAddress + XNXCOR_AXILITES_ADDR_RESULT_DATA + 4);
+	i64Result = (i64ResultHigh << 32) + u32ResultLow;
+
 	u64Variance = XNxcor_Get_varSig(&mNXCOR);
-	mResult = u64Result;
+	mResult = i64Result;
 	mVarianceSignal = u64Variance;
 	mVarianceTemplate = varTemplate;
 	result = mResult / sqrt(mVarianceSignal * mVarianceTemplate);
