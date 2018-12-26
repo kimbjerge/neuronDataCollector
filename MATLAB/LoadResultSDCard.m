@@ -1,5 +1,18 @@
-
+close all
 samples = 30000;
+
+sampleFile  = [sdCardPath 'DATA.BIN'];
+[fileID meassage] = fopen(sampleFile, 'r');
+if length(meassage) == 0
+    orgSignal = fread(fileID, [32 samples], 'float');
+else
+    fprintf('Error reading!\n');
+end
+fclose('all');
+figure(1), surf(orgSignal);
+title('Original signal 32 channels');
+figure(3), hold off, plot(orgSignal(1,:));
+title('Original signal channel 1');
 
 sdCardPath = 'D:\'
 filteredResultFile  = [sdCardPath 'FIRFILT.BIN'];
@@ -10,8 +23,10 @@ else
     fprintf('Error reading!\n');
 end
 fclose('all');
-figure, surf(filteredSignal);
-figure, plot(filteredSignal(1,:));
+figure(2), surf(filteredSignal);
+title('Filtered signal 32 channels');
+figure(3), hold on, plot(filteredSignal(1,:));
+title('Filtered signal channel 1');
 
 fileNxcorrTemplate1 = [sdCardPath 'NXCORT1.BIN'];
 [fileID meassage] = fopen(fileNxcorrTemplate1, 'r');
@@ -22,6 +37,7 @@ else
 end
 fclose('all');
 figure, plot(nxcorrT1);
+title('NXCORR template T1');
 
 fileNxcorrTemplate2 = [sdCardPath 'NXCORT2.BIN'];
 [fileID meassage] = fopen(fileNxcorrTemplate2, 'r');
@@ -32,3 +48,4 @@ else
 end
 fclose('all');
 figure, plot(nxcorrT2);
+title('NXCORR template T2');
