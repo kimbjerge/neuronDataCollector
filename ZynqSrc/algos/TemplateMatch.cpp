@@ -10,6 +10,8 @@
 #include "xparameters.h"
 #include "FIRFilter_coeffs.h"
 
+#define DEBUG_FILES // When disabled doesn't save time
+
 TemplateMatch::~TemplateMatch()
 {
 	if (mNumSamples > 0) {
@@ -19,9 +21,12 @@ TemplateMatch::~TemplateMatch()
 		for (int i = 0; i < TEMP_NUM; i++) {
 			delete(pNXCOR[i]);
 			delete(pTemplate[i]);
-			delete(pResultNXCOR[i]);
 		}
+#ifdef DEBUG_FILES
+		for (int i = 0; i < TEMP_NUM; i++)
+			delete(pResultNXCOR[i]);
 		delete(pResultFIR);
+#endif
 	}
 }
 
@@ -38,11 +43,17 @@ int TemplateMatch::Init(string *pTempNames[TEMP_NUM], int numSamples, IRQ* pIrq)
 		pTemplate[i] = new Template();
 		// Load template from file defined by pTempNames
 		pTemplate[i]->loadTemplate(*pTempNames[i]);
+	}
+
+#ifdef DEBUG_FILES
+	for (int i = 0; i < TEMP_NUM; i++) {
 		pResultNXCOR[i] = new ResultFile<float>();
 		pResultNXCOR[i]->allocateContent(numSamples);
 	}
 	pResultFIR = new ResultFile<int>();
 	pResultFIR->allocateContent(numSamples*NUM_CHANNELS);
+#endif
+
 	mNumSamples = numSamples;
 
 	return 0;
@@ -82,11 +93,13 @@ void TemplateMatch::run()
 	int count = mNumSamples;
     bool firstTime = true;
     int *pSampleData = (int *)lxRecord.board[0].data;
+    int start_tick, end_tick;
 
 	printf("Updating FIR coefficients and template 1+2\r\n");
     updateCoefficients();
     updateTemplates();
 	printf("Neuron template matching running\r\n");
+	start_tick = xTaskGetTickCount();
 
 	while (count > 0) {
 
@@ -116,25 +129,31 @@ void TemplateMatch::run()
 		processResults();
 
 		// Append test result to memory
+#ifdef DEBUG_FILES
 		pResultFIR->appendData(mFiltered, NUM_CHANNELS);
 		for (int i = 0; i < TEMP_NUM; i++) {
 			pResultNXCOR[i]->appendData(&mNXCORRes[i], 1);
 		}
-
+#endif
 		// Wait for one sample delay
 		//printf(".");
 		//vTaskDelay( pdMS_TO_TICKS( 1 ) );
 		//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
-
 		firstTime = false;
 		count--;
 	}
+	end_tick = xTaskGetTickCount();
 
+	printf("Tick start %d and tick end %d, duration = %d ms\r\n", start_tick, end_tick, (1000*(end_tick-start_tick))/configTICK_RATE_HZ);
 	printf("Neuron template matching completed on %d samples\r\n", mNumSamples);
+
+#ifdef DEBUG_FILES
 	// Save test result from memory to files
 	pResultFIR->saveContent("FIRFilt.bin");
 	pResultNXCOR[0]->saveContent("NXCORT1.bin");
 	pResultNXCOR[1]->saveContent("NXCORT2.bin");
 	printf("Saved result to files FIRFilt.bin, NXCORT1.bin and NXCORT2.bin\r\n");
+#endif
+
 }
 
