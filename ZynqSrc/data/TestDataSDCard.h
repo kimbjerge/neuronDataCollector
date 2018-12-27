@@ -26,7 +26,7 @@ public:
 protected:
     FileSDCard m_file;
     // Sample buffer read from file
-	float m_data[NUM_CHANNELS][NUM_SAMPLES];
+	float m_data[NUM_SAMPLES][NUM_CHANNELS];
 };
 
 #endif // !defined(TESTDATA_SDCARD_INCLUDED_)

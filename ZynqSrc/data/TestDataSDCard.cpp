@@ -48,7 +48,7 @@ void TestDataSDCard::GenerateSampleRecord(LRECORD *pLxRecord)
 		// Generate pulse
 		for (int j = 0; j < NUM_BOARDS; j++) {
 			for (int i = 0; i < NUM_CHANNELS; i++)
-				pLxRecord->board[j].data[i] = (int32_t)m_data[i][m_n];
+				pLxRecord->board[j].data[i] = (int32_t)m_data[m_n][i];
 		}
 		if (++m_n >= NUM_SAMPLES) // Turn around sample buffer
 			m_n = 0;

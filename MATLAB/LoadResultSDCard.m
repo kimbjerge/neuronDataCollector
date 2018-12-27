@@ -1,6 +1,7 @@
 close all
-samples = 30000;
+samples = 10000;
 
+sdCardPath = 'D:\'
 sampleFile  = [sdCardPath 'DATA.BIN'];
 [fileID meassage] = fopen(sampleFile, 'r');
 if length(meassage) == 0
@@ -14,7 +15,6 @@ title('Original signal 32 channels');
 figure(3), hold off, plot(orgSignal(1,:));
 title('Original signal channel 1');
 
-sdCardPath = 'D:\'
 filteredResultFile  = [sdCardPath 'FIRFILT.BIN'];
 [fileID meassage] = fopen(filteredResultFile, 'r');
 if length(meassage) == 0
