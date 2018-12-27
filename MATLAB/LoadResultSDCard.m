@@ -1,5 +1,6 @@
 close all
 samples = 10000;
+chPlot = 16;
 
 sdCardPath = 'D:\'
 sampleFile  = [sdCardPath 'DATA.BIN'];
@@ -12,8 +13,8 @@ end
 fclose('all');
 figure(1), surf(orgSignal);
 title('Original signal 32 channels');
-figure(3), hold off, plot(orgSignal(1,:));
-title('Original signal channel 1');
+figure(3), hold off, plot(orgSignal(chPlot,:));
+title(['Original signal channel' num2str(chPlot)]);
 
 filteredResultFile  = [sdCardPath 'FIRFILT.BIN'];
 [fileID meassage] = fopen(filteredResultFile, 'r');
@@ -25,8 +26,8 @@ end
 fclose('all');
 figure(2), surf(filteredSignal);
 title('Filtered signal 32 channels');
-figure(3), hold on, plot(filteredSignal(1,:));
-title('Filtered signal channel 1');
+figure(3), hold on, plot(filteredSignal(chPlot,:));
+title(['Filtered signal channel' num2str(chPlot)]);
 
 fileNxcorrTemplate1 = [sdCardPath 'NXCORT1.BIN'];
 [fileID meassage] = fopen(fileNxcorrTemplate1, 'r');
