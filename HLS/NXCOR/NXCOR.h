@@ -18,7 +18,9 @@
 #define 				DATA_CHANNELS 						32
 #define					TEMPLATE_CROPPED_LENGTH				16
 #define					TEMPLATE_CROPPED_WIDTH				8
-#define                 INIT_VALUE                          0x00007fff
+//#define                 INIT_VALUE                          0x00007fff
+#define                 INIT_VALUE                          0x00000000
+#define					TEMPLATE_SIZE 						(TEMPLATE_CROPPED_LENGTH*TEMPLATE_CROPPED_WIDTH)
 
 void initNXCOR(void);
 

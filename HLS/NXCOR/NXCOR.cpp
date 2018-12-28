@@ -77,9 +77,8 @@ void NXCOR(T *result, T *varSig,
 	{
 		NXCOR_label1: for (j = 0; j < TEMPLATE_CROPPED_WIDTH; j++)
 		{
-			uint16_t idx = j + (i*TEMPLATE_CROPPED_WIDTH);
-			int32_t signal = signalBuffer[idx];
-			signalBuffer[idx] = signal;
+			int32_t signal = signalBuffer[j + ((i-1)*TEMPLATE_CROPPED_WIDTH)];
+			signalBuffer[j + (i*TEMPLATE_CROPPED_WIDTH)] = signal;
 		    avgSignal += signal;
 		}
 	}
@@ -107,11 +106,11 @@ void NXCOR(T *result, T *varSig,
 		NXCOR_label4: for (j = 0; j < TEMPLATE_CROPPED_WIDTH; j++)
 		{
 			uint16_t idx = j + (i*TEMPLATE_CROPPED_WIDTH);
-			T temp = templateData[idx];
-			T signalValue = signalBuffer[idx];
+			int32_t temp = templateData[idx];
+			int32_t signalValue = signalBuffer[idx];
 
-			T pr = signalValue - avgSignal;
-			T tr = temp - avgTemp;
+			int32_t pr = signalValue - avgSignal;
+			int32_t tr = temp - avgTemp;
 			xcorr += (pr * tr);
 			varSignal += (pr * pr);
 		}

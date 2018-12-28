@@ -77,7 +77,7 @@ int TemplateMatch::updateTemplates()
 {
 	// Update template in HLS IP core
 	for (int i = 0; i < TEMP_NUM; i++) {
-		pNXCOR[i]->updateTemplate(pTemplate[i]->getTemplate(), pTemplate[i]->getMean());
+		pNXCOR[i]->updateTemplate(pTemplate[i]->getTemplate(), round(pTemplate[i]->getMean()));
 	}
 	return 0;
 }
