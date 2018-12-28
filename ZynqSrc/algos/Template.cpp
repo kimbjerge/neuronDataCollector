@@ -38,8 +38,16 @@ int Template::loadTemplate(string name)
 	result = m_file.close();
 	if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name.c_str());
 
-	for(int i = 0; i < TEMP_SIZE; i++)
-		mTemplateInt[i] = round(mTemplate[i]*pow(2, DATA_FORMAT));
+	// Reverse template - Convolution - MATLAB NXCOR
+	for (int i = 0; i < TEMP_LENGTH; i++) {
+		for (int j = 0; j < TEMP_WIDTH; j++) {
+			mTemplateInt[j + i*TEMP_WIDTH] = round(mTemplate[j + (TEMP_LENGTH-1-i)*TEMP_WIDTH]*pow(2, DATA_FORMAT));
+		}
+	}
+
+	// Cross correlation
+	//for(int i = 0; i < TEMP_SIZE; i++)
+	//	mTemplateInt[i] = round(mTemplate[i]*pow(2, DATA_FORMAT));
 
 	readChOffset(name);
 	calcMeanVariance();
