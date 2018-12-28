@@ -36,16 +36,16 @@ xlabel('Samples');
 signalSearchTemplate = filteredSignal(2:tempWidth+1,:);
 %signalSearchTemplate = orgSignal(2:tempWidth+1,:);
 
-template1 = floor(template1*2^15);
+template1 = round(template1*2^15);
 nxcorrT1gold = normxcorr2(template1, signalSearchTemplate);
 nxcorrT1 = loadFile(sdCardPath, 'NXCORT1.BIN', samples, 'float');
-figure, hold off, plot(nxcorrT1gold(tempWidth,tempOffset:samples+tempOffset)), hold on, plot(nxcorrT1);
+figure, hold off, plot(nxcorrT1gold(tempWidth,1:samples-5)), hold on, plot(nxcorrT1(5:samples)); %WHY 5 samples offset and 0.1 diff
 %plot(nxcorrT1/(max(nxcorrT1)*2));
 title('NXCORR template T1 (red) vs. golden (blue)');
 
-template2 = floor(template2*2^15);
+template2 = round(template2*2^15);
 nxcorrT2gold = normxcorr2(template2, signalSearchTemplate);
 nxcorrT2 = loadFile(sdCardPath, 'NXCORT2.BIN', samples, 'float');
-figure, hold off, plot(nxcorrT2gold(tempWidth,tempOffset:samples+tempOffset)), hold on, plot(nxcorrT2);
+figure, hold off, plot(nxcorrT2gold(tempWidth,1:samples-5)), hold on, plot(nxcorrT2(5:samples));
 %plot(-nxcorrT2/(max(nxcorrT2)*2));
 title('NXCORR template T2 (red) vs. golden (blue)');

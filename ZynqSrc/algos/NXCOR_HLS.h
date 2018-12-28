@@ -35,9 +35,9 @@ private:
 	volatile int mResultAvailHlsNXCOR;
 	int mLength;
 	int mWidth;
-	float mVarianceTemplate;
-	float mResult;
-	float mVarianceSignal;
+	double mVarianceTemplate;
+	double mResult;
+	double mVarianceSignal;
 
 	// HLS FIR HW instance
 	XNxcor mNXCOR;

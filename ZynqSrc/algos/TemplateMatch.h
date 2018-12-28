@@ -43,6 +43,7 @@ private:
 	void processResults(void);
 
 	int mNumSamples;
+	int mCount;
 	NeuronData *pNeuronData;
 	FirFilter *pFirFilter[FIR_NUM];
     NXCOR *pNXCOR[TEMP_NUM];
@@ -51,6 +52,7 @@ private:
     int mCoeff[FIR_TAPS];
     int mFiltered[NUM_CHANNELS];
     float mNXCORRes[TEMP_NUM];
+    int mNXCORCnt[TEMP_NUM];
     ResultFile<float> *pResultNXCOR[TEMP_NUM];
     ResultFile<int> *pResultFIR;
 };

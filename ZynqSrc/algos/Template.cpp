@@ -39,7 +39,7 @@ int Template::loadTemplate(string name)
 	if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name.c_str());
 
 	for(int i = 0; i < TEMP_SIZE; i++)
-		mTemplateInt[i] = mTemplate[i]*pow(2, DATA_FORMAT);
+		mTemplateInt[i] = round(mTemplate[i]*pow(2, DATA_FORMAT));
 
 	readChOffset(name);
 	calcMeanVariance();

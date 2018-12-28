@@ -81,6 +81,7 @@ int TemplateMatch::updateTemplates()
 		for (int j = 0; j < TEMP_LENGTH; j++) { // Clear IP Core memory
 			pNXCOR[i]->executeNXCOR(mFiltered, pTemplate[i]->getVariance());
 		}
+		mNXCORCnt[i] = 0;
 	}
 	return 0;
 }
@@ -88,8 +89,14 @@ int TemplateMatch::updateTemplates()
 void TemplateMatch::processResults(void)
 {
 	// TODO implement threshold selection
-	//printf("NXCT1 %f\r\n", mNXCORRes[0]);
-	//printf("NXCT2 %f\r\n", mNXCORRes[1]);
+	if (mNXCORRes[0] > 0.70) {
+		mNXCORCnt[0]++;
+		printf("%06d %03d T11 %.3f\r\n", mCount, mNXCORCnt[0], mNXCORRes[0]);
+	}
+	if (mNXCORRes[1] > 0.67) {
+		mNXCORCnt[1]++;
+		printf("%06d %03d T38 %.3f\r\n", mCount, mNXCORCnt[1], mNXCORRes[1]);
+	}
 }
 
 void TemplateMatch::run()
@@ -105,6 +112,7 @@ void TemplateMatch::run()
 	printf("Neuron template matching running\r\n");
 	start_tick = xTaskGetTickCount();
 
+	mCount = 0;
 	while (count > 0) {
 
 		// Get next sample from data generator
@@ -145,6 +153,7 @@ void TemplateMatch::run()
 		//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
 		firstTime = false;
 		count--;
+		mCount++;
 	}
 	end_tick = xTaskGetTickCount();
 
