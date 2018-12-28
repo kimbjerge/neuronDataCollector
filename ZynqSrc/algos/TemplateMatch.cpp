@@ -78,11 +78,15 @@ int TemplateMatch::updateTemplates()
 	// Update template in HLS IP core
 	for (int i = 0; i < TEMP_NUM; i++) {
 		pNXCOR[i]->updateTemplate(pTemplate[i]->getTemplate(), round(pTemplate[i]->getMean()));
+		for (int j = 0; j < TEMP_LENGTH; j++) { // Clear IP Core memory
+			pNXCOR[i]->executeNXCOR(mFiltered, pTemplate[i]->getVariance());
+		}
 	}
 	return 0;
 }
 
-void TemplateMatch::processResults(void) {
+void TemplateMatch::processResults(void)
+{
 	// TODO implement threshold selection
 	//printf("NXCT1 %f\r\n", mNXCORRes[0]);
 	//printf("NXCT2 %f\r\n", mNXCORRes[1]);
@@ -123,7 +127,7 @@ void TemplateMatch::run()
 		}
 		// Start normalized cross core correlation of filtered samples
 		for (int i = 0; i < TEMP_NUM; i++) {
-			pNXCOR[i]->startNXCOR((int *)&mFiltered[i+pTemplate[i]->getChOffset()]);
+			pNXCOR[i]->startNXCOR((int *)&mFiltered[pTemplate[i]->getChOffset()]);
 		}
 
 		processResults();

@@ -24,8 +24,9 @@ public:
 	void Enable(void);
 
 	void updateTemplate(int *temp, int avgTemp);
-	void startNXCOR(int *samples);
-	float readResultNXCOR(float varTemplate);
+	void startNXCOR(int *samples); // Start NXCOR asynchronous
+	float readResultNXCOR(float varTemplate); // Wait for NXCOR to complete and return result
+	float executeNXCOR(int *samples, float varTemplate); // Start NXCOR and wait for completing
 
 private:
 	static void hls_NXCOR_isr(void *InstancePtr);

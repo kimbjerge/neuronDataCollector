@@ -58,8 +58,6 @@ void Template::calcMeanVariance(void)
 	for (int i = 0; i < TEMP_LENGTH; i++)
 		for (int j = 0; j < TEMP_WIDTH; j++)
 			mVariance += pow((mTemplateInt[j + i*TEMP_WIDTH] - mMean), 2);
-
-	mVariance /= (TEMP_SIZE - 1);
 }
 
 

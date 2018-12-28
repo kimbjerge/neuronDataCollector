@@ -52,6 +52,13 @@ float NXCOR::readResultNXCOR(float varTemplate)
     return result;
 }
 
+float NXCOR::executeNXCOR(int *samples, float varTemplate)
+{
+	startNXCOR(samples);
+	return readResultNXCOR(varTemplate);
+}
+
+
 void NXCOR::Disable(void)
 {
 	// Disable Global and instance interrupts
