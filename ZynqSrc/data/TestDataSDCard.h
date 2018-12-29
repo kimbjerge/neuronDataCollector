@@ -11,7 +11,7 @@
 #include "NeuronData.h"
 #include "FileSDCard.h"
 
-#define NUM_SAMPLES 				30*30000   // 30 Minutes of samples
+#define NUM_SAMPLES 				60*30000   // 60 Seconds of samples
 
 class TestDataSDCard : public NeuronData
 {

@@ -1,5 +1,5 @@
 close all
-samples = 30000*30;
+samples = 30000*60;
 tempLength = 16;
 tempWidth = 8;
 tempOffset = 7;
