@@ -91,7 +91,10 @@ int NXCOR::verifyActivation(void)
 
 	if (mActivationCounts > 0) {
 		mActivationCounts--; // Filter on minimum distance in samples between neuron activations
-		mActiveState = 2;
+		if (mActivationCounts == 0)
+			mActiveState = 3;
+		else
+			mActiveState = 2;
 	} else {
 		if (mResultNXCOR >= mNXCORThreshold) { // NXCOR above threshold then match found and activation detected
 			if (checkWithinPeakLimits()) { // Check whether neuron peak is within valid limits

@@ -44,7 +44,7 @@ public:
 	void startNXCOR(int *samples); // Start NXCOR asynchronous
 	float readResultNXCOR(float varTemplate); // Wait for NXCOR to complete and return result
 	float executeNXCOR(int *samples, float varTemplate); // Start NXCOR and wait for completing
-	int verifyActivation(void); // 0=no activation, 1=neuron activation detected, 2=filter active after detection
+	int verifyActivation(void); // 0=no activation, 1=neuron activation detected, 2+3=filter active after detection
 
 private:
 	static void hls_NXCOR_isr(void *InstancePtr);

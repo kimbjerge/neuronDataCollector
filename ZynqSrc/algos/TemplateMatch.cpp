@@ -93,16 +93,31 @@ int TemplateMatch::updateTemplates()
 void TemplateMatch::processResults(void)
 {
 	int i = 0;
-	if (pNXCOR[i]->verifyActivation() == 1) {
+	int state = pNXCOR[i]->verifyActivation();
+	if (state == 1) {
 		printf("%06d %03d T11 %.3f P%05d\r\n",
 				mCount, pNXCOR[i]->getNumActivations(),
 				pNXCOR[i]->getNXCORResult(), pNXCOR[i]->getMaxPeak());
+		leds.setOn(Leds::LED0 , true);
+		testOut.setOn(TestIO::JB1, true);
 	}
+	if (state == 3) {
+		leds.setOn(Leds::LED0 , false);
+		testOut.setOn(TestIO::JB1, false);
+	}
+
 	i = 1;
-	if (pNXCOR[i]->verifyActivation() == 1) {
+	state = pNXCOR[i]->verifyActivation();
+	if (state == 1) {
 		printf("%06d %03d T38 %.3f P%05d\r\n",
 				mCount, pNXCOR[i]->getNumActivations(),
 				pNXCOR[i]->getNXCORResult(), pNXCOR[i]->getMaxPeak());
+		leds.setOn(Leds::LED1 , true);
+		testOut.setOn(TestIO::JB2, true);
+	}
+	if (state == 3) {
+		leds.setOn(Leds::LED1 , false);
+		testOut.setOn(TestIO::JB2, false);
 	}
 }
 
@@ -118,6 +133,10 @@ void TemplateMatch::run()
     updateTemplates();
 	printf("Neuron template matching running\r\n");
 	start_tick = xTaskGetTickCount();
+
+	// LED + Hardware signals for debugging
+	leds.setOn(Leds::LED7 , true);
+	testOut.setOn(TestIO::JB3, true);
 
 	mCount = 0;
 	while (count > 0) {
@@ -166,6 +185,9 @@ void TemplateMatch::run()
 		mCount++;
 	}
 	end_tick = xTaskGetTickCount();
+
+	testOut.setOn(TestIO::JB3, false);
+	leds.setOn(Leds::LED7 , false);
 
 	printf("Tick start %d and tick end %d, duration = %d ms\r\n", start_tick, end_tick, (1000*(end_tick-start_tick))/configTICK_RATE_HZ);
 	printf("Neuron template matching completed on %d samples\r\n", mNumSamples);

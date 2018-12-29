@@ -17,7 +17,7 @@ public:
 	Gpio(int deviceID);
 	int readio(void);
 	void writeio(int val);
-private:
+protected:
 	XGpio mGpioHandle;
 	int mChannel;
 };

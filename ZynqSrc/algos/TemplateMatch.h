@@ -8,6 +8,9 @@
 #ifndef SRC_TEMPLATE_MATCH_H_
 #define SRC_TEMPLATE_MATCH_H_
 
+#include "Gpio.h"
+#include "TestIO.h"
+#include "Leds.h"
 #include "Thread.h"
 using namespace AbstractOS;
 
@@ -53,6 +56,8 @@ private:
     int mFiltered[NUM_CHANNELS];
     ResultFile<float> *pResultNXCOR[TEMP_NUM];
     ResultFile<int> *pResultFIR;
+    Leds leds;
+    TestIO testOut;
 };
 
 #endif /* SRC_TEMPLATE_MATCH_H_ */
