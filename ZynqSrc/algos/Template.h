@@ -27,6 +27,7 @@ public:
 	float getVariance(void) { return mVariance; }
 	float getMean(void) { return mMean; }
 	int getChOffset(void) { return mChOffset; }
+	const char *getTemplateName(void) { return mFileName.c_str(); }
 
 private:
 	void calcMeanVariance(void);
@@ -36,6 +37,7 @@ private:
     float mMean;
     float mVariance;
     int mChOffset;
+    string mFileName;
     FileSDCard m_file;
 };
 

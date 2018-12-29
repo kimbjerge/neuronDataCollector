@@ -10,6 +10,8 @@
 #include "Template.h"
 #include "LxRecord.h"
 
+//#define NXCOR_CONVOLUTION // Flip template and perform convolution like MATLAB does
+
 void Template::readChOffset(string name)
 {
 	int i, posOffset = name.find("_") + 1;
@@ -38,16 +40,20 @@ int Template::loadTemplate(string name)
 	result = m_file.close();
 	if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name.c_str());
 
+#ifdef NXCOR_CONVOLUTION
 	// Reverse template - Convolution - MATLAB NXCOR
 	for (int i = 0; i < TEMP_LENGTH; i++) {
 		for (int j = 0; j < TEMP_WIDTH; j++) {
 			mTemplateInt[j + i*TEMP_WIDTH] = round(mTemplate[j + (TEMP_LENGTH-1-i)*TEMP_WIDTH]*pow(2, DATA_FORMAT));
 		}
 	}
-
+#else
 	// Cross correlation
-	//for(int i = 0; i < TEMP_SIZE; i++)
-	//	mTemplateInt[i] = round(mTemplate[i]*pow(2, DATA_FORMAT));
+	for(int i = 0; i < TEMP_SIZE; i++)
+		mTemplateInt[i] = round(mTemplate[i]*pow(2, DATA_FORMAT));
+#endif
+
+	mFileName = name;
 
 	readChOffset(name);
 	calcMeanVariance();
@@ -67,5 +73,4 @@ void Template::calcMeanVariance(void)
 		for (int j = 0; j < TEMP_WIDTH; j++)
 			mVariance += pow((mTemplateInt[j + i*TEMP_WIDTH] - mMean), 2);
 }
-
 

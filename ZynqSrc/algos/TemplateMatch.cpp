@@ -83,7 +83,7 @@ int TemplateMatch::updateTemplates()
 		}
 	}
 
-	// TODO - set threshold by user parameters
+	// TODO - set threshold by user parameters or template name
 	pNXCOR[0]->setNXCORThreshold(0.7);
 	pNXCOR[1]->setNXCORThreshold(0.67);
 
@@ -92,32 +92,22 @@ int TemplateMatch::updateTemplates()
 
 void TemplateMatch::processResults(void)
 {
-	int i = 0;
-	int state = pNXCOR[i]->verifyActivation();
-	if (state == 1) {
-		printf("%06d %03d T11 %.3f P%05d\r\n",
-				mCount, pNXCOR[i]->getNumActivations(),
-				pNXCOR[i]->getNXCORResult(), pNXCOR[i]->getMaxPeak());
-		leds.setOn(Leds::LED0 , true);
-		testOut.setOn(TestIO::JB1, true);
-	}
-	if (state == 3) {
-		leds.setOn(Leds::LED0 , false);
-		testOut.setOn(TestIO::JB1, false);
-	}
-
-	i = 1;
-	state = pNXCOR[i]->verifyActivation();
-	if (state == 1) {
-		printf("%06d %03d T38 %.3f P%05d\r\n",
-				mCount, pNXCOR[i]->getNumActivations(),
-				pNXCOR[i]->getNXCORResult(), pNXCOR[i]->getMaxPeak());
-		leds.setOn(Leds::LED1 , true);
-		testOut.setOn(TestIO::JB2, true);
-	}
-	if (state == 3) {
-		leds.setOn(Leds::LED1 , false);
-		testOut.setOn(TestIO::JB2, false);
+	for (int i = 0; i < TEMP_NUM; i++) {
+		int state = pNXCOR[i]->verifyActivation();
+		if (state == 1) {
+			printf("%06d %03d %s %.3f P%05d\r\n",
+					mCount,
+					pNXCOR[i]->getNumActivations(),
+					pTemplate[i]->getTemplateName(),
+					pNXCOR[i]->getNXCORResult(),
+					pNXCOR[i]->getMaxPeak());
+			leds.setOn((Leds::LedTypes)i, true);
+			testOut.setOn((TestIO::IOTypes)i, true);
+		}
+		if (state == 3) {
+			leds.setOn((Leds::LedTypes)i, false);
+			testOut.setOn((TestIO::IOTypes)i, false);
+		}
 	}
 }
 
@@ -136,7 +126,7 @@ void TemplateMatch::run()
 
 	// LED + Hardware signals for debugging
 	leds.setOn(Leds::LED7 , true);
-	testOut.setOn(TestIO::JB3, true);
+	testOut.setOn(TestIO::JB10, true);
 
 	mCount = 0;
 	while (count > 0) {
@@ -186,7 +176,7 @@ void TemplateMatch::run()
 	}
 	end_tick = xTaskGetTickCount();
 
-	testOut.setOn(TestIO::JB3, false);
+	testOut.setOn(TestIO::JB10, false);
 	leds.setOn(Leds::LED7 , false);
 
 	printf("Tick start %d and tick end %d, duration = %d ms\r\n", start_tick, end_tick, (1000*(end_tick-start_tick))/configTICK_RATE_HZ);
