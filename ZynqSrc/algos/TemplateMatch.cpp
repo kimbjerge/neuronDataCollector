@@ -86,6 +86,8 @@ int TemplateMatch::updateTemplates()
 	// TODO - set threshold by user parameters or template name
 	pNXCOR[0]->setNXCORThreshold(0.7);
 	pNXCOR[1]->setNXCORThreshold(0.67);
+	pNXCOR[2]->setNXCORThreshold(0.60);
+	pNXCOR[3]->setNXCORThreshold(0.60);
 
 	return 0;
 }
@@ -118,7 +120,7 @@ void TemplateMatch::run()
     int *pSampleData = (int *)lxRecord.board[0].data;
     int start_tick, end_tick;
 
-	printf("Updating FIR coefficients and template 1+2\r\n");
+	printf("Updating FIR coefficients and template 1-4\r\n");
     updateCoefficients();
     updateTemplates();
 	printf("Neuron template matching running\r\n");
@@ -187,7 +189,9 @@ void TemplateMatch::run()
 	pResultFIR->saveContent("FIRFilt.bin");
 	pResultNXCOR[0]->saveContent("NXCORT1.bin");
 	pResultNXCOR[1]->saveContent("NXCORT2.bin");
-	printf("Saved result to files FIRFilt.bin, NXCORT1.bin and NXCORT2.bin\r\n");
+	pResultNXCOR[2]->saveContent("NXCORT3.bin");
+	pResultNXCOR[3]->saveContent("NXCORT4.bin");
+	printf("Saved result to files FIRFilt.bin and NXCORT1-4.bin\r\n");
 #endif
 
 }

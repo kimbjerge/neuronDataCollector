@@ -33,6 +33,19 @@ title('Template 2, T38\_ 01.BIN');
 ylabel('Channels');
 xlabel('Samples');
 
+template3 = loadFile(sdCardPath, 'T01_04.BIN', [tempWidth tempLength], 'float');
+figure, surf(template3);
+title('Template 3, T01\_ 04.BIN');
+ylabel('Channels');
+xlabel('Samples');
+
+template4 = loadFile(sdCardPath, 'T27_14.BIN', [tempWidth tempLength], 'float');
+figure, surf(template4);
+title('Template 4, T27\_ 24.BIN');
+ylabel('Channels');
+xlabel('Samples');
+
+
 signalSearchTemplate = filteredSignal(2:tempWidth+1,:);
 %signalSearchTemplate = orgSignal(2:tempWidth+1,:);
 
@@ -49,3 +62,22 @@ nxcorrT2 = loadFile(sdCardPath, 'NXCORT2.BIN', samples, 'float');
 figure, hold off, plot(nxcorrT2gold(tempWidth,1:end-1), 'k'), hold on, plot(nxcorrT2(2:end), 'r'); %1 sample delay due to pipeline
 %plot(-nxcorrT2/(max(nxcorrT2)*2));
 title('NXCORR template T2 (red) vs. golden (blue)');
+
+signalSearchTemplate = filteredSignal(5:tempWidth+4,:);
+
+template3 = round(template3*2^15);
+nxcorrT3gold = normxcorr2(template3, signalSearchTemplate);
+nxcorrT3 = loadFile(sdCardPath, 'NXCORT3.BIN', samples, 'float');
+figure, hold off, plot(nxcorrT3gold(tempWidth,1:end-1), 'k'), hold on, plot(nxcorrT3(2:end), 'r'); %1 sample delay due to pipeline
+%plot(nxcorrT3/(max(nxcorrT3)*2));
+title('NXCORR template T3 (red) vs. golden (blue)');
+
+signalSearchTemplate = filteredSignal(15:tempWidth+14,:);
+
+template4 = round(template4*2^15);
+nxcorrT4gold = normxcorr2(template4, signalSearchTemplate);
+nxcorrT4 = loadFile(sdCardPath, 'NXCORT4.BIN', samples, 'float');
+figure, hold off, plot(nxcorrT4gold(tempWidth,1:end-1), 'k'), hold on, plot(nxcorrT4(2:end), 'r'); %1 sample delay due to pipeline
+%plot(-nxcorrT4/(max(nxcorrT4)*2));
+title('NXCORR template T4 (red) vs. golden (blue)');
+
