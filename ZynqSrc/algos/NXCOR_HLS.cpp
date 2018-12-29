@@ -24,6 +24,16 @@ void NXCOR::startNXCOR(int *samples)
 	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
 	XNxcor_Write_signalData_Words(&mNXCOR, 0, samples, mWidth);
 	XNxcor_Start(&mNXCOR);
+
+	// Update maximum sample value
+	int peakSample = samples[0];
+	for (int i = 1; i < mWidth; i++) {
+		int peak = samples[i];
+		if (abs(peak) > abs(peakSample))
+			peakSample = peak;
+	}
+	mPeakSamples[mIdxPeak] = peakSample;
+	mIdxPeak = (mIdxPeak + 1) % mLength;
 }
 
 float NXCOR::readResultNXCOR(float varTemplate)
@@ -32,7 +42,6 @@ float NXCOR::readResultNXCOR(float varTemplate)
 	uint32_t u32ResultLow;
 	int64_t i64ResultHigh;
 	int64_t i64Result;
-	float result;
 
 	//if (mpIrq != 0)	// Busy wait for fir irq
 	//	while(!mResultAvailHlsNXCOR);
@@ -48,8 +57,8 @@ float NXCOR::readResultNXCOR(float varTemplate)
 	mResult = i64Result;
 	mVarianceSignal = u64Variance;
 	mVarianceTemplate = varTemplate;
-	result = mResult / sqrt(mVarianceSignal * mVarianceTemplate);
-    return result;
+	mResultNXCOR = mResult / sqrt(mVarianceSignal * mVarianceTemplate);
+    return mResultNXCOR;
 }
 
 float NXCOR::executeNXCOR(int *samples, float varTemplate)
@@ -58,6 +67,42 @@ float NXCOR::executeNXCOR(int *samples, float varTemplate)
 	return readResultNXCOR(varTemplate);
 }
 
+bool NXCOR::checkWithinPeakLimits(void)
+{
+	// Search for peak sample in length of template window
+	mPeakSample = mPeakSamples[0];
+	for (int i = 1; i < mLength; i++) {
+		int peak = mPeakSamples[i];
+		if (abs(peak) > abs(mPeakSample))
+			mPeakSample = peak;
+	}
+	// Check that peak sample is within limits
+	// TODO check if negative and positive values are important
+	if (abs(mPeakSample) >= abs(mMinPeakThreshold) &&
+		abs(mPeakSample) <= abs(mMaxPeakThreshold))
+		return true;
+
+	return false;
+}
+
+int NXCOR::verifyActivation(void)
+{
+    mActiveState = 0;
+
+	if (mActivationCounts > 0) {
+		mActivationCounts--; // Filter on minimum distance in samples between neuron activations
+		mActiveState = 2;
+	} else {
+		if (mResultNXCOR >= mNXCORThreshold) { // NXCOR above threshold then match found and activation detected
+			if (checkWithinPeakLimits()) { // Check whether neuron peak is within valid limits
+				mActivationCounts = mMaxActivationCount; // Set filter to ignore future activations
+				mCounts++;
+				mActiveState = 1;
+			}
+		}
+	}
+	return mActiveState;
+}
 
 void NXCOR::Disable(void)
 {

@@ -81,21 +81,28 @@ int TemplateMatch::updateTemplates()
 		for (int j = 0; j < TEMP_LENGTH; j++) { // Clear IP Core memory
 			pNXCOR[i]->executeNXCOR(mFiltered, pTemplate[i]->getVariance());
 		}
-		mNXCORCnt[i] = 0;
 	}
+
+	// TODO - set threshold by user parameters
+	pNXCOR[0]->setNXCORThreshold(0.7);
+	pNXCOR[1]->setNXCORThreshold(0.67);
+
 	return 0;
 }
 
 void TemplateMatch::processResults(void)
 {
-	// TODO implement threshold selection
-	if (mNXCORRes[0] > 0.70) {
-		mNXCORCnt[0]++;
-		printf("%06d %03d T11 %.3f\r\n", mCount, mNXCORCnt[0], mNXCORRes[0]);
+	int i = 0;
+	if (pNXCOR[i]->verifyActivation() == 1) {
+		printf("%06d %03d T11 %.3f P%05d\r\n",
+				mCount, pNXCOR[i]->getNumActivations(),
+				pNXCOR[i]->getNXCORResult(), pNXCOR[i]->getMaxPeak());
 	}
-	if (mNXCORRes[1] > 0.67) {
-		mNXCORCnt[1]++;
-		printf("%06d %03d T38 %.3f\r\n", mCount, mNXCORCnt[1], mNXCORRes[1]);
+	i = 1;
+	if (pNXCOR[i]->verifyActivation() == 1) {
+		printf("%06d %03d T38 %.3f P%05d\r\n",
+				mCount, pNXCOR[i]->getNumActivations(),
+				pNXCOR[i]->getNXCORResult(), pNXCOR[i]->getMaxPeak());
 	}
 }
 
@@ -125,7 +132,7 @@ void TemplateMatch::run()
 			}
 			// Read result of normalized cross core correlation
 			for (int i = 0; i < TEMP_NUM; i++) {
-				mNXCORRes[i] = pNXCOR[i]->readResultNXCOR(pTemplate[i]->getVariance());
+				pNXCOR[i]->readResultNXCOR(pTemplate[i]->getVariance());
 			}
 		}
 
@@ -144,7 +151,10 @@ void TemplateMatch::run()
 #ifdef DEBUG_FILES
 		pResultFIR->appendData(mFiltered, NUM_CHANNELS);
 		for (int i = 0; i < TEMP_NUM; i++) {
-			pResultNXCOR[i]->appendData(&mNXCORRes[i], 1);
+		    float NXCORRes = pNXCOR[i]->getNXCORResult();
+			if (pNXCOR[i]->getActiveState() == 1)
+				NXCORRes = 1.0; // Set to max when active
+			pResultNXCOR[i]->appendData(&NXCORRes, 1);
 		}
 #endif
 		// Wait for one sample delay
