@@ -126,76 +126,93 @@ void TemplateMatch::run()
     updateCoefficients();
     updateTemplates();
 	printf("Neuron template matching running\r\n");
-	start_tick = xTaskGetTickCount();
 
-	// LED + Hardware signals for debugging
-	leds.setOn(Leds::LED7 , true);
-	testOut.setOn(TestIO::JB10, true);
+	while (1)
+	{
 
-	mCount = 0;
-	while (count > 0) {
+		printf("Turn SW0 on to start\r\n");
+		while (!sw.isOn(Switch::SW0))
+			Sleep(100);
 
-		// Get next sample from data generator
-		pNeuronData->GenerateSampleRecord(&lxRecord);
+		pNeuronData->reset();
+		pResultFIR->reset();
+		for (int i = 0; i < TEMP_NUM; i++)
+			pResultNXCOR[i]->reset();
 
-		if (!firstTime) {
-			// After fist iteration read filtered samples
+
+		// LED + Hardware signals for debugging
+		leds.setOn(Leds::LED7 , true);
+		testOut.setOn(TestIO::JB10, true);
+		mCount = 0;
+		count = mNumSamples;
+		firstTime = true;
+
+		start_tick = xTaskGetTickCount();
+		while (count > 0) {
+
+			// Get next sample from data generator
+			pNeuronData->GenerateSampleRecord(&lxRecord);
+
+			if (!firstTime) {
+				// After fist iteration read filtered samples
+				for (int i = 0; i < FIR_NUM; i++) {
+					pFirFilter[i]->readFiltered(&mFiltered[i*FIR_SIZE]);
+				}
+				// Read result of normalized cross core correlation
+				for (int i = 0; i < mNumCfgTemplates; i++) {
+					pNXCOR[i]->readResultNXCOR(pTemplate[i]->getVariance());
+				}
+			}
+
+			// Start filtering next NUM_CHANNELS of samples
 			for (int i = 0; i < FIR_NUM; i++) {
-				pFirFilter[i]->readFiltered(&mFiltered[i*FIR_SIZE]);
+				pFirFilter[i]->startFilter((int *)&pSampleData[i*FIR_SIZE]);
 			}
-			// Read result of normalized cross core correlation
+			// Start normalized cross core correlation of filtered samples
 			for (int i = 0; i < mNumCfgTemplates; i++) {
-				pNXCOR[i]->readResultNXCOR(pTemplate[i]->getVariance());
+				pNXCOR[i]->startNXCOR((int *)&mFiltered[pTemplate[i]->getChOffset()]);
 			}
-		}
 
-		// Start filtering next NUM_CHANNELS of samples
-		for (int i = 0; i < FIR_NUM; i++) {
-			pFirFilter[i]->startFilter((int *)&pSampleData[i*FIR_SIZE]);
-		}
-		// Start normalized cross core correlation of filtered samples
-		for (int i = 0; i < mNumCfgTemplates; i++) {
-			pNXCOR[i]->startNXCOR((int *)&mFiltered[pTemplate[i]->getChOffset()]);
-		}
+			processResults();
 
-		processResults();
-
-		// Append test result to memory
+			// Append test result to memory
 #ifdef DEBUG_FILES
-		pResultFIR->appendData(mFiltered, NUM_CHANNELS);
-		for (int i = 0; i < mNumCfgTemplates; i++) {
-		    float NXCORRes = pNXCOR[i]->getNXCORResult();
-			if (pNXCOR[i]->getActiveState() == 1)
-				NXCORRes = 1.0; // Set to max when active
-			pResultNXCOR[i]->appendData(&NXCORRes, 1);
-		}
+			pResultFIR->appendData(mFiltered, NUM_CHANNELS);
+			for (int i = 0; i < mNumCfgTemplates; i++) {
+				float NXCORRes = pNXCOR[i]->getNXCORResult();
+				if (pNXCOR[i]->getActiveState() == 1)
+					NXCORRes = 1.0; // Set to max when active
+				pResultNXCOR[i]->appendData(&NXCORRes, 1);
+			}
 #endif
-		// Wait for one sample delay
-		//printf(".");
-		//vTaskDelay( pdMS_TO_TICKS( 1 ) );
-		//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
-		firstTime = false;
-		count--;
-		mCount++;
-	}
-	end_tick = xTaskGetTickCount();
+			// Wait for one sample delay
+			//printf(".");
+			//vTaskDelay( pdMS_TO_TICKS( 1 ) );
+			//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
+			firstTime = false;
+			count--;
+			mCount++;
+		}
+		end_tick = xTaskGetTickCount();
 
-	testOut.setOn(TestIO::JB10, false);
-	leds.setOn(Leds::LED7 , false);
+		testOut.setOn(TestIO::JB10, false);
+		leds.setOn(Leds::LED7 , false);
 
-	printf("Tick start %d and tick end %d, duration = %d ms\r\n", start_tick, end_tick, (1000*(end_tick-start_tick))/configTICK_RATE_HZ);
-	printf("Neuron template matching completed on %d samples\r\n", mNumSamples);
+		printf("Tick start %d and tick end %d, duration = %d ms\r\n", start_tick, end_tick, (1000*(end_tick-start_tick))/configTICK_RATE_HZ);
+		printf("Neuron template matching completed on %d samples\r\n", mNumSamples);
 
 #ifdef DEBUG_FILES
-	// Save test result from memory to files
-	pResultFIR->saveContent("FIRFilt.bin");
-	for (int i = 0; i < mNumCfgTemplates; i++) {
-		char name[20];
-		sprintf(name, "NXCORT%d.bin", i+1);
-		pResultNXCOR[i]->saveContent(name);
-	}
-	printf("Saved result to files FIRFilt.bin and NXCORT1-%d.bin\r\n", mNumCfgTemplates);
+		// Save test result from memory to files
+		pResultFIR->saveContent("FIRFilt.bin");
+		for (int i = 0; i < mNumCfgTemplates; i++) {
+			char name[20];
+			sprintf(name, "NXCORT%d.bin", i+1);
+			pResultNXCOR[i]->saveContent(name);
+		}
+		printf("Saved result to files FIRFilt.bin and NXCORT1-%d.bin\r\n", mNumCfgTemplates);
 #endif
+
+	} // while (1)
 
 }
 

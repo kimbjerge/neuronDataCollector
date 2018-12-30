@@ -11,6 +11,7 @@
 #include "Gpio.h"
 #include "TestIO.h"
 #include "Leds.h"
+#include "Switch.h"
 #include "Thread.h"
 using namespace AbstractOS;
 
@@ -60,6 +61,7 @@ private:
     ResultFile<int> *pResultFIR;
     Leds leds;
     TestIO testOut;
+    Switch sw;
 };
 
 #endif /* SRC_TEMPLATE_MATCH_H_ */
