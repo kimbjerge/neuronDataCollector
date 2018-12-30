@@ -27,11 +27,13 @@ int TestDataSDCard::readFile(char * name)
 	result = m_file.open(name, FA_OPEN_EXISTING | FA_READ);
 	if (result != XST_SUCCESS) printf("Failed open file %s for reading\r\n", name);
 
-	result = m_file.read((void *)m_data, sizeof(m_data));
-	if (result != XST_SUCCESS) printf("Failed reading from file %s\r\n", name);
+	if (result == XST_SUCCESS) {
+		result = m_file.read((void *)m_data, sizeof(m_data));
+		if (result != XST_SUCCESS) printf("Failed reading from file %s\r\n", name);
 
-	result = m_file.close();
-	if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name);
+		result = m_file.close();
+		if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name);
+	}
 	return result;
 }
 

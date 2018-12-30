@@ -30,15 +30,19 @@ int Template::loadTemplate(string name)
 {
 	int result;
 
+	clearTemplate();
+
 	// Update template from file and compute variance and mean
 	result = m_file.open((char *)name.c_str(), FA_OPEN_EXISTING | FA_READ);
 	if (result != XST_SUCCESS) printf("Failed open file %s for reading\r\n", name.c_str());
 
-	result = m_file.read((void *)mTemplate, sizeof(mTemplate));
-	if (result != XST_SUCCESS) printf("Failed reading from file %s\r\n", name.c_str());
+	if (result == XST_SUCCESS) {
+		result = m_file.read((void *)mTemplate, sizeof(mTemplate));
+		if (result != XST_SUCCESS) printf("Failed reading from file %s\r\n", name.c_str());
 
-	result = m_file.close();
-	if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name.c_str());
+		result = m_file.close();
+		if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name.c_str());
+	}
 
 #ifdef NXCOR_CONVOLUTION
 	// Reverse template - Convolution - MATLAB NXCOR
@@ -54,9 +58,10 @@ int Template::loadTemplate(string name)
 #endif
 
 	mFileName = name;
-
-	readChOffset(name);
-	calcMeanVariance();
+	if (result == XST_SUCCESS) {
+		readChOffset(name);
+		calcMeanVariance();
+	}
 	return result;
 }
 

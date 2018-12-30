@@ -33,10 +33,19 @@ TemplateMatch::~TemplateMatch()
 int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 {
 
+	// Create FIR filters
 	for (int i = 0; i < FIR_NUM; i++) {
 		pFirFilter[i] = new FirFilter(XPAR_FIRFILTER_0_DEVICE_ID+i, FIR_SIZE, FIR_TAPS);
 		pFirFilter[i]->Init(pIrq, XPAR_FABRIC_FIRFILTER_0_INTERRUPT_INTR+i);
 	}
+	if (pConfig->isTabsValid())
+		pCoeffFloat = pConfig->getCoeffs();
+	else {
+		pCoeffFloat = (float *)FIR_coeffs; // Use default coefficients
+		printf("Using default FIR coefficients number of taps %d\r\n", FIR_TAPS);
+	}
+
+	// Create NXCOR filters
 	for (int i = 0; i < TEMP_NUM; i++) {
 		pNXCOR[i] = new NXCOR(XPAR_NXCOR_0_DEVICE_ID+i, TEMP_LENGTH, TEMP_WIDTH);
 		pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_0_INTERRUPT_INTR+i);
@@ -72,7 +81,7 @@ int TemplateMatch::updateCoefficients()
 {
 	// Updating coefficients based on table with double numbers
 	for (int i = 0; i < FIR_TAPS; i++) {
-		mCoeff[i] = (int)round(FIR_coeffs[i]*pow(2,FIR_FORMAT)); // Convert to format 1.FIR_FORMAT
+		mCoeff[i] = (int)round(pCoeffFloat[i]*pow(2,FIR_FORMAT)); // Convert to format 1.FIR_FORMAT
 	}
 	for (int i = 0; i < FIR_NUM; i++) {
 		pFirFilter[i]->updateCoefficients(mCoeff);

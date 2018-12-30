@@ -33,7 +33,7 @@ class TemplateMatch : public Thread
 {
 public:
 
-	TemplateMatch(NeuronData *pData) :  pNeuronData(pData) { mNumCfgTemplates = TEMP_NUM; }
+	TemplateMatch(NeuronData *pData) :  mNumSamples(0), pNeuronData(pData) { mNumCfgTemplates = TEMP_NUM; }
 	TemplateMatch(ThreadPriority pri, string name, NeuronData *pData) :
 					Thread(pri, name), mNumSamples(0), pNeuronData(pData) { mNumCfgTemplates = TEMP_NUM; }
 	~TemplateMatch();
@@ -55,6 +55,7 @@ private:
     NXCOR *pNXCOR[TEMP_NUM];
     Template *pTemplate[TEMP_NUM];
 	LRECORD lxRecord;
+	float *pCoeffFloat;
     int mCoeff[FIR_TAPS];
     int mFiltered[NUM_CHANNELS];
     ResultFile<float> *pResultNXCOR[TEMP_NUM];

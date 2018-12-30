@@ -9,6 +9,41 @@
 #include <math.h>
 #include "Config.h"
 
+int Config::loadCoeff(string name)
+{
+	int result;
+
+	// Clear coefficients buffer
+	memset(mCoeffs, 0, sizeof(mCoeffs));
+	// Clear config text buffer
+	memset(mConfigTxt, 0, sizeof(mConfigTxt));
+	mTabsValid = false;
+
+	// Update template from file and compute variance and mean
+	result = m_file.open((char *)name.c_str(), FA_OPEN_EXISTING | FA_READ);
+	if (result != XST_SUCCESS) {
+		printf("Failed open file %s for reading\r\n", name.c_str());
+		return result;
+	}
+
+	result = m_file.read((void *)mConfigTxt, sizeof(mConfigTxt));
+	if (result != XST_SUCCESS) {
+		printf("Failed reading from file %s\r\n", name.c_str());
+		return result;
+	}
+
+	result = m_file.close();
+	if (result != XST_SUCCESS) {
+		printf("Failed closing file %s\r\n", name.c_str());
+		return result;
+	}
+
+	mTabsName = name;
+	parseCoeff();
+	mTabsValid = true;
+	return result;
+}
+
 int Config::loadConfig(string name)
 {
 	int result;
@@ -18,15 +53,24 @@ int Config::loadConfig(string name)
 
 	// Update template from file and compute variance and mean
 	result = m_file.open((char *)name.c_str(), FA_OPEN_EXISTING | FA_READ);
-	if (result != XST_SUCCESS) printf("Failed open file %s for reading\r\n", name.c_str());
+	if (result != XST_SUCCESS) {
+		printf("Failed open file %s for reading\r\n", name.c_str());
+		return result;
+	}
 
 	result = m_file.read((void *)mConfigTxt, sizeof(mConfigTxt));
-	if (result != XST_SUCCESS) printf("Failed reading from file %s\r\n", name.c_str());
+	if (result != XST_SUCCESS) {
+		printf("Failed reading from file %s\r\n", name.c_str());
+		return result;
+	}
 
 	result = m_file.close();
-	if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name.c_str());
+	if (result != XST_SUCCESS) {
+		printf("Failed closing file %s\r\n", name.c_str());
+		return result;
+	}
 
-	mFileName = name;
+	mCfgName = name;
 	parseConfig();
 
 	return result;
@@ -36,6 +80,9 @@ bool Config::getNextLine(void)
 {
   int posStart;
   int pos;
+
+  memset(mLineTxt, 0, sizeof(mLineTxt));
+
   do {
 	  pos = mPos;
 	  posStart = mPos;
@@ -81,3 +128,13 @@ void Config::parseConfig(void)
 	}
 }
 
+void Config::parseCoeff(void)
+{
+	int idx = 0;
+	mPos = 0;
+	while (getNextLine()) {
+		sscanf(mLineTxt, "%g", &mCoeffs[idx++]);
+		if (idx == MAX_TAPS) break;
+	}
+	printf("Loaded FIR coefficients in total %d\r\n", idx);
+}
