@@ -60,6 +60,14 @@ int Template::loadTemplate(string name)
 	return result;
 }
 
+void Template::clearTemplate(void)
+{
+	for(int i = 0; i < TEMP_SIZE; i++) {
+		mTemplateInt[i] = 0;
+		mTemplate[i] = 0;
+	}
+}
+
 void Template::calcMeanVariance(void)
 {
 	mMean = 0.0;

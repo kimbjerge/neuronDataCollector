@@ -19,6 +19,7 @@ using namespace AbstractOS;
 #include "NeuronData.h"
 #include "Template.h"
 #include "ResultFile.h"
+#include "Config.h"
 
 #define FIR_FORMAT      23  // Number of bits used for fixed point coefficients
 #define FIR_TAPS   		60  // Number of FIR taps
@@ -31,12 +32,12 @@ class TemplateMatch : public Thread
 {
 public:
 
-	TemplateMatch(NeuronData *pData) :  pNeuronData(pData) {}
+	TemplateMatch(NeuronData *pData) :  pNeuronData(pData) { mNumCfgTemplates = TEMP_NUM; }
 	TemplateMatch(ThreadPriority pri, string name, NeuronData *pData) :
-					Thread(pri, name), mNumSamples(0), pNeuronData(pData) { }
+					Thread(pri, name), mNumSamples(0), pNeuronData(pData) { mNumCfgTemplates = TEMP_NUM; }
 	~TemplateMatch();
 
-	int Init(string *pTempNames[TEMP_NUM], int numSamples, IRQ* pIrq = 0);
+	int Init(Config *pConfig, int numSamples, IRQ* pIrq = 0);
 
 	virtual void run();
 
@@ -45,6 +46,7 @@ private:
 	int updateTemplates();
 	void processResults(void);
 
+    int mNumCfgTemplates;
 	int mNumSamples;
 	int mCount;
 	NeuronData *pNeuronData;

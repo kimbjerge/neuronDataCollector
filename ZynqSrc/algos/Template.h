@@ -22,6 +22,7 @@ class Template
 public:
 	Template() : mMean(0.0), mVariance(0.0), mChOffset(0),  m_file((char *)"0:/") { }
 
+	void clearTemplate(void);
 	int loadTemplate(std::string name);
 	int *getTemplate(void) { return mTemplateInt; }
 	float getVariance(void) { return mVariance; }

@@ -7,6 +7,16 @@
 
 #include "NXCOR_HLS.h"
 #include <math.h>
+#include <stdio.h>
+
+void NXCOR::printSettings(void)
+{
+	printf("-------------------------------------\r\n");
+	printf("NXCOR %d settings:\r\n", mDeviceId+1);
+	printf("  Threshold: %f\r\n", mNXCORThreshold);
+	printf("  Peak max : %d\r\n", mMaxPeakThreshold);
+	printf("  Peak min : %d\r\n", mMinPeakThreshold);
+}
 
 void NXCOR::updateTemplate(int *temp, int avgTemp)
 {
@@ -78,8 +88,8 @@ bool NXCOR::checkWithinPeakLimits(void)
 	}
 	// Check that peak sample is within limits
 	// TODO check if negative and positive values are important
-	if (abs(mPeakSample) >= abs(mMinPeakThreshold) &&
-		abs(mPeakSample) <= abs(mMaxPeakThreshold))
+	if (mPeakSample >= mMinPeakThreshold &&
+		mPeakSample <= mMaxPeakThreshold)
 		return true;
 
 	return false;

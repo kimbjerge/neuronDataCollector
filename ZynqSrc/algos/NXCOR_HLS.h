@@ -17,7 +17,7 @@ public:
 	NXCOR(int deviceId, int length, int width) :
 		mDeviceId(deviceId), mLength(length), mWidth(width),
 		mNXCORThreshold(0.7), // Default threshold
-		mMaxPeakThreshold(0x7FFF), mMinPeakThreshold(0), // Peak limit disabled
+		mMaxPeakThreshold(32767), mMinPeakThreshold(-32768), // Peak limit disabled
 		mMaxActivationCount(30), // Filter default 1 ms at fs = 30 kHz
 		mResultAvailHlsNXCOR(0), mVarianceTemplate(1),
 		mIdxPeak(0), mPeakSample(0), mActivationCounts(0),
@@ -40,6 +40,7 @@ public:
 	int getNumActivations(void) { return mCounts; }
 	int getMaxPeak(void) { return mPeakSample; }
 	int getActiveState(void) { return mActiveState; }
+	void printSettings(void);
 
 	void startNXCOR(int *samples); // Start NXCOR asynchronous
 	float readResultNXCOR(float varTemplate); // Wait for NXCOR to complete and return result

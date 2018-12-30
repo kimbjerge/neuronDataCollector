@@ -30,7 +30,7 @@ TemplateMatch::~TemplateMatch()
 	}
 }
 
-int TemplateMatch::Init(string *pTempNames[TEMP_NUM], int numSamples, IRQ* pIrq)
+int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 {
 
 	for (int i = 0; i < FIR_NUM; i++) {
@@ -41,8 +41,16 @@ int TemplateMatch::Init(string *pTempNames[TEMP_NUM], int numSamples, IRQ* pIrq)
 		pNXCOR[i] = new NXCOR(XPAR_NXCOR_0_DEVICE_ID+i, TEMP_LENGTH, TEMP_WIDTH);
 		pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_0_INTERRUPT_INTR+i);
 		pTemplate[i] = new Template();
-		// Load template from file defined by pTempNames
-		pTemplate[i]->loadTemplate(*pTempNames[i]);
+
+		if (i < pConfig->getNumTemplates()) {
+			// Load template from file defined by pTempNames
+			pTemplate[i]->loadTemplate(pConfig->getTemplateName(i));
+			pNXCOR[i]->setNXCORThreshold(pConfig->getThreshold(i));
+			pNXCOR[i]->setPeakThreshold(pConfig->getMin(i), pConfig->getMax(i));
+			// TODO - set counter
+			pNXCOR[i]->printSettings();
+		} else
+			pTemplate[i]->clearTemplate();
 	}
 
 #ifdef DEBUG_FILES
@@ -54,6 +62,7 @@ int TemplateMatch::Init(string *pTempNames[TEMP_NUM], int numSamples, IRQ* pIrq)
 	pResultFIR->allocateContent(numSamples*NUM_CHANNELS);
 #endif
 
+	mNumCfgTemplates = pConfig->getNumTemplates();
 	mNumSamples = numSamples;
 
 	return 0;
@@ -82,19 +91,12 @@ int TemplateMatch::updateTemplates()
 			pNXCOR[i]->executeNXCOR(mFiltered, pTemplate[i]->getVariance());
 		}
 	}
-
-	// TODO - set threshold by user parameters or template name
-	pNXCOR[0]->setNXCORThreshold(0.7);
-	pNXCOR[1]->setNXCORThreshold(0.67);
-	pNXCOR[2]->setNXCORThreshold(0.60);
-	pNXCOR[3]->setNXCORThreshold(0.60);
-
 	return 0;
 }
 
 void TemplateMatch::processResults(void)
 {
-	for (int i = 0; i < TEMP_NUM; i++) {
+	for (int i = 0; i < mNumCfgTemplates; i++) {
 		int state = pNXCOR[i]->verifyActivation();
 		if (state == 1) {
 			printf("%06d %03d %s %.3f P%05d\r\n",
@@ -120,7 +122,7 @@ void TemplateMatch::run()
     int *pSampleData = (int *)lxRecord.board[0].data;
     int start_tick, end_tick;
 
-	printf("Updating FIR coefficients and template 1-4\r\n");
+	printf("Updating FIR coefficients and templates\r\n");
     updateCoefficients();
     updateTemplates();
 	printf("Neuron template matching running\r\n");
@@ -142,7 +144,7 @@ void TemplateMatch::run()
 				pFirFilter[i]->readFiltered(&mFiltered[i*FIR_SIZE]);
 			}
 			// Read result of normalized cross core correlation
-			for (int i = 0; i < TEMP_NUM; i++) {
+			for (int i = 0; i < mNumCfgTemplates; i++) {
 				pNXCOR[i]->readResultNXCOR(pTemplate[i]->getVariance());
 			}
 		}
@@ -152,7 +154,7 @@ void TemplateMatch::run()
 			pFirFilter[i]->startFilter((int *)&pSampleData[i*FIR_SIZE]);
 		}
 		// Start normalized cross core correlation of filtered samples
-		for (int i = 0; i < TEMP_NUM; i++) {
+		for (int i = 0; i < mNumCfgTemplates; i++) {
 			pNXCOR[i]->startNXCOR((int *)&mFiltered[pTemplate[i]->getChOffset()]);
 		}
 
@@ -161,7 +163,7 @@ void TemplateMatch::run()
 		// Append test result to memory
 #ifdef DEBUG_FILES
 		pResultFIR->appendData(mFiltered, NUM_CHANNELS);
-		for (int i = 0; i < TEMP_NUM; i++) {
+		for (int i = 0; i < mNumCfgTemplates; i++) {
 		    float NXCORRes = pNXCOR[i]->getNXCORResult();
 			if (pNXCOR[i]->getActiveState() == 1)
 				NXCORRes = 1.0; // Set to max when active
@@ -187,11 +189,12 @@ void TemplateMatch::run()
 #ifdef DEBUG_FILES
 	// Save test result from memory to files
 	pResultFIR->saveContent("FIRFilt.bin");
-	pResultNXCOR[0]->saveContent("NXCORT1.bin");
-	pResultNXCOR[1]->saveContent("NXCORT2.bin");
-	pResultNXCOR[2]->saveContent("NXCORT3.bin");
-	pResultNXCOR[3]->saveContent("NXCORT4.bin");
-	printf("Saved result to files FIRFilt.bin and NXCORT1-4.bin\r\n");
+	for (int i = 0; i < mNumCfgTemplates; i++) {
+		char name[20];
+		sprintf(name, "NXCORT%d.bin", i+1);
+		pResultNXCOR[i]->saveContent(name);
+	}
+	printf("Saved result to files FIRFilt.bin and NXCORT1-%d.bin\r\n", mNumCfgTemplates);
 #endif
 
 }
