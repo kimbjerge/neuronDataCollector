@@ -45,7 +45,7 @@ int32_t fir(int32_t sample, int16_t channel)
 	}
 
 	// Scale filter result and return
-	result = yn >> ALGO_BITS;
+	result = (yn+0x400000) >> ALGO_BITS; // Round
 	//printf("%d, %d\r\n", channel, result);
 	return result;
 }
