@@ -13,9 +13,14 @@ using namespace std;
 #include "FileSDCard.h"
 
 #define DATA_FORMAT     15  // Number of bits used for data and template
-#define TEMP_WIDTH  	8	// Template width
-#define TEMP_LENGTH     16  // Template length
+#define TEMP_WIDTH  	9	// Template width 8/9(Thesis - optimized)
+#define TEMP_LENGTH     17  // Template length 16/17(Thesis - optimized)
 #define TEMP_SIZE       (TEMP_WIDTH*TEMP_LENGTH)
+
+// Type of data used for templates and NXCOR
+//#define TTYPE            int32_t // Version 1.0 - 32 bit
+#define TTYPE            int16_t // Version 1.1 - optimized using 16 bit
+#define SINT             2     // Number of samples in int32_t
 
 class Template
 {
@@ -24,7 +29,7 @@ public:
 
 	void clearTemplate(void);
 	int loadTemplate(std::string name);
-	int *getTemplate(void) { return mTemplateInt; }
+	TTYPE *getTemplate(void) { return mTemplateInt; }
 	float getVariance(void) { return mVariance; }
 	float getMean(void) { return mMean; }
 	int getChOffset(void) { return mChOffset; }
@@ -34,7 +39,7 @@ private:
 	void calcMeanVariance(void);
 	void readChOffset(string name);
     float mTemplate[TEMP_SIZE];
-    int mTemplateInt[TEMP_SIZE];
+    TTYPE mTemplateInt[TEMP_SIZE];
     float mMean;
     float mVariance;
     int mChOffset;

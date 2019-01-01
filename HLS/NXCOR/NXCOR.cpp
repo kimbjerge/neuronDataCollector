@@ -8,6 +8,7 @@
 //#include <systemc.h>
 #include "NXCOR.h"
 
+
 /*----------------------------------------------------------------------------*/
 /**
 * @brief Calculates the mean for a given window
@@ -30,7 +31,7 @@ T mean(int32_t* inputPatch, uint16_t r, uint16_t c, uint16_t stride)
 	return average;
 }
 */
-static int32_t signalBuffer[TEMPLATE_CROPPED_WIDTH*TEMPLATE_CROPPED_LENGTH];
+static sigType signalBuffer[TEMPLATE_CROPPED_WIDTH*TEMPLATE_CROPPED_LENGTH];
 
 void initNXCOR(void)
 {
@@ -59,9 +60,9 @@ void initNXCOR(void)
 * @retval void : none
 */
 void NXCOR(T *result, T *varSig,
-		   int32_t signalData[TEMPLATE_CROPPED_WIDTH],
-		   int32_t templateData[TEMPLATE_CROPPED_WIDTH*TEMPLATE_CROPPED_LENGTH],
-		   int32_t avgTemp)
+		   sigType signalData[TEMPLATE_CROPPED_WIDTH],
+		   sigType templateData[TEMPLATE_CROPPED_WIDTH*TEMPLATE_CROPPED_LENGTH],
+		   sigType avgTemp)
 {
 	int64_t xcorr;     // Cross correlation between template and pixel area
 	int64_t varSignal; // Variance signal buffer

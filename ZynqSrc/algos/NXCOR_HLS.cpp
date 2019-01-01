@@ -12,28 +12,43 @@
 void NXCOR::printSettings(void)
 {
 	printf("-------------------------------------\r\n");
-	printf("NXCOR %d settings:\r\n", mDeviceId+1);
+	printf("NXCOR template %d settings:\r\n", mDeviceId+1);
+	printf("  Length   : %d\r\n", mLength);
+	printf("  Width    : %d\r\n", mWidth);
 	printf("  Threshold: %f\r\n", mNXCORThreshold);
 	printf("  Peak max : %d\r\n", mMaxPeakThreshold);
 	printf("  Peak min : %d\r\n", mMinPeakThreshold);
 }
 
-void NXCOR::updateTemplate(int *temp, int avgTemp)
+void NXCOR::updateTemplate(TTYPE *temp, int avgTemp)
 {
 	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
-	XNxcor_Write_templateData_Words(&mNXCOR, 0, temp, mLength*mWidth);
-
+	XNxcor_Write_templateData_Words(&mNXCOR, 0, (int *)temp, (TEMP_SIZE+1)/SINT); //TTYPE = int
+	//XNxcor_Write_templateData_Bytes(&mNXCOR, 0, (char *)temp, mLength*mWidth*sizeof(TTYPE));
 	//XNxcor_Set_avgTemp(&mNXCOR, average);
 	*(volatile int*)(mNXCOR.Axilites_BaseAddress + XNXCOR_AXILITES_ADDR_AVGTEMP_DATA) = avgTemp;
 }
 
 void NXCOR::startNXCOR(int *samples)
 {
+#if SINT == 2 // int16_t
+    TTYPE samplesType[TEMP_WIDTH+1];
+    int i;
+    // Convert samples to TTYPE used by NXCOR
+    for (i = 0; i < TEMP_WIDTH; i++) samplesType[i] = samples[i];
+    samplesType[i] = 0;
 	// Clear done flags
 	mResultAvailHlsNXCOR = 0;
 	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
-	XNxcor_Write_signalData_Words(&mNXCOR, 0, samples, mWidth);
+	XNxcor_Write_signalData_Words(&mNXCOR, 0, (int *)samplesType, (TEMP_WIDTH+1)/SINT); //TTYPE = int
+#else // int32_t
+	mResultAvailHlsNXCOR = 0;
+	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
+	XNxcor_Write_signalData_Words(&mNXCOR, 0, samples, (TEMP_WIDTH+1)/SINT); //TTYPE = int
+#endif
+	//XNxcor_Write_signalData_Bytes(&mNXCOR, 0, (char *)samplesType, mWidth*sizeof(TTYPE));
 	XNxcor_Start(&mNXCOR);
+
 
 	// Update maximum sample value
 	int peakSample = samples[0];

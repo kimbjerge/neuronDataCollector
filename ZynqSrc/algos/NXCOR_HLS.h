@@ -10,6 +10,7 @@
 
 #include "xnxcor.h"
 #include "IRQ.h"
+#include "Template.h"
 
 class NXCOR
 {
@@ -31,7 +32,7 @@ public:
 	void Disable(void);
 	void Enable(void);
 
-	void updateTemplate(int *temp, int avgTemp);
+	void updateTemplate(TTYPE *temp, int avgTemp);
 
 	void setNXCORThreshold(float threshold) { mNXCORThreshold = threshold; }
 	void setPeakThreshold(int min, int max) { mMinPeakThreshold = min; mMaxPeakThreshold = max; }

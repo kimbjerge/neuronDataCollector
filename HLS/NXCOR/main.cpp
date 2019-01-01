@@ -30,7 +30,7 @@ void readDataSamples(void)
 	m_idx = 0;
 }
 
-void getNextSample(int32_t *signal)
+void getNextSample(sigType *signal)
 {
 	int ch;
 	for (ch = 0; ch < DATA_CHANNELS; ch++) {
@@ -39,7 +39,7 @@ void getNextSample(int32_t *signal)
 	m_idx++;
 }
 
-void readTemplate(int32_t *temp)
+void readTemplate(sigType *temp)
 {
 	FILE *fp;
 	fp = fopen("T11_01.bin", "r+b");
@@ -58,7 +58,7 @@ void readTemplate(int32_t *temp)
 }
 
 // Compute mean value of template
-float meanTemp(int32_t* temp)
+float meanTemp(sigType* temp)
 {
 	float average = 0;
 	mean_label0:for (uint32_t i = 0; i<TEMPLATE_CROPPED_LENGTH; i++)
@@ -70,7 +70,7 @@ float meanTemp(int32_t* temp)
 }
 
 // Compute variance of template
-float varianceTemp(int32_t *temp, T avgTemp)
+float varianceTemp(sigType *temp, T avgTemp)
 {
 	float varTemp = 0;
 	for (uint16_t i = 0; i < TEMPLATE_CROPPED_LENGTH; i++) // Cross correlation with template
@@ -87,8 +87,8 @@ float varianceTemp(int32_t *temp, T avgTemp)
 int main()
 {
 	FILE   *fp;
-	int32_t signalTest[DATA_CHANNELS];
-	int32_t tempA[TEMPLATE_CROPPED_LENGTH*TEMPLATE_CROPPED_WIDTH];
+	sigType signalTest[DATA_CHANNELS];
+	sigType tempA[TEMPLATE_CROPPED_LENGTH*TEMPLATE_CROPPED_WIDTH];
 	float avgTemp;   // Average template
 	float varTemp;   // Variance template
 	T result; // Result from NXCOR
