@@ -56,7 +56,6 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 			pTemplate[i]->loadTemplate(pConfig->getTemplateName(i));
 			pNXCOR[i]->setNXCORThreshold(pConfig->getThreshold(i));
 			pNXCOR[i]->setPeakThreshold(pConfig->getMin(i), pConfig->getMax(i));
-			// TODO - set counter
 			pNXCOR[i]->printSettings();
 		} else
 			pTemplate[i]->clearTemplate();
@@ -73,6 +72,13 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 
 	mNumCfgTemplates = pConfig->getNumTemplates();
 	mNumSamples = numSamples;
+	// Set sample counter used to trigger when template 1 and 2 is seen at the same time
+	if (mNumCfgTemplates >= 2) {
+		mTemplate12Counter = pConfig->getCounter(0);
+		printf("Trigger output JB9/LD6 when template 1 and 2 seen within %d samples\r\n", mTemplate12Counter);
+	}
+	else
+		mTemplate12Counter = 0;
 
 	return 0;
 }
@@ -121,6 +127,28 @@ void TemplateMatch::processResults(void)
 			leds.setOn((Leds::LedTypes)i, false);
 			testOut.setOn((TestIO::IOTypes)i, false);
 		}
+	}
+}
+
+void TemplateMatch::triggerTemplate12(void)
+{
+	if (mTemplate12Counter > 0) {
+		if (mTemplate12Trigger == 1) { // Reset trigger when expired
+			testOut.setOn(TestIO::JB9, false);
+			leds.setOn(Leds::LED6, false);
+		}
+		for (int i = 0; i < 2; i++) { // Check for neuron template 1 and 2
+			if (pNXCOR[i]->getActiveState() == 1) {
+				if (mTemplate12Trigger > 0) { // Neuron activated in same time interval
+					testOut.setOn(TestIO::JB9, true);
+					leds.setOn(Leds::LED6, true);
+					mTemplate12Trigger = 31; // Keep trigger high in min. 1 ms
+					printf("%06d TRIG %d\r\n", mCount, i+1);
+				} else
+					mTemplate12Trigger = mTemplate12Counter; // First neuron activation
+			}
+		}
+		if (mTemplate12Trigger > 0) mTemplate12Trigger--; // Decrement trigger
 	}
 }
 
@@ -183,6 +211,7 @@ void TemplateMatch::run()
 			}
 
 			processResults();
+			triggerTemplate12();
 
 			// Append test result to memory
 #ifdef DEBUG_FILES
@@ -204,11 +233,13 @@ void TemplateMatch::run()
 		}
 		end_tick = xTaskGetTickCount();
 
+		testOut.setOn(TestIO::JB9, false); // Clear trigger
+		leds.setOn(Leds::LED6, false);
 		testOut.setOn(TestIO::JB10, false);
 		leds.setOn(Leds::LED7 , false);
 
 		printf("Tick start %d and tick end %d, duration = %d ms\r\n", start_tick, end_tick, (1000*(end_tick-start_tick))/configTICK_RATE_HZ);
-		printf("Neuron template matching completed on %d samples\r\n", mNumSamples);
+		printf("Neuron template matching completed after %d samples\r\n", mNumSamples);
 
 #ifdef DEBUG_FILES
 		// Save test result from memory to files

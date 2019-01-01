@@ -54,11 +54,11 @@ int FileSDCard::read(void *buffer, int size, bool fromStart)
 		}
 	}
 	Res = f_read(&m_fil, (void*)buffer, size,
-				 &NumBytesRead);
+				 &mNumBytesRead);
 	if (Res) {
 		return XST_FAILURE;
 	}
-	printf("%d number of bytes read\r\n", NumBytesRead);
+	//printf("%d number of bytes read\r\n", NumBytesRead);
 	return XST_SUCCESS;
 }
 
@@ -73,7 +73,7 @@ int FileSDCard::write(const void* buffer, int size, bool append)
 		}
 	}
 	Res = f_write(&m_fil, (const void*)buffer, size,
-						  &NumBytesWritten);
+						  &mNumBytesWritten);
 	if (Res) {
 		return XST_FAILURE;
 	}
@@ -89,3 +89,16 @@ int FileSDCard::close()
 	}
 	return XST_SUCCESS;
 }
+
+unsigned int FileSDCard::size(char *name)
+{
+	FRESULT Res;
+	FILINFO info;
+
+	Res = f_stat(name, &info);
+	if (Res) {
+		return 0;
+	}
+	return info.fsize;
+}
+

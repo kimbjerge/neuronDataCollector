@@ -45,7 +45,8 @@ public:
 private:
 	int updateCoefficients();
 	int updateTemplates();
-	void processResults(void);
+	inline void processResults(void);
+	inline void triggerTemplate12(void);
 
     int mNumCfgTemplates;
 	int mNumSamples;
@@ -63,6 +64,12 @@ private:
     Leds leds;
     TestIO testOut;
     Switch sw;
+
+    // Trigger used to control digital TestIO::JB9
+    // Digital output will be high if neuron template 1 and 2 are activated
+    // Within mTemplate12NumCounts updated from counter in configuration from template 1
+    int mTemplate12Counter;
+    int mTemplate12Trigger;
 };
 
 #endif /* SRC_TEMPLATE_MATCH_H_ */

@@ -1,5 +1,12 @@
+%Configuration file for template matching
+%Template - name of neuron template with the length of 16 samples and width of 8 channels
+%Thres - threshold used to detect neuron activations after normalized cross correlation
+%Min - minimum peak in signal to validate activation
+%Max - maximum peak in signal to validate activation
+%Cnt - only used for first template in list to specifiy JB9 digital output to go high 
+%      the output is set high if template 1 and 2 in the list is seen within sample Cnt (3000 = 100 ms)
 %Template  Thres Min   Max  Cnt
-T11_01.bin 0.70 -5000 5000 4000
-T38_01.bin 0.67 -5000 5000 4000
-T01_04.bin 0.60 -5000 5000 4000
-T27_14.bin 0.60 -5000 5000 4000
+T11_01.bin 0.70 -5000 5000 3000
+T38_01.bin 0.67 -5000 5000 0
+T01_04.bin 0.60 -5000 5000 0
+T27_14.bin 0.60 -5000 5000 0

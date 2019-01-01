@@ -25,16 +25,18 @@ public:
 
     int open(char *name, BYTE mode); // mode = FA_OPEN_EXISTING | FA_CREATE_ALWAYS | FA_WRITE | FA_READ - see ff.h
     int read(void *buffer, int size, bool fromStart=true); // Default read from start of file (fromStart=true)
+    unsigned int getReadSize(void) { return mNumBytesRead; }; // Updated by read
     int write(const void* buffer, int size, bool append=false); // Default write to start of file (append=false)
     int close();
+    unsigned int size(char *name);
 
 	static bool m_mounted;
 
 private:
 	TCHAR fileName[256];
 	TCHAR pathName[256];
-	unsigned int NumBytesWritten;
-	unsigned int NumBytesRead;
+	unsigned int mNumBytesWritten;
+	unsigned int mNumBytesRead;
 	FIL m_fil;
 };
 

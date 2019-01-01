@@ -11,7 +11,7 @@
 #include "NeuronData.h"
 #include "FileSDCard.h"
 
-#define NUM_SAMPLES 				60*30000   // 60 Seconds of samples
+#define MAX_NUM_SAMPLES 				60*30000   // Maximum 60 Seconds of samples
 //#define NUM_SAMPLES 				30000   // 1 Seconds of samples
 
 class TestDataSDCard : public NeuronData
@@ -23,11 +23,13 @@ public:
 
 	int readFile(char *name);
 	virtual void GenerateSampleRecord(LRECORD *pLxRecord);
+	int getNumSamples(void) { return mNumDataSamples; }
 
 protected:
     FileSDCard m_file;
     // Sample buffer read from file
-	float m_data[NUM_SAMPLES][NUM_CHANNELS];
+    int mNumDataSamples;
+	float m_data[MAX_NUM_SAMPLES][NUM_CHANNELS];
 };
 
 #endif // !defined(TESTDATA_SDCARD_INCLUDED_)

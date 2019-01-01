@@ -9,8 +9,9 @@
 #include <math.h>
 #include "TestDataSDCard.h"
 
-TestDataSDCard::TestDataSDCard() : m_file((char *)"0:/")
+TestDataSDCard::TestDataSDCard() : m_file((char *)"0:/"), mNumDataSamples(0)
 {
+
 }
 
 TestDataSDCard::~TestDataSDCard()
@@ -21,15 +22,22 @@ TestDataSDCard::~TestDataSDCard()
 int TestDataSDCard::readFile(char * name)
 {
 	int result;
+	unsigned int fileSize;
 	result = m_file.mount();
 	if (result != XST_SUCCESS) printf("Failed to mount SD card\r\n");
 
+	fileSize = m_file.size(name);
 	result = m_file.open(name, FA_OPEN_EXISTING | FA_READ);
 	if (result != XST_SUCCESS) printf("Failed open file %s for reading\r\n", name);
 
 	if (result == XST_SUCCESS) {
+		if (fileSize > sizeof(m_data)) fileSize = sizeof(m_data);
 		result = m_file.read((void *)m_data, sizeof(m_data));
 		if (result != XST_SUCCESS) printf("Failed reading from file %s\r\n", name);
+
+		mNumDataSamples = fileSize/(sizeof(float)*NUM_CHANNELS);
+		float time = mNumDataSamples/30000; // Sample rate 30 kHz
+		printf("%dx32 data samples found in %s equal to %0.3f seconds\r\n", mNumDataSamples, name, time); //
 
 		result = m_file.close();
 		if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name);
@@ -52,7 +60,7 @@ void TestDataSDCard::GenerateSampleRecord(LRECORD *pLxRecord)
 			for (int i = 0; i < NUM_CHANNELS; i++)
 				pLxRecord->board[j].data[i] = (int32_t)m_data[m_n][i];
 		}
-		if (++m_n >= NUM_SAMPLES) // Turn around sample buffer
+		if (++m_n >= mNumDataSamples) // Turn around sample buffer
 			m_n = 0;
 
 	} else
