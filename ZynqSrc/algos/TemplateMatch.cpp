@@ -139,17 +139,31 @@ void TemplateMatch::triggerTemplate12(void)
 		}
 		for (int i = 0; i < 2; i++) { // Check for neuron template 1 and 2
 			if (pNXCOR[i]->getActiveState() == 1) {
-				if (mTemplate12Trigger > 0) { // Neuron activated in same time interval
+				if (mTemplate12Trigger > 0 && mTemplate12TriggerIdx == (i+1)%2) {
+					// Another neuron activated in same time interval
 					testOut.setOn(TestIO::JB9, true);
 					leds.setOn(Leds::LED6, true);
 					mTemplate12Trigger = 31; // Keep trigger high in min. 1 ms
 					printf("%06d TRIG %d\r\n", mCount, i+1);
-				} else
+				} else {
 					mTemplate12Trigger = mTemplate12Counter; // First neuron activation
+					mTemplate12TriggerIdx = i;
+				}
 			}
 		}
 		if (mTemplate12Trigger > 0) mTemplate12Trigger--; // Decrement trigger
 	}
+}
+
+void TemplateMatch::reset(void)
+{
+	pNeuronData->reset();
+	pResultFIR->reset();
+	for (int i = 0; i < TEMP_NUM; i++)
+		pResultNXCOR[i]->reset();
+
+	mTemplate12Trigger = 0;
+	mTemplate12TriggerIdx = 0;
 }
 
 void TemplateMatch::run()
@@ -171,11 +185,7 @@ void TemplateMatch::run()
 		while (!sw.isOn(Switch::SW0))
 			Sleep(100);
 
-		pNeuronData->reset();
-		pResultFIR->reset();
-		for (int i = 0; i < TEMP_NUM; i++)
-			pResultNXCOR[i]->reset();
-
+		reset();
 
 		// LED + Hardware signals for debugging
 		leds.setOn(Leds::LED7 , true);

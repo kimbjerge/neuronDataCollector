@@ -45,6 +45,7 @@ public:
 private:
 	int updateCoefficients();
 	int updateTemplates();
+	void reset(void);
 	inline void processResults(void);
 	inline void triggerTemplate12(void);
 
@@ -70,6 +71,7 @@ private:
     // Within mTemplate12NumCounts updated from counter in configuration from template 1
     int mTemplate12Counter;
     int mTemplate12Trigger;
+    int mTemplate12TriggerIdx;
 };
 
 #endif /* SRC_TEMPLATE_MATCH_H_ */
