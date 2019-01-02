@@ -1,3 +1,6 @@
+Status for ZedNeuronC Ver. 1.1
+02-01-2019
+
 FIR:
 Coefficienter til hver 4 kanaler bedst eller hver 8
 
