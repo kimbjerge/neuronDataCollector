@@ -1,0 +1,7 @@
+FIR:
+Coefficienter til hver 4 kanaler bedst eller hver 8
+
+MIN/MAX:
+Min max for hver kanal hver template
+Mapning af kanaler i templates
+
