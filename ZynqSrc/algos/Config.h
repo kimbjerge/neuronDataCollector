@@ -13,7 +13,7 @@ using namespace std;
 #include "FileSDCard.h"
 
 #define MAX_CONFIG_SIZE 	5000
-#define MAX_CFG_TEMPLATES 	4
+#define MAX_CFG_TEMPLATES 	10
 #define MAX_TAPS			60
 
 typedef struct TemplateCfg {

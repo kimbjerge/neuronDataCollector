@@ -37,6 +37,12 @@ unsigned long FirFilter::readFiltered(int *results)
 	return XFirfilter_Read_results_Words(&mFirfilter, 0, results, mNumSamples);
 }
 
+void FirFilter::executeFilter(int *samples)
+{
+	startFilter(samples);
+	while (XFirfilter_IsDone(&mFirfilter) == 0); // Polling done register
+}
+
 void FirFilter::Disable(void)
 {
 	// Disable Global and instance interrupts

@@ -27,6 +27,7 @@ public:
 	void updateCoefficients(int *coefficients);
 	void startFilter(int *samples);
 	unsigned long readFiltered(int *samples);
+	void executeFilter(int *samples);
 
 private:
 	static void hls_fir_isr(void *InstancePtr);

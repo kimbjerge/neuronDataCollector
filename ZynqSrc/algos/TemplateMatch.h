@@ -26,7 +26,7 @@ using namespace AbstractOS;
 #define FIR_TAPS   		60  // Number of FIR taps
 #define FIR_SIZE		8   // Number of FIR filters in each FIRFilter HLS class
 #define FIR_NUM         (NUM_CHANNELS/FIR_SIZE)  // Number of FIRFilter classes
-#define TEMP_NUM		4   // Number of templates
+#define TEMP_NUM		6   // Number of templates
 
 
 class TemplateMatch : public Thread

@@ -111,19 +111,20 @@ void Config::parseConfig(void)
 	int min;
 	int max;
 	int counter;
+	int offset;
 
 	mPos = 0;
 	mNumTemplates = 0;
 	while (getNextLine()) {
-		sscanf(mLineTxt, "%s %f %d %d %d", tempName, &threshold, &min, &max, &counter);
+		sscanf(mLineTxt, "%s %f %d %d %d %d", tempName, &threshold, &min, &max, &counter, &offset);
 		if (mNumTemplates < MAX_CFG_TEMPLATES) {
 			tempConfig[mNumTemplates].name = tempName;
 			tempConfig[mNumTemplates].threshold = threshold;
 			tempConfig[mNumTemplates].min = min;
 			tempConfig[mNumTemplates].max = max;
 			tempConfig[mNumTemplates].counter = counter;
+			mNumTemplates++;
 		}
-		mNumTemplates++;
 		printf("Using template %d file %s\r\n", mNumTemplates, tempName);
 	}
 }

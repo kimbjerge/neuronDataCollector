@@ -48,7 +48,9 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 	// Create NXCOR filters
 	for (int i = 0; i < TEMP_NUM; i++) {
 		pNXCOR[i] = new NXCOR(XPAR_NXCOR_0_DEVICE_ID+i, TEMP_LENGTH, TEMP_WIDTH);
-		pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_0_INTERRUPT_INTR+i);
+		if (i < 4)  pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_0_INTERRUPT_INTR+i);
+		if (i == 4)	pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_4_INTERRUPT_INTR);
+		if (i == 5) pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_5_INTERRUPT_INTR);
 		pTemplate[i] = new Template();
 
 		if (i < pConfig->getNumTemplates()) {
@@ -75,7 +77,7 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 	// Set sample counter used to trigger when template 1 and 2 is seen at the same time
 	if (mNumCfgTemplates >= 2) {
 		mTemplate12Counter = pConfig->getCounter(0);
-		printf("Trigger output JB9/LD6 when template 1 and 2 seen within %d samples\r\n", mTemplate12Counter);
+		printf("Trigger output JB9/LD7 when template 1 and 2 seen within %d samples\r\n", mTemplate12Counter);
 	}
 	else
 		mTemplate12Counter = 0;
@@ -94,6 +96,12 @@ int TemplateMatch::updateCoefficients()
 	}
 	for (int i = 0; i < NUM_CHANNELS; i++)
 		mFiltered[i] = 0;
+
+	// Clear filter IP Core memory
+	for (int i = 0; i < FIR_TAPS; i++) {
+		for (int i = 0; i < FIR_NUM; i++)
+			pFirFilter[i]->executeFilter(mFiltered);
+	}
 	return 0;
 }
 
@@ -114,7 +122,7 @@ void TemplateMatch::processResults(void)
 	for (int i = 0; i < mNumCfgTemplates; i++) {
 		int state = pNXCOR[i]->verifyActivation();
 		if (state == 1) {
-			printf("%06d %03d %s %.3f P%05d\r\n",
+			printf("%06d %04d %s %.3f P%05d\r\n",
 					mCount,
 					pNXCOR[i]->getNumActivations(),
 					pTemplate[i]->getTemplateName(),
@@ -135,14 +143,14 @@ void TemplateMatch::triggerTemplate12(void)
 	if (mTemplate12Counter > 0) {
 		if (mTemplate12Trigger == 1) { // Reset trigger when expired
 			testOut.setOn(TestIO::JB9, false);
-			leds.setOn(Leds::LED6, false);
+			leds.setOn(Leds::LED7, false);
 		}
 		for (int i = 0; i < 2; i++) { // Check for neuron template 1 and 2
 			if (pNXCOR[i]->getActiveState() == 1) {
 				if (mTemplate12Trigger > 0 && mTemplate12TriggerIdx == (i+1)%2) {
 					// Another neuron activated in same time interval
 					testOut.setOn(TestIO::JB9, true);
-					leds.setOn(Leds::LED6, true);
+					leds.setOn(Leds::LED7, true);
 					mTemplate12Trigger = 31; // Keep trigger high in min. 1 ms
 					printf("%06d TRIG %d\r\n", mCount, i+1);
 				} else {
@@ -188,7 +196,7 @@ void TemplateMatch::run()
 		reset();
 
 		// LED + Hardware signals for debugging
-		leds.setOn(Leds::LED7 , true);
+		leds.setOn(Leds::LED6 , true);
 		testOut.setOn(TestIO::JB10, true);
 		mCount = 0;
 		count = mNumSamples;
@@ -244,9 +252,9 @@ void TemplateMatch::run()
 		end_tick = xTaskGetTickCount();
 
 		testOut.setOn(TestIO::JB9, false); // Clear trigger
-		leds.setOn(Leds::LED6, false);
+		leds.setOn(Leds::LED7, false);
 		testOut.setOn(TestIO::JB10, false);
-		leds.setOn(Leds::LED7 , false);
+		leds.setOn(Leds::LED6 , false);
 
 		printf("Tick start %d and tick end %d, duration = %d ms\r\n", start_tick, end_tick, (1000*(end_tick-start_tick))/configTICK_RATE_HZ);
 		printf("Neuron template matching completed after %d samples\r\n", mNumSamples);
