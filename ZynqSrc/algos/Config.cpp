@@ -123,6 +123,12 @@ void Config::parseConfig(void)
 			tempConfig[mNumTemplates].min = min;
 			tempConfig[mNumTemplates].max = max;
 			tempConfig[mNumTemplates].counter = counter;
+			// TODO change to load different values for each channel and channel map
+			for (int ch = 0; ch < TEMP_WIDTH; ch++) {
+				 mPeakMaxLimits[mNumTemplates][ch] = max;
+				 mPeakMinLimits[mNumTemplates][ch] = min;
+				 mChannelMap[mNumTemplates][ch] = ch+offset; // Use offset to map channels
+			}
 			mNumTemplates++;
 		}
 		printf("Using template %d file %s\r\n", mNumTemplates, tempName);

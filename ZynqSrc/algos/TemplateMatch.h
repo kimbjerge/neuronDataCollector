@@ -43,8 +43,9 @@ public:
 	virtual void run();
 
 private:
-	int updateCoefficients();
-	int updateTemplates();
+	void updateCoefficients();
+	void updateTemplates();
+	void clearIPCoresMemory();
 	void reset(void);
 	inline void processResults(void);
 	inline void triggerTemplate12(void);

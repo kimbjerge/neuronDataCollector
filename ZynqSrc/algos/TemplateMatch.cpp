@@ -58,6 +58,9 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 			pTemplate[i]->loadTemplate(pConfig->getTemplateName(i));
 			pNXCOR[i]->setNXCORThreshold(pConfig->getThreshold(i));
 			pNXCOR[i]->setPeakThreshold(pConfig->getMin(i), pConfig->getMax(i));
+			pNXCOR[i]->setMaxPeakLimits(pConfig->getPeakMaxLimits(i));
+			pNXCOR[i]->setMinPeakLimits(pConfig->getPeakMinLimits(i));
+			pNXCOR[i]->setChannelMap(pConfig->getChannelMap(i));
 			pNXCOR[i]->printSettings();
 		} else
 			pTemplate[i]->clearTemplate();
@@ -85,7 +88,7 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 	return 0;
 }
 
-int TemplateMatch::updateCoefficients()
+void TemplateMatch::updateCoefficients()
 {
 	// Updating coefficients based on table with double numbers
 	for (int i = 0; i < FIR_TAPS; i++) {
@@ -95,6 +98,18 @@ int TemplateMatch::updateCoefficients()
 		for (int ch = 0; ch < FIR_SIZE; ch++)
 			pFirFilter[i]->updateCoefficients(mCoeff, ch);
 	}
+}
+
+void TemplateMatch::updateTemplates()
+{
+	// Update template in HLS IP core
+	for (int i = 0; i < TEMP_NUM; i++) {
+		pNXCOR[i]->updateTemplate(pTemplate[i]->getTemplate(), round(pTemplate[i]->getMean()));
+	}
+}
+
+void TemplateMatch::clearIPCoresMemory()
+{
 	for (int i = 0; i < NUM_CHANNELS; i++)
 		mFiltered[i] = 0;
 
@@ -103,19 +118,12 @@ int TemplateMatch::updateCoefficients()
 		for (int i = 0; i < FIR_NUM; i++)
 			pFirFilter[i]->executeFilter(mFiltered);
 	}
-	return 0;
-}
-
-int TemplateMatch::updateTemplates()
-{
 	// Update template in HLS IP core
 	for (int i = 0; i < TEMP_NUM; i++) {
-		pNXCOR[i]->updateTemplate(pTemplate[i]->getTemplate(), round(pTemplate[i]->getMean()));
 		for (int j = 0; j < TEMP_LENGTH; j++) { // Clear IP Core memory
 			pNXCOR[i]->executeNXCOR(mFiltered, pTemplate[i]->getVariance());
 		}
 	}
-	return 0;
 }
 
 void TemplateMatch::processResults(void)
@@ -123,12 +131,13 @@ void TemplateMatch::processResults(void)
 	for (int i = 0; i < mNumCfgTemplates; i++) {
 		int state = pNXCOR[i]->verifyActivation();
 		if (state == 1) {
-			printf("%06d %04d %s %.3f P%05d\r\n",
+			//printf("%06d %04d %s %.3f P%05d\r\n",
+			printf("%06d %04d %s %.3f\r\n",
 					mCount,
 					pNXCOR[i]->getNumActivations(),
 					pTemplate[i]->getTemplateName(),
-					pNXCOR[i]->getNXCORResult(),
-					pNXCOR[i]->getMaxPeak());
+					pNXCOR[i]->getNXCORResult());
+					//pNXCOR[i]->getMaxPeak());
 			leds.setOn((Leds::LedTypes)i, true);
 			testOut.setOn((TestIO::IOTypes)i, true);
 		}
@@ -170,6 +179,8 @@ void TemplateMatch::reset(void)
 	pResultFIR->reset();
 	for (int i = 0; i < TEMP_NUM; i++)
 		pResultNXCOR[i]->reset();
+	for (int i = 0; i < TEMP_NUM; i++)
+		pNXCOR[i]->reset();
 
 	mTemplate12Trigger = 0;
 	mTemplate12TriggerIdx = 0;
@@ -189,11 +200,14 @@ void TemplateMatch::run()
 
 	while (1)
 	{
+		// Clear NXCORE and FIR filter IP Core's HW Memory
+		clearIPCoresMemory();
 
 		printf("Turn SW0 on to start\r\n");
 		while (!sw.isOn(Switch::SW0))
 			Sleep(100);
 
+		// Reset counters and indexes
 		reset();
 
 		// LED + Hardware signals for debugging
@@ -226,7 +240,8 @@ void TemplateMatch::run()
 			}
 			// Start normalized cross core correlation of filtered samples
 			for (int i = 0; i < mNumCfgTemplates; i++) {
-				pNXCOR[i]->startNXCOR(&mFiltered[pTemplate[i]->getChOffset()]);
+				pNXCOR[i]->startNXCOR(mFiltered);
+				//pNXCOR[i]->startNXCOR(&mFiltered[pTemplate[i]->getChOffset()]); OLD Ver. 1.0
 			}
 
 			processResults();

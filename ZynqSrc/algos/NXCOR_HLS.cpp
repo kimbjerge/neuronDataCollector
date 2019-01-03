@@ -11,13 +11,25 @@
 
 void NXCOR::printSettings(void)
 {
-	printf("-------------------------------------\r\n");
-	printf("NXCOR template %d settings:\r\n", mDeviceId+1);
-	printf("  Length   : %d\r\n", mLength);
-	printf("  Width    : %d\r\n", mWidth);
-	printf("  Threshold: %f\r\n", mNXCORThreshold);
-	printf("  Peak max : %d\r\n", mMaxPeakThreshold);
-	printf("  Peak min : %d\r\n", mMinPeakThreshold);
+	printf("---------------------------------------------------------------------\r\n");
+	printf("NXCOR template %2d settings:\r\n", mDeviceId+1);
+	printf("  Length      : %d\r\n", mLength);
+	printf("  Width       : %d\r\n", mWidth);
+	printf("  Threshold   : %f\r\n", mNXCORThreshold);
+	printf("  Peak max.   : ");
+	for (int ch = 0; ch < TEMP_WIDTH; ch++)
+		printf("%5d ", mPeakMaxLimits[ch]);
+	printf("\r\n");
+	printf("  Peak min.   : ");
+	for (int ch = 0; ch < TEMP_WIDTH; ch++)
+		printf("%5d ", mPeakMinLimits[ch]);
+	printf("\r\n");
+	printf("  Channel map : ");
+	for (int ch = 0; ch < TEMP_WIDTH; ch++)
+		printf("%5d ", mChannelMap[ch]);
+	printf("\r\n");
+	//printf("  Peak max : %d\r\n", mMaxPeakThreshold); // NOT USED OLD VER. 1.0
+	//printf("  Peak min : %d\r\n", mMinPeakThreshold); // NOT USED OLD VER. 1.0
 }
 
 void NXCOR::updateTemplate(TTYPE *temp, int avgTemp)
@@ -42,23 +54,20 @@ void NXCOR::startNXCOR(TTYPE *samples)
 	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
 	XNxcor_Write_signalData_Words(&mNXCOR, 0, (int *)samplesType, (TEMP_WIDTH+1)/SINT); //TTYPE = int
 #else
+	int ch;
+    TTYPE samplesMoved[TEMP_WIDTH+1];
+    // Use channel map to move samples from neuron channels where template is located
+    for (ch = 0; ch < TEMP_WIDTH; ch++) samplesMoved[ch] = samples[mChannelMap[ch]];
+    samplesMoved[ch] = 0;
 	mResultAvailHlsNXCOR = 0;
 	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
-	XNxcor_Write_signalData_Words(&mNXCOR, 0, (int *)samples, (TEMP_WIDTH+1)/SINT); //TTYPE = int
+	XNxcor_Write_signalData_Words(&mNXCOR, 0, (int *)samplesMoved, (TEMP_WIDTH+1)/SINT); //TTYPE = int
 #endif
 	//XNxcor_Write_signalData_Bytes(&mNXCOR, 0, (char *)samplesType, mWidth*sizeof(TTYPE));
 	XNxcor_Start(&mNXCOR);
 
-
-	// Update maximum sample value
-	int peakSample = samples[0];
-	for (int i = 1; i < mWidth; i++) {
-		int peak = samples[i];
-		if (abs(peak) > abs(peakSample))
-			peakSample = peak;
-	}
-	mPeakSamples[mIdxPeak] = peakSample;
-	mIdxPeak = (mIdxPeak + 1) % mLength;
+	updateLastSamples(samplesMoved);
+	//updatePeakSamples(samples); // NOT USED - Ver. 1.0
 }
 
 float NXCOR::readResultNXCOR(float varTemplate)
@@ -92,6 +101,21 @@ float NXCOR::executeNXCOR(TTYPE *samples, float varTemplate)
 	return readResultNXCOR(varTemplate);
 }
 
+// NOT USED - Ver. 1.0
+void NXCOR::updatePeakSamples(TTYPE *samples)
+{
+	// Update maximum sample value
+	int peakSample = samples[0];
+	for (int i = 1; i < mWidth; i++) {
+		int peak = samples[i];
+		if (abs(peak) > abs(peakSample))
+			peakSample = peak;
+	}
+	mPeakSamples[mIdxPeak] = peakSample;
+	mIdxPeak = (mIdxPeak + 1) % mLength;
+}
+
+// NOT USED - Ver. 1.0
 bool NXCOR::checkWithinPeakLimits(void)
 {
 	// Search for peak sample in length of template window
@@ -110,6 +134,57 @@ bool NXCOR::checkWithinPeakLimits(void)
 	return false;
 }
 
+void NXCOR::setChannelMap(short *map)
+{
+	// Set channel map of index to neuron channels where template is located
+	for (int ch = 0; ch < TEMP_WIDTH; ch++)
+		mChannelMap[ch] = map[ch];
+}
+
+void NXCOR::updateLastSamples(TTYPE *samples)
+{
+	memcpy(mLastSamples[mLastIdx], samples, sizeof(TTYPE)*TEMP_WIDTH);
+	mLastIdx = (mLastIdx+1)%TEMP_LENGTH;
+}
+
+bool NXCOR::checkWithinChannelPeakLimits(void)
+{
+	// Set minimum values to first sample in last sample buffer
+	for (int ch = 0; ch < TEMP_WIDTH; ch++)
+		mPeakMin[ch] = mLastSamples[0][ch];
+
+	// Search for minimum sample value for each channel in sample buffer
+	for (int i = 1; i < TEMP_LENGTH; i++) {
+		for (int ch = 0; ch < TEMP_WIDTH; ch++) {
+			if (mPeakMin[ch] > mLastSamples[i][ch])
+				mPeakMin[ch] = mLastSamples[i][ch];
+		}
+	}
+
+	// Check that found minimum sample is within valid limits
+	for (int ch = 0; ch < TEMP_WIDTH; ch++) {
+		if (mPeakMin[ch] > mPeakMaxLimits[ch] ||
+			mPeakMin[ch] < mPeakMinLimits[ch])
+			return false;
+	}
+
+	return true;
+}
+
+void NXCOR::setMaxPeakLimits(TTYPE *max)
+{
+	// Set max peak limits for each channel
+	for (int i = 0; i < TEMP_WIDTH; i++)
+		mPeakMaxLimits[i] = max[i];
+}
+
+void NXCOR::setMinPeakLimits(TTYPE *min)
+{
+	// Set min peak limits for each channel
+	for (int i = 0; i < TEMP_WIDTH; i++)
+		mPeakMinLimits[i] = min[i];
+}
+
 int NXCOR::verifyActivation(void)
 {
     mActiveState = 0;
@@ -122,7 +197,8 @@ int NXCOR::verifyActivation(void)
 			mActiveState = 2;
 	} else {
 		if (mResultNXCOR >= mNXCORThreshold) { // NXCOR above threshold then match found and activation detected
-			if (checkWithinPeakLimits()) { // Check whether neuron peak is within valid limits
+			//if (checkWithinPeakLimits()) { // Check whether neuron peak is within valid limits VER. 1.0
+			if (checkWithinChannelPeakLimits()) { // Check whether neuron peak is within valid limits
 				mActivationCounts = mMaxActivationCount; // Set filter to ignore future activations
 				mCounts++;
 				mActiveState = 1;

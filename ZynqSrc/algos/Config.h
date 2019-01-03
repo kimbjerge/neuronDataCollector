@@ -8,9 +8,7 @@
 #ifndef SRC_CONFIG_H_
 #define SRC_CONFIG_H_
 
-#include <string>
-using namespace std;
-#include "FileSDCard.h"
+#include "Template.h"
 
 #define MAX_CONFIG_SIZE 	5000
 #define MAX_CFG_TEMPLATES 	10
@@ -37,6 +35,9 @@ public:
 	int getMin(int idx) { return tempConfig[idx].min; }
 	int getMax(int idx) { return tempConfig[idx].max; }
 	int getCounter(int idx) { return tempConfig[idx].counter; }
+	short *getPeakMaxLimits(int idx) { return mPeakMaxLimits[idx]; }
+	short *getPeakMinLimits(int idx) { return mPeakMinLimits[idx]; }
+	short *getChannelMap(int idx) { return mChannelMap[idx]; }
 	int getNumTemplates(void) { return mNumTemplates; }
 	bool isTabsValid(void) { return mTabsValid; }
 	float *getCoeffs(void) { return mCoeffs; }
@@ -53,6 +54,9 @@ private:
     TemplateCfg tempConfig[MAX_CFG_TEMPLATES];
     bool mTabsValid;
     float mCoeffs[MAX_TAPS];
+    short mPeakMaxLimits[MAX_CFG_TEMPLATES][TEMP_WIDTH];
+    short mPeakMinLimits[MAX_CFG_TEMPLATES][TEMP_WIDTH];
+    short mChannelMap[MAX_CFG_TEMPLATES][TEMP_WIDTH];
 
     char mConfigTxt[MAX_CONFIG_SIZE];
     int mPos;
