@@ -7,37 +7,37 @@
 
 #include "FIRFilter_HLS.h"
 
-void FirFilter::updateCoefficients(int *coefficients)
+void FirFilter::updateCoefficients(int *coefficients, int channel)
 {
 	while (XFirfilter_IsReady(&mFirfilter) == 0); // Polling ready register
-	XFirfilter_Set_operation(&mFirfilter, 0); // Set operation to update coefficients
+	XFirfilter_Set_operation(&mFirfilter, channel); // Set operation to update coefficients
 	XFirfilter_Write_coeff_Words(&mFirfilter, 0, coefficients, mNumTaps);
 	XFirfilter_Start(&mFirfilter);
 	while (XFirfilter_IsDone(&mFirfilter) == 0); // Polling done register
-	XFirfilter_Set_operation(&mFirfilter, 1); // Set operation back to filtering
+	XFirfilter_Set_operation(&mFirfilter, mNumChannels); // Set operation back to filtering
 }
 
-void FirFilter::startFilter(int *samples)
+void FirFilter::startFilter(STYPE *samples)
 {
 	// Clear done flags
 	mResultAvailHlsFir = 0;
 	// send samples after shifting least significant 8 bits as the filter
 	// requires 16 bit input sample
 	while (XFirfilter_IsReady(&mFirfilter) == 0); // Polling ready register
-	XFirfilter_Write_samples_Words(&mFirfilter, 0, samples, mNumSamples);
+	XFirfilter_Write_samples_Words(&mFirfilter, 0, (int *)samples, mNumChannels/SNUM);
 	XFirfilter_Start(&mFirfilter);
 }
 
-unsigned long FirFilter::readFiltered(int *results)
+unsigned long FirFilter::readFiltered(STYPE *results)
 {
 	//if (mpIrq != 0)	// Busy wait for fir irq
 	//	while(!mResultAvailHlsFir);
 	//else
 	while (XFirfilter_IsDone(&mFirfilter) == 0); // Polling done register
-	return XFirfilter_Read_results_Words(&mFirfilter, 0, results, mNumSamples);
+	return XFirfilter_Read_results_Words(&mFirfilter, 0, (int *)results, mNumChannels/SNUM);
 }
 
-void FirFilter::executeFilter(int *samples)
+void FirFilter::executeFilter(STYPE *samples)
 {
 	startFilter(samples);
 	while (XFirfilter_IsDone(&mFirfilter) == 0); // Polling done register

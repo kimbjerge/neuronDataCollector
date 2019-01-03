@@ -5,14 +5,14 @@
 #include "FIRFilter_coeffs.h"
 
 #define SAMPLES   	100  // Impulse response test
-#define NUM_SAMPLES 30000 // Filter test on real neuron signals
+#define NUM_SAMPLES 3000 // Filter test on real neuron signals
 
-float m_data[NUM_SAMPLES][DATA_CHANNELS*4];
+float m_data[NUM_SAMPLES][32];
 int m_idx;
 
 void setCoeff(int32_t *coeff)
 {
-	int i;
+	int i, ch;
 
 	initFIR();
 
@@ -22,10 +22,8 @@ void setCoeff(int32_t *coeff)
 		//coeff[i] = -8388608+i-NUM_TAPS;
 	}
 
-	FIRFilter(NULL,
-			  NULL,
-			  coeff,
-			  0);
+	for (ch = 0; ch < DATA_CHANNELS; ch++)
+		FIRFilter(NULL, NULL, coeff, ch);
 }
 
 void readDataSamples(void)
@@ -40,7 +38,7 @@ void readDataSamples(void)
 	m_idx = 0;
 }
 
-void getNextSample(int32_t *signal)
+void getNextSample(sigType *signal)
 {
 	int ch;
 	for (ch = 0; ch < DATA_CHANNELS; ch++) {
@@ -61,8 +59,8 @@ void setValue(int32_t *signal, int32_t value)
 int main ()
 {
   FILE   *fp;
-  int32_t samples[DATA_CHANNELS];
-  int32_t output[DATA_CHANNELS];
+  sigType samples[DATA_CHANNELS];
+  sigType output[DATA_CHANNELS];
   int32_t coefficients[NUM_TAPS];
 
   setCoeff(coefficients);
@@ -87,10 +85,11 @@ int main ()
 
 #endif
 
-	  FIRFilter(output, samples, NULL, 1);
+	  FIRFilter(output, samples, NULL, DATA_CHANNELS);
 	  
-   	  printf("%i %d %d\n", i, samples[0], output[0]);
-   	  fprintf(fp,"%03i %05d %05d\r\n", i, (int)samples[0], (int)output[0]);
+	  for (int ch = 0; ch < DATA_CHANNELS; ch++)
+		  printf("%i %d %d\n", i, samples[ch], output[ch]);
+   	  fprintf(fp,"%03i %05d %05d\r\n", i, samples[0], output[0]);
   }
   fclose(fp);
 

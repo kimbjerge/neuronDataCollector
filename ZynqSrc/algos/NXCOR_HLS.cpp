@@ -29,9 +29,9 @@ void NXCOR::updateTemplate(TTYPE *temp, int avgTemp)
 	*(volatile int*)(mNXCOR.Axilites_BaseAddress + XNXCOR_AXILITES_ADDR_AVGTEMP_DATA) = avgTemp;
 }
 
-void NXCOR::startNXCOR(int *samples)
+void NXCOR::startNXCOR(TTYPE *samples)
 {
-#if SINT == 2 // int16_t
+#if 0 // Used if TTYPE different from STYPE
     TTYPE samplesType[TEMP_WIDTH+1];
     int i;
     // Convert samples to TTYPE used by NXCOR
@@ -41,10 +41,10 @@ void NXCOR::startNXCOR(int *samples)
 	mResultAvailHlsNXCOR = 0;
 	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
 	XNxcor_Write_signalData_Words(&mNXCOR, 0, (int *)samplesType, (TEMP_WIDTH+1)/SINT); //TTYPE = int
-#else // int32_t
+#else
 	mResultAvailHlsNXCOR = 0;
 	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
-	XNxcor_Write_signalData_Words(&mNXCOR, 0, samples, (TEMP_WIDTH+1)/SINT); //TTYPE = int
+	XNxcor_Write_signalData_Words(&mNXCOR, 0, (int *)samples, (TEMP_WIDTH+1)/SINT); //TTYPE = int
 #endif
 	//XNxcor_Write_signalData_Bytes(&mNXCOR, 0, (char *)samplesType, mWidth*sizeof(TTYPE));
 	XNxcor_Start(&mNXCOR);
@@ -86,7 +86,7 @@ float NXCOR::readResultNXCOR(float varTemplate)
     return mResultNXCOR;
 }
 
-float NXCOR::executeNXCOR(int *samples, float varTemplate)
+float NXCOR::executeNXCOR(TTYPE *samples, float varTemplate)
 {
 	startNXCOR(samples);
 	return readResultNXCOR(varTemplate);

@@ -13,12 +13,14 @@
 #define					NUM_TAPS							60
 #define                 INIT_VALUE                          0x00000000
 #define 				ALGO_BITS							23  // 15 or 23 bits resolution of coefficients
+//#define                 sigType                             int32_t
+#define                 sigType                             int16_t
 
 void initFIR(void);
 
 // Processing number of DATA_CHANNELS in parallel NUM_TAPS FIR filters
-void FIRFilter (int32_t results[DATA_CHANNELS],
-				int32_t samples[DATA_CHANNELS],
+void FIRFilter (sigType results[DATA_CHANNELS],
+				sigType samples[DATA_CHANNELS],
 				int32_t coeff[NUM_TAPS],
 				int32_t operation);
 #endif

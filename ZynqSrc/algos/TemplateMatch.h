@@ -56,12 +56,11 @@ private:
 	FirFilter *pFirFilter[FIR_NUM];
     NXCOR *pNXCOR[TEMP_NUM];
     Template *pTemplate[TEMP_NUM];
-	LRECORD lxRecord;
 	float *pCoeffFloat;
     int mCoeff[FIR_TAPS];
-    int mFiltered[NUM_CHANNELS];
+    STYPE mFiltered[NUM_CHANNELS];
     ResultFile<float> *pResultNXCOR[TEMP_NUM];
-    ResultFile<int> *pResultFIR;
+    ResultFile<STYPE> *pResultFIR;
     Leds leds;
     TestIO testOut;
     Switch sw;

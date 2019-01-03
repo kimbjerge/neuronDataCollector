@@ -18,9 +18,8 @@ using namespace std;
 #define TEMP_SIZE       (TEMP_WIDTH*TEMP_LENGTH)
 
 // Type of data used for templates and NXCOR
-//#define TTYPE            int32_t // Version 1.0 - 32 bit
-#define TTYPE            int16_t // Version 1.1 - optimized using 16 bit
-#define SINT             2     // Number of samples in int32_t
+#define TTYPE           int16_t // Version 1.1 - optimized using 16 bit - Version 1.0 uses int32_t
+#define SINT            2     	// Number of samples in int32_t
 
 class Template
 {
@@ -46,7 +45,5 @@ private:
     string mFileName;
     FileSDCard m_file;
 };
-
-
 
 #endif /* SRC_TEMPLATE_H_ */

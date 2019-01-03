@@ -18,6 +18,14 @@ NeuronData::~NeuronData()
 
 }
 
+int16_t *NeuronData::GenerateSamples(void)
+{
+	for (int i = 0; i < NUM_CHANNELS; i++)
+		nextDataSamples[i] = 0;
+	m_n++;
+	return nextDataSamples;
+}
+
 // Computes and verifies checksum of record
 void NeuronData::AddCheckSum(LRECORD *pLxRecord)
 {

@@ -68,7 +68,7 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 		pResultNXCOR[i] = new ResultFile<float>();
 		pResultNXCOR[i]->allocateContent(numSamples);
 	}
-	pResultFIR = new ResultFile<int>();
+	pResultFIR = new ResultFile<STYPE>();
 	pResultFIR->allocateContent(numSamples*NUM_CHANNELS);
 #endif
 
@@ -92,7 +92,8 @@ int TemplateMatch::updateCoefficients()
 		mCoeff[i] = (int)round(pCoeffFloat[i]*pow(2,FIR_FORMAT)); // Convert to format 1.FIR_FORMAT
 	}
 	for (int i = 0; i < FIR_NUM; i++) {
-		pFirFilter[i]->updateCoefficients(mCoeff);
+		for (int ch = 0; ch < FIR_SIZE; ch++)
+			pFirFilter[i]->updateCoefficients(mCoeff, ch);
 	}
 	for (int i = 0; i < NUM_CHANNELS; i++)
 		mFiltered[i] = 0;
@@ -178,7 +179,7 @@ void TemplateMatch::run()
 {
 	int count = mNumSamples;
     bool firstTime = true;
-    int *pSampleData = (int *)lxRecord.board[0].data;
+    STYPE *pSampleData;
     int start_tick, end_tick;
 
 	printf("Updating FIR coefficients and templates\r\n");
@@ -206,7 +207,7 @@ void TemplateMatch::run()
 		while (count > 0) {
 
 			// Get next sample from data generator
-			pNeuronData->GenerateSampleRecord(&lxRecord);
+			pSampleData = pNeuronData->GenerateSamples();
 
 			if (!firstTime) {
 				// After fist iteration read filtered samples
@@ -221,11 +222,11 @@ void TemplateMatch::run()
 
 			// Start filtering next NUM_CHANNELS of samples
 			for (int i = 0; i < FIR_NUM; i++) {
-				pFirFilter[i]->startFilter((int *)&pSampleData[i*FIR_SIZE]);
+				pFirFilter[i]->startFilter(&pSampleData[i*FIR_SIZE]);
 			}
 			// Start normalized cross core correlation of filtered samples
 			for (int i = 0; i < mNumCfgTemplates; i++) {
-				pNXCOR[i]->startNXCOR((int *)&mFiltered[pTemplate[i]->getChOffset()]);
+				pNXCOR[i]->startNXCOR(&mFiltered[pTemplate[i]->getChOffset()]);
 			}
 
 			processResults();

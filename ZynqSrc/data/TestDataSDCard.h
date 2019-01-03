@@ -23,6 +23,7 @@ public:
 
 	int readFile(char *name);
 	virtual void GenerateSampleRecord(LRECORD *pLxRecord);
+	virtual int16_t *GenerateSamples(void);
 	int getNumSamples(void) { return mNumDataSamples; }
 
 protected:

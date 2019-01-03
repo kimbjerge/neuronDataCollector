@@ -45,6 +45,17 @@ int TestDataSDCard::readFile(char * name)
 	return result;
 }
 
+int16_t *TestDataSDCard::GenerateSamples(void)
+{
+	for (int i = 0; i < NUM_CHANNELS; i++)
+		nextDataSamples[i] = (int16_t)m_data[m_n][i];
+
+	if (++m_n >= mNumDataSamples) // Turn around sample buffer
+		m_n = 0;
+
+	return nextDataSamples;
+}
+
 void TestDataSDCard::GenerateSampleRecord(LRECORD *pLxRecord)
 {
 	pLxRecord->header.packetId = 1;

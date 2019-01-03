@@ -43,9 +43,9 @@ public:
 	int getActiveState(void) { return mActiveState; }
 	void printSettings(void);
 
-	void startNXCOR(int *samples); // Start NXCOR asynchronous
+	void startNXCOR(TTYPE *samples); // Start NXCOR asynchronous
 	float readResultNXCOR(float varTemplate); // Wait for NXCOR to complete and return result
-	float executeNXCOR(int *samples, float varTemplate); // Start NXCOR and wait for completing
+	float executeNXCOR(TTYPE *samples, float varTemplate); // Start NXCOR and wait for completing
 	int verifyActivation(void); // 0=no activation, 1=neuron activation detected, 2+3=filter active after detection
 
 private:

@@ -1,8 +1,8 @@
 #include "FIRFilter.h"
 #include <systemc.h>
 
-static int32_t bn[NUM_TAPS];
-static int32_t xn[DATA_CHANNELS*NUM_TAPS];
+static int32_t bn[DATA_CHANNELS*NUM_TAPS];
+static sigType xn[DATA_CHANNELS*NUM_TAPS];
 
 // Clear delay line
 void initFIR(void) {
@@ -21,12 +21,12 @@ void initFIR(void) {
 *
 * @retval int32_t : FIR filtered sample
 */
-int32_t fir(int32_t sample, int16_t channel)
+sigType fir(sigType sample, int16_t channel)
 {
 	sc_int<48> yn;
 	sc_int<48> x;
 	sc_int<48> b;
-	int32_t result;
+	sigType result;
 	int16_t i;
 
 	// Shift delay line
@@ -40,7 +40,7 @@ int32_t fir(int32_t sample, int16_t channel)
 	yn = 0;
 	fir_label2:for (i = 0; i < NUM_TAPS; i++) {
 		x = xn[i + NUM_TAPS*channel];
-		b = bn[i];
+		b = bn[i + NUM_TAPS*channel];
 		yn += b*x;
 	}
 
@@ -56,20 +56,20 @@ int32_t fir(int32_t sample, int16_t channel)
 * @param int32_t results :          Pointer to the FIR output is stored
 * @param int32_t samples : 			Pointer to the input sample array - 1D
 * @param int32_t coeff :            Pointer to the input coefficients array - 1D
-* @param int32_t operation :        Operation = 0 update coefficients, Operation > 0 filter
+* @param int32_t operation :        Operation = 0-7 update coefficients, Operation > 7 filter
 *
 * @retval void : none
 */
-void FIRFilter (int32_t results[DATA_CHANNELS],
-				int32_t samples[DATA_CHANNELS],
+void FIRFilter (sigType results[DATA_CHANNELS],
+				sigType samples[DATA_CHANNELS],
 				int32_t coeff[NUM_TAPS],
 				int32_t operation)
 {
 
-    if (operation == 0)
+    if (operation < DATA_CHANNELS)
     {  // Update coefficients
     	for (int16_t i = 0; i < NUM_TAPS; i++)
-    		bn[i] = coeff[i];
+    		bn[i + NUM_TAPS*operation] = coeff[i];
     }
     else
     {  // Processing EQ filter
