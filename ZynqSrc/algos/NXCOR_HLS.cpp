@@ -59,7 +59,12 @@ void NXCOR::startNXCOR(TTYPE *samples)
 	int ch;
     TTYPE samplesMoved[TEMP_WIDTH+1];
     // Use channel map to move samples from neuron channels where template is located
-    for (ch = 0; ch < TEMP_WIDTH; ch++) samplesMoved[ch] = samples[mChannelMap[ch]];
+    for (ch = 0; ch < TEMP_WIDTH; ch++) {
+        if (ch < mWidth)
+        	samplesMoved[ch] = samples[mChannelMap[ch]];
+        else
+            samplesMoved[ch] = 0;
+    }
     samplesMoved[ch] = 0;
 	mResultAvailHlsNXCOR = 0;
 	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
@@ -146,25 +151,25 @@ void NXCOR::setChannelMap(short *map)
 void NXCOR::updateLastSamples(TTYPE *samples)
 {
 	memcpy(mLastSamples[mLastIdx], samples, sizeof(TTYPE)*TEMP_WIDTH);
-	mLastIdx = (mLastIdx+1)%TEMP_LENGTH;
+	mLastIdx = (mLastIdx+1)%mLength;
 }
 
 bool NXCOR::checkWithinChannelPeakLimits(void)
 {
 	// Set minimum values to first sample in last sample buffer
-	for (int ch = 0; ch < TEMP_WIDTH; ch++)
+	for (int ch = 0; ch < mWidth; ch++)
 		mPeakMin[ch] = mLastSamples[0][ch];
 
 	// Search for minimum sample value for each channel in sample buffer
-	for (int i = 1; i < TEMP_LENGTH; i++) {
-		for (int ch = 0; ch < TEMP_WIDTH; ch++) {
+	for (int i = 1; i < mLength; i++) {
+		for (int ch = 0; ch < mWidth; ch++) {
 			if (mPeakMin[ch] > mLastSamples[i][ch])
 				mPeakMin[ch] = mLastSamples[i][ch];
 		}
 	}
 
 	// Check that found minimum sample is within valid limits
-	for (int ch = 0; ch < TEMP_WIDTH; ch++) {
+	for (int ch = 0; ch < mWidth; ch++) {
 		if (mPeakMin[ch] > mPeakMaxLimits[ch] ||
 			mPeakMin[ch] < mPeakMinLimits[ch])
 			return false;
