@@ -1,0 +1,7 @@
+% Configuration for template T01_04.bin
+% 1. line peak maximum for mapped channels (0-8) format short 
+% 2. line peak minimum for mapped channels (0-8) format short
+% 3. line channel mapping index to neuron channel used to match template format short
+10001 11001 12001 13001 14001 15001 16001 17001 18001
+-10001 -11001 -12001 -13001 -14001 -15001 -16001 -17001 -18001
+4 5 6 7 8 9 10 11 12

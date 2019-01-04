@@ -1,0 +1,7 @@
+% Configuration for template T38_01.bin
+% 1. line peak maximum limits for mapped channels (0-8) - format short 
+% 2. line peak minimum limits for mapped channels (0-8) - format short
+% 3. line template channel mapping to neuron channel used to match template - format short
+10038 11038 12038 13038 14038 15038 16038 17038 18038
+-10038 -11038 -12038 -13038 -14038 -15038 -16038 -17038 -18038
+1 2 3 4 5 6 7 8 9

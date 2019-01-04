@@ -16,10 +16,13 @@
 
 typedef struct TemplateCfg {
 	string name;
+	int width;
+	int length;
 	float threshold;
-	int min;
-	int max;
 	int counter;
+	int max;
+	int min;
+	string tempCfg;
 } TEMPLATECFG;
 
 class Config
@@ -29,11 +32,15 @@ public:
 
 	int loadConfig(string name);
 	int loadCoeff(string name);
+	void loadTemplateConfig(void);
 	const char *getConfigName(void) { return mCfgName.c_str(); }
 	const char *getTemplateName(int idx) { return tempConfig[idx].name.c_str(); }
+	const char *getTempCfgName(int idx) { return tempConfig[idx].tempCfg.c_str(); }
+	int getWidth(int idx) { return tempConfig[idx].width; }
+	int getLength(int idx) { return tempConfig[idx].length; }
 	float getThreshold(int idx) { return tempConfig[idx].threshold; }
-	int getMin(int idx) { return tempConfig[idx].min; }
 	int getMax(int idx) { return tempConfig[idx].max; }
+	int getMin(int idx) { return tempConfig[idx].min; }
 	int getCounter(int idx) { return tempConfig[idx].counter; }
 	short *getPeakMaxLimits(int idx) { return mPeakMaxLimits[idx]; }
 	short *getPeakMinLimits(int idx) { return mPeakMinLimits[idx]; }
@@ -45,7 +52,9 @@ public:
 private:
 	void parseConfig(void);
 	void parseCoeff(void);
+	void parseTempConfig(int idx);
 	bool getNextLine(void);
+	int loadTxtFile(string name);
 
     string mCfgName;
     string mTabsName;

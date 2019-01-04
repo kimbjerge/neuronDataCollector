@@ -9,17 +9,17 @@
 #include <math.h>
 #include "Config.h"
 
-int Config::loadCoeff(string name)
+int Config::loadTxtFile(string name)
 {
 	int result;
 
-	// Clear coefficients buffer
-	memset(mCoeffs, 0, sizeof(mCoeffs));
 	// Clear config text buffer
 	memset(mConfigTxt, 0, sizeof(mConfigTxt));
-	mTabsValid = false;
 
-	// Update template from file and compute variance and mean
+	result = m_file.mount();
+	if (result != XST_SUCCESS) printf("Failed to mount SD card\r\n");
+
+	// Read contents of text file
 	result = m_file.open((char *)name.c_str(), FA_OPEN_EXISTING | FA_READ);
 	if (result != XST_SUCCESS) {
 		printf("Failed open file %s for reading\r\n", name.c_str());
@@ -38,9 +38,24 @@ int Config::loadCoeff(string name)
 		return result;
 	}
 
-	mTabsName = name;
-	parseCoeff();
-	mTabsValid = true;
+	return result;
+}
+
+int Config::loadCoeff(string name)
+{
+	int result;
+
+	// Clear coefficients buffer
+	memset(mCoeffs, 0, sizeof(mCoeffs));
+	mTabsValid = false;
+
+	result = loadTxtFile(name);
+    if (result == XST_SUCCESS) {
+    	mTabsName = name;
+    	parseCoeff();
+    	mTabsValid = true;
+    }
+
 	return result;
 }
 
@@ -48,32 +63,29 @@ int Config::loadConfig(string name)
 {
 	int result;
 
-	// Clear config text buffer
-	memset(mConfigTxt, 0, sizeof(mConfigTxt));
-
-	// Update template from file and compute variance and mean
-	result = m_file.open((char *)name.c_str(), FA_OPEN_EXISTING | FA_READ);
-	if (result != XST_SUCCESS) {
-		printf("Failed open file %s for reading\r\n", name.c_str());
-		return result;
-	}
-
-	result = m_file.read((void *)mConfigTxt, sizeof(mConfigTxt));
-	if (result != XST_SUCCESS) {
-		printf("Failed reading from file %s\r\n", name.c_str());
-		return result;
-	}
-
-	result = m_file.close();
-	if (result != XST_SUCCESS) {
-		printf("Failed closing file %s\r\n", name.c_str());
-		return result;
-	}
-
-	mCfgName = name;
-	parseConfig();
+	result = loadTxtFile(name);
+    if (result == XST_SUCCESS) {
+		mCfgName = name;
+		parseConfig();
+    }
 
 	return result;
+}
+
+void Config::loadTemplateConfig(void)
+{
+	int result;
+
+	for (int i = 0; i < mNumTemplates; i++) {
+		string tempCfg = tempConfig[i].tempCfg;
+		if (tempCfg.compare("NONE")) {
+			result = loadTxtFile(tempConfig[i].tempCfg);
+		    if (result == XST_SUCCESS) {
+				printf("Configuration for template %d found in %s\r\n", i+1, tempCfg.c_str());
+		    	parseTempConfig(i);
+		    }
+		}
+	}
 }
 
 bool Config::getNextLine(void)
@@ -107,6 +119,9 @@ bool Config::getNextLine(void)
 void Config::parseConfig(void)
 {
 	char tempName[20];
+	char tempCfg[20];
+	int width;
+	int length;
 	float threshold;
 	int min;
 	int max;
@@ -116,13 +131,16 @@ void Config::parseConfig(void)
 	mPos = 0;
 	mNumTemplates = 0;
 	while (getNextLine()) {
-		sscanf(mLineTxt, "%s %f %d %d %d %d", tempName, &threshold, &min, &max, &counter, &offset);
+		sscanf(mLineTxt, "%s %d %d %f %d %d %d %d %s", tempName, &width, &length, &threshold, &counter, &max, &min, &offset, tempCfg);
 		if (mNumTemplates < MAX_CFG_TEMPLATES) {
 			tempConfig[mNumTemplates].name = tempName;
+			tempConfig[mNumTemplates].width = width;
+			tempConfig[mNumTemplates].length = length;
 			tempConfig[mNumTemplates].threshold = threshold;
-			tempConfig[mNumTemplates].min = min;
-			tempConfig[mNumTemplates].max = max;
 			tempConfig[mNumTemplates].counter = counter;
+			tempConfig[mNumTemplates].max = max;
+			tempConfig[mNumTemplates].min = min;
+			tempConfig[mNumTemplates].tempCfg = tempCfg;
 			// TODO change to load different values for each channel and channel map
 			for (int ch = 0; ch < TEMP_WIDTH; ch++) {
 				 mPeakMaxLimits[mNumTemplates][ch] = max;
@@ -145,3 +163,43 @@ void Config::parseCoeff(void)
 	}
 	printf("Loaded FIR coefficients in total %d\r\n", idx);
 }
+
+void Config::parseTempConfig(int idx)
+{
+	int value[TEMP_WIDTH];
+	int i, lineNumber = 1;
+
+	mPos = 0;
+	while (getNextLine()) {
+		sscanf(mLineTxt, "%d %d %d %d %d %d %d %d %d",
+				          &value[0],
+				          &value[1],
+				          &value[2],
+				          &value[3],
+				          &value[4],
+				          &value[5],
+				          &value[6],
+				          &value[7],
+				          &value[8]
+						  );
+		switch(lineNumber) {
+			case 1: // Maximum peaks
+				for (i = 0; i < TEMP_WIDTH; i++)
+					mPeakMaxLimits[idx][i] = value[i];
+				break;
+			case 2: // Minimum peaks
+				for (i = 0; i < TEMP_WIDTH; i++)
+					mPeakMinLimits[idx][i] = value[i];
+				break;
+			case 3: // Channel mapping
+				for (i = 0; i < TEMP_WIDTH; i++)
+					mChannelMap[idx][i] = value[i];
+				break;
+			default:
+				// Ignore more lines
+				break;
+		}
+		lineNumber++;
+	}
+}
+
