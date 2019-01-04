@@ -92,6 +92,7 @@ void TemplateMatch::updateCoefficients()
 {
 	// Updating coefficients based on table with double numbers
 	for (int i = 0; i < FIR_TAPS; i++) {
+		// TODO update different coefficients for each filter
 		mCoeff[i] = (int)round(pCoeffFloat[i]*pow(2,FIR_FORMAT)); // Convert to format 1.FIR_FORMAT
 	}
 	for (int i = 0; i < FIR_NUM; i++) {

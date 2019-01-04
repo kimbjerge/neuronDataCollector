@@ -42,10 +42,10 @@ void getNextSample(sigType *signal)
 void readTemplate(sigType *temp)
 {
 	FILE *fp;
-	fp = fopen("T11_01.bin", "r+b");
+	fp = fopen("T11_01_17_9.bin", "r+b");
 	size_t sz = fread(m_template, sizeof(float), TEMPLATE_SIZE, fp);
 	if (sz != TEMPLATE_SIZE) {
-		printf("Error reading T11_01.bin file\r\n");
+		printf("Error reading T11_01.bin file of size %d\r\n", sz);
 	}
 	fclose(fp);
 
@@ -113,12 +113,15 @@ int main()
 	// Computes average of template for red and blue color
 	avgTemp = meanTemp(tempA); // Tested OK
     varTemp = varianceTemp(tempA, avgTemp); // Tested OK
+	float invSize = 1/TEMPLATE_SIZE;
+	int avgMultiplier = (int)(round(invSize*pow(2,31))); // NOT WORKING
 
 	fp=fopen("nxcorr.dat","w");
 
 	for (uint16_t i = 0; i < NUM_SAMPLES; i++) {
 		getNextSample(signalTest);
-		NXCOR(&result, &varSignal, &signalTest[1], tempA, round(avgTemp));
+		NXCOR(&result, &varSignal, &signalTest[1], tempA, round(avgTemp),
+		 	  TEMPLATE_CROPPED_WIDTH, TEMPLATE_CROPPED_LENGTH); //, avgMultiplier);
 		float xcorr = result;
 		float varS = varSignal;
 		if (varS > 0)

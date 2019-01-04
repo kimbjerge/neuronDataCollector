@@ -35,6 +35,8 @@ void NXCOR::printSettings(void)
 void NXCOR::updateTemplate(TTYPE *temp, int avgTemp)
 {
 	while (XNxcor_IsReady(&mNXCOR) == 0); // Polling ready register
+	XNxcor_Set_width(&mNXCOR, mWidth);
+	XNxcor_Set_length_r(&mNXCOR, mLength);
 	XNxcor_Write_templateData_Words(&mNXCOR, 0, (int *)temp, (TEMP_SIZE+1)/SINT); //TTYPE = int
 	//XNxcor_Write_templateData_Bytes(&mNXCOR, 0, (char *)temp, mLength*mWidth*sizeof(TTYPE));
 	//XNxcor_Set_avgTemp(&mNXCOR, average);

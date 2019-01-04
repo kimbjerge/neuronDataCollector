@@ -5,7 +5,7 @@
 //  Original author: Kim Bjerge
 ///////////////////////////////////////////////////////////
 
-//#include <systemc.h>
+#include <systemc.h>
 #include "NXCOR.h"
 
 
@@ -51,25 +51,28 @@ void initNXCOR(void)
 *         relative to variance of template and signal
 *
 * @param T* result :                 	Pointer to the NXCOR output is stored
-* @param uint32_t *varSignal : 			Pointer to calculated variance of signal
-* @param T* signalData :                Pointer to the input signal array - 1D
-* @param T* templateData :              Pointer to the input template array - 1D
-* @param uint32_t avgTemp :             Mean value of template
-* @param uint32_t signalLowerIndex : 	Indicates the start channel of where the template should be applied from
+* @param T *varSignal : 			    Pointer to calculated variance of signal
+* @param sigType* signalData :          Pointer to the input signal array - 1D
+* @param sigType* templateData :        Pointer to the input template array - 1D
+* @param sigType avgTemp :              Mean value of template
+* @param int width : 					Actual width of template
+* @param int length : 					Actual length of template
+* @param int avgMultiplier : 	Average multiplier in fixed point 1.31 format (=1/(width*length)*2^31)
 *
 * @retval void : none
 */
 void NXCOR(T *result, T *varSig,
 		   sigType signalData[TEMPLATE_CROPPED_WIDTH],
 		   sigType templateData[TEMPLATE_CROPPED_WIDTH*TEMPLATE_CROPPED_LENGTH],
-		   sigType avgTemp)
+		   sigType avgTemp, short width, short length) //, int avgMultiplier)
 {
 	int64_t xcorr;     // Cross correlation between template and pixel area
 	int64_t varSignal; // Variance signal buffer
 	//sc_int<48> xcorr;     // Cross correlation between template and pixel area
 	//sc_int<48> varSignal; // Variance signal buffer
-	int32_t avgSignal; // Average signal buffer
-	uint16_t i, j;
+	sc_int<24> avgSignal; // Average signal buffer
+	//int64_t avgSignal64;
+	short i, j;
 
 	// Clear average calculation
 	avgSignal = 0;
@@ -80,7 +83,7 @@ void NXCOR(T *result, T *varSig,
 		{
 			int32_t signal = signalBuffer[j + ((i-1)*TEMPLATE_CROPPED_WIDTH)];
 			signalBuffer[j + (i*TEMPLATE_CROPPED_WIDTH)] = signal;
-		    avgSignal += signal;
+			if (j < width && i < length) avgSignal += signal;
 		}
 	}
 
@@ -89,11 +92,13 @@ void NXCOR(T *result, T *varSig,
 	{
 		int32_t signal = signalData[j];
 		signalBuffer[j] = signal;
-	    avgSignal += signal;
+		if (i < width) avgSignal += signal;
 	}
 
 	// Compute average of signal - TEMPLATE_CROPPED_WIDTH*TEMPLATE_CROPPED_LENGTH best to be a power of 2
-	avgSignal = avgSignal / (TEMPLATE_CROPPED_WIDTH*TEMPLATE_CROPPED_LENGTH);
+	avgSignal = avgSignal/(width*length);
+	//avgSignal64 = avgSignal * avgMultiplier;
+	//avgSignal = avgSignal64 >> 31;
 
 	// Computes mean of image area
 	//avgSignal = mean(signalBuffer, TEMPLATE_CROPPED_LENGTH, signalLowerIndex, TEMPLATE_CROPPED_WIDTH);

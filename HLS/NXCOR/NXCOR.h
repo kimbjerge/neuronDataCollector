@@ -31,6 +31,6 @@ void initNXCOR(void);
 /* NXCOR function call */
 void NXCOR(T *result, T *varSig, sigType inputSignal[TEMPLATE_CROPPED_WIDTH],
 			sigType templateData[TEMPLATE_CROPPED_WIDTH*TEMPLATE_CROPPED_LENGTH],
-			sigType avgTemp);
+			sigType avgTemp, short width, short length); //, int avgMultiplier); // Actual width and length
 
 #endif
