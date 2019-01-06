@@ -1,7 +1,7 @@
 //arch = zynq; split = false; format = BIN
 the_ROM_image:
 {
-	[bootloader]C:\IHAK\neuron\ZedNeuronB\ZedNeuronB.sdk\fsbl\Debug\fsbl.elf
-	C:\IHAK\neuron\ZedNeuronB\ZedNeuronB.sdk\system_wrapper_hw_platform_0\system_wrapper.bit
-	C:\IHAK\neuron\ZedNeuronB\ZedNeuronB.sdk\HPPCollector\Release\HPPCollector.elf
+	[bootloader]C:\IHAK\neuron\ZedNeuronD\ZedNeuronD.sdk\fsbl\Debug\fsbl.elf
+	C:\IHAK\neuron\ZedNeuronD\ZedNeuronD.sdk\system_wrapper_hw_platform_0\system_wrapper.bit
+	C:\IHAK\neuron\ZedNeuronD\ZedNeuronD.sdk\HPPCollector\Release\HPPCollector.elf
 }

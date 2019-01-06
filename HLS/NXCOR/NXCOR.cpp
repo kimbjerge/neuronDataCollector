@@ -117,8 +117,10 @@ void NXCOR(T *result, T *varSig,
 
 			int32_t pr = signalValue - avgSignal;
 			int32_t tr = temp - avgTemp;
-			xcorr += (pr * tr);
-			varSignal += (pr * pr);
+			if (j < width && i < length) {
+				xcorr += (pr * tr);
+				varSignal += (pr * pr);
+			}
 		}
 
 	// Computes normalized cross correlation - should be done in software

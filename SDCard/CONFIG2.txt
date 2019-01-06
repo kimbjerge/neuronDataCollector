@@ -1,0 +1,15 @@
+% Configuration file for template matching
+% Template - name of binary (float format) neuron template with 
+%            the width of max. 9 channels and length of max. 17 samples
+% Wid      - width of template (maximum 9)
+% Len      - length of template (maximum 17)
+% Thres    - threshold used to detect neuron activations after normalized cross correlation
+% Min      - minimum peak in signal to validate activation - used if Cfg = NONE
+% Max      - maximum peak in signal to validate activation - used if Cfg = NONE
+% Cnt      - only used for first template in list to specifiy JB9 digital output to go high 
+%            the output is set high if template 1 and 2 in the list is seen within sample Cnt (3000 = 100 ms)
+% Off      - channel offset where template starts at channel offset (0-23) - used if Cfg = NONE 
+% Cfg      - template configuration file used instead of Max, Min and Off values if file exists
+% Template  Wid Len Thres Cnt  Max   Min  Off  Cfg
+T11_01.bin    9  17  0.70 3000 5000 -5000   1  TMP11.txt
+T38_01.bin    9  17  0.67    0 5000 -5000   1  TMP38.txt
