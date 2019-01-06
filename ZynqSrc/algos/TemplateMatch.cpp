@@ -105,6 +105,7 @@ void TemplateMatch::updateCoefficients()
 			int j = ch%FIR_SIZE; // Index to FIR filter within HLS core
 			pFirFilter[i]->updateCoefficients(mCoeff, j);
 		}
+		printf("Used FIR coefficients for 32 individual channels\n\r");
 	}
 	else {
 		// Update FIR filters with same taps
@@ -115,6 +116,7 @@ void TemplateMatch::updateCoefficients()
 			for (int ch = 0; ch < FIR_SIZE; ch++)
 				pFirFilter[i]->updateCoefficients(mCoeff, ch);
 		}
+		printf("Used same FIR coefficients for all 32 channels\n\r");
 	}
 }
 

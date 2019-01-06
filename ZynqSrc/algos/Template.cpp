@@ -34,6 +34,17 @@ int Template::loadTemplate(string name, int length, int width)
 
 	clearTemplate();
 
+	// Limitation of input parameters
+	if (length < TEMP_LENGTH)
+		mLength = length;
+	else
+		mLength = TEMP_LENGTH;
+
+	if (width < TEMP_WIDTH)
+		mWidth = width;
+	else
+		mWidth = TEMP_WIDTH;
+
 	// Update template from file and compute variance and mean
 	result = m_file.open((char *)name.c_str(), FA_OPEN_EXISTING | FA_READ);
 	if (result != XST_SUCCESS) printf("Failed open file %s for reading\r\n", name.c_str());
@@ -52,8 +63,6 @@ int Template::loadTemplate(string name, int length, int width)
 		if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name.c_str());
 	}
 
-	mLength = length;
-	mWidth = width;
 
 #ifdef NXCOR_CONVOLUTION
 	// Reverse template - Convolution - MATLAB NXCOR
@@ -110,19 +119,3 @@ void Template::calcMeanVariance(void)
 		for (int j = 0; j < mWidth; j++)
 			mVariance += pow((mTemplateInt[j + i*TEMP_WIDTH] - mMean), 2);
 }
-
-/* OLD VERSION
-void Template::calcMeanVariance(void)
-{
-	mMean = 0.0;
-	for (int i = 0; i < TEMP_LENGTH; i++)
-		for (int j = 0; j < TEMP_WIDTH; j++)
-			mMean += mTemplateInt[j + i*TEMP_WIDTH];
-	mMean /= TEMP_SIZE;
-
-	mVariance = 0;
-	for (int i = 0; i < TEMP_LENGTH; i++)
-		for (int j = 0; j < TEMP_WIDTH; j++)
-			mVariance += pow((mTemplateInt[j + i*TEMP_WIDTH] - mMean), 2);
-}
-*/

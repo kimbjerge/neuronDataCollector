@@ -1,9 +1,6 @@
 close all
 % Number of samples to load
 samples = 30000*60; % 60 seconds at fs=30kHz
-% Template length and width
-tempLength = 17;
-tempWidth = 9;
 % Channel to filter and plot
 chPlot = 16;
 
@@ -34,60 +31,30 @@ figure, plot(diffSignal);
 title(['Difference of MATLAB vs. Filtered signal from channel ' num2str(chPlot)]);
 
 %% Load templates must correspond contents of CONFIG.txt file
-template1 = loadFile(sdCardPath, 'T11_01.BIN', [tempWidth tempLength], 'float');
-figure, surf(template1);
-ylabel('Channels');
-xlabel('Samples');
-title('Template 1, T11\_01.BIN');
-tempOffset(1) = 1;
+templatesConfig = loadConfig('CONFIG.txt');
+numTemplates = length(templatesConfig);
+templates = cell(numTemplates,1);
+for i=1:numTemplates
+    template = loadFile(sdCardPath, templatesConfig(i).name, [templatesConfig(i).width templatesConfig(i).length], 'float');
+    figure, surf(template);
+    ylabel('Channels');
+    xlabel('Samples');
+    title(['Template ' num2str(i) ' file ' templatesConfig(i).name]);
+    templates{i} = template;
+end
 
-template2 = loadFile(sdCardPath, 'T38_01.BIN', [tempWidth tempLength], 'float');
-figure, surf(template2);
-title('Template 2, T38\_01.BIN');
-ylabel('Channels');
-xlabel('Samples');
-tempOffset(2) = 1;
-
-template3 = loadFile(sdCardPath, 'T01_04.BIN', [tempWidth tempLength], 'float');
-figure, surf(template3);
-title('Template 3, T01\_04.BIN');
-ylabel('Channels');
-xlabel('Samples');
-tempOffset(3) = 4;
-
-template4 = loadFile(sdCardPath, 'T09_06.BIN', [tempWidth tempLength], 'float');
-figure, surf(template4);
-title('Template 4, T09\_06.BIN');
-ylabel('Channels');
-xlabel('Samples');
-tempOffset(4) = 6;
-
-template5 = loadFile(sdCardPath, 'T61_13.BIN', [tempWidth tempLength], 'float');
-figure, surf(template5);
-title('Template 5, T61\_13.BIN');
-ylabel('Channels');
-xlabel('Samples');
-tempOffset(5) = 13;
-
-template6 = loadFile(sdCardPath, 'T27_14.BIN', [tempWidth tempLength], 'float');
-figure, surf(template6);
-title('Template 6, T27\_14.BIN');
-ylabel('Channels');
-xlabel('Samples');
-tempOffset(6) = 14;
-
-templates = {template1, template2, template3, template4, template5, template6};
+pause(1);
 
 %% Compare normalized cross correlation with MATLAB based on filtered data
-%config = importdata('CONFIG.txt');
-for i=1:length(tempOffset)
-    offset = tempOffset(i);
-    signalSearchTemplate = filteredSignal(offset+1:tempWidth+offset,:);
+for i=1:numTemplates
+    offset = templatesConfig(i).offset;
+    width = templatesConfig(i).width;
+    signalSearchTemplate = filteredSignal(offset+1:width+offset,:);
     %signalSearchTemplate = orgSignal(offset+1:tempWidth+offset,:);  
     template = templates{i};
     nxcorrTgold = nxcor(template, signalSearchTemplate);
     nxcorrName = ['NXCORT' num2str(i) '.BIN'];
     nxcorrT = loadFile(sdCardPath, nxcorrName, samples, 'float');
-    figure, hold off, plot(nxcorrTgold(tempWidth,1:end-1), 'k'), hold on, plot(nxcorrT(2:end), 'r'); %1 sample delay due to pipeline
+    figure, hold off, plot(nxcorrTgold(width,1:end-1), 'k'), hold on, plot(nxcorrT(2:end), 'r'); %1 sample delay due to pipeline
     title(['NXCORR template T' num2str(i) ' (red) vs. MATLAB (black)']);
 end

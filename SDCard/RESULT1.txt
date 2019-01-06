@@ -1,17 +1,17 @@
 -------------------------------------------------------------
 Neuron Real Time Template Matching Algorithm Version 1.2
 Loads data from SD card of 32 channels and max. 6 templates
-Template size width 9 channels and 17 in length (Thesis)
+Template max. size of width 9 channels and 17 in length
 Performs 60 taps FIR filtering and NXCOR template matching
 Maximum 60 seconds of samples will be used from DATA.bin
 -------------------------------------------------------------
 Read template configuration from CONFIG.txt
-Using template 1 file T11_01.bin
-Using template 2 file T38_01.bin
-Using template 3 file T01_04.bin
-Using template 4 file T09_06.bin
-Using template 5 file T61_13.bin
-Using template 6 file T27_14.bin
+Using template 1 file TMP11_01.bin
+Using template 2 file TMP38_01.bin
+Using template 3 file TMP01_04.bin
+Using template 4 file TMP09_06.bin
+Using template 5 file TMP61_13.bin
+Using template 6 file TMP27_14.bin
 Configuration for template 1 found in TMP11.txt
 Configuration for template 2 found in TMP38.txt
 Configuration for template 3 found in TMP01.txt

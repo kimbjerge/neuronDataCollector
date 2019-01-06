@@ -15,3 +15,7 @@
 % Template  Wid Len Thres Cnt  Max   Min  Off  Cfg
 TMP11_01.bin    9  17  0.70 3000 5000 -5000   1  TMP11.txt
 TMP38_01.bin    9  17  0.67    0 5000 -5000   1  TMP38.txt
+TMP01_04.bin    9  17  0.60    0 5000 -5000   4  TMP01.txt
+TMP09_06.bin    9  17  0.60    0 5000 -5000   6  NONE
+TMP61_13.bin    9  17  0.60    0 5000 -5000  13  NONE
+TMP27_14.bin    9  17  0.60    0 5000 -5000  14  NONE
