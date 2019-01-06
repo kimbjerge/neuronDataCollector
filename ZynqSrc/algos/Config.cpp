@@ -61,7 +61,7 @@ int Config::loadCoeffBin(string name)
 	fileSize = m_file.getReadSize();
 	if (fileSize != sizeof(mCoeffsAll))
 	{
-		printf("Wrong size of binary coefficients file %s\r\n", name.c_str());
+		printf("Wrong size of binary coefficients file %s size %d expected 60 TABS in each 32 channels!!!\r\n", name.c_str(), fileSize);
 		m_file.close();
 		return -1;
 	}
