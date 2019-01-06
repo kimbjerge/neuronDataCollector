@@ -24,14 +24,15 @@ using namespace std;
 class Template
 {
 public:
-	Template() : mMean(0.0), mVariance(1.0), mChOffset(0),  m_file((char *)"0:/") { }
+	Template() : mMean(0.0), mVariance(1.0), mChOffset(0),
+	 	 	 	 mLength(TEMP_LENGTH), mWidth(TEMP_WIDTH), m_file((char *)"0:/") { }
 
 	void clearTemplate(void);
-	int loadTemplate(std::string name);
+	int loadTemplate(std::string name, int length, int width);
 	TTYPE *getTemplate(void) { return mTemplateInt; }
 	float getVariance(void) { return mVariance; }
 	float getMean(void) { return mMean; }
-	int getChOffset(void) { return mChOffset; }
+	//int getChOffset(void) { return mChOffset; } // NOT USED after Ver. 1.1
 	const char *getTemplateName(void) { return mFileName.c_str(); }
 
 private:
@@ -42,6 +43,8 @@ private:
     float mMean;
     float mVariance;
     int mChOffset;
+    int mLength;
+    int mWidth;
     string mFileName;
     FileSDCard m_file;
 };

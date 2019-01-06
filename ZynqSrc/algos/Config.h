@@ -13,6 +13,7 @@
 #define MAX_CONFIG_SIZE 	5000
 #define MAX_CFG_TEMPLATES 	10
 #define MAX_TAPS			60
+#define MAX_CHANNELS        32
 
 typedef struct TemplateCfg {
 	string name;
@@ -28,10 +29,21 @@ typedef struct TemplateCfg {
 class Config
 {
 public:
-	Config() : m_file((char *)"0:/"), mNumTemplates(0), mTabsValid(false) { }
+	Config() : m_file((char *)"0:/"), mNumTemplates(0), mTabsValid(false), mTabsValidAll(false)
+	{
+		for (int i = 0; i < MAX_CFG_TEMPLATES; i++) {
+			tempConfig[i].width = TEMP_WIDTH;
+			tempConfig[i].length = TEMP_LENGTH;
+			tempConfig[i].threshold = 0.6;
+			tempConfig[i].counter = 0;
+			tempConfig[i].max = 30000;
+			tempConfig[i].min = -30000;
+		}
+	}
 
 	int loadConfig(string name);
 	int loadCoeff(string name);
+	int loadCoeffBin(string name);
 	void loadTemplateConfig(void);
 	const char *getConfigName(void) { return mCfgName.c_str(); }
 	const char *getTemplateName(int idx) { return tempConfig[idx].name.c_str(); }
@@ -47,7 +59,9 @@ public:
 	short *getChannelMap(int idx) { return mChannelMap[idx]; }
 	int getNumTemplates(void) { return mNumTemplates; }
 	bool isTabsValid(void) { return mTabsValid; }
+	bool isAllTabsValid(void) { return mTabsValidAll; }
 	float *getCoeffs(void) { return mCoeffs; }
+	float *getCoeffsAll(int ch) { return mCoeffsAll[ch]; }
 
 private:
 	void parseConfig(void);
@@ -62,7 +76,9 @@ private:
     int mNumTemplates;
     TemplateCfg tempConfig[MAX_CFG_TEMPLATES];
     bool mTabsValid;
+    bool mTabsValidAll;
     float mCoeffs[MAX_TAPS];
+    float mCoeffsAll[MAX_CHANNELS][MAX_TAPS];
     short mPeakMaxLimits[MAX_CFG_TEMPLATES][TEMP_WIDTH];
     short mPeakMinLimits[MAX_CFG_TEMPLATES][TEMP_WIDTH];
     short mChannelMap[MAX_CFG_TEMPLATES][TEMP_WIDTH];

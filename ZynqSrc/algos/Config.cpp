@@ -41,6 +41,42 @@ int Config::loadTxtFile(string name)
 	return result;
 }
 
+int Config::loadCoeffBin(string name)
+{
+	int result;
+	unsigned int fileSize;
+
+	// Read contents of binary coefficients file
+	result = m_file.open((char *)name.c_str(), FA_OPEN_EXISTING | FA_READ);
+	if (result != XST_SUCCESS) {
+		return result;
+	}
+
+	result = m_file.read((void *)mCoeffsAll, sizeof(mCoeffsAll));
+	if (result != XST_SUCCESS) {
+		printf("Failed reading from file %s\r\n", name.c_str());
+		return result;
+	}
+
+	fileSize = m_file.getReadSize();
+	if (fileSize != sizeof(mCoeffsAll))
+	{
+		printf("Wrong size of binary coefficients file %s\r\n", name.c_str());
+		m_file.close();
+		return -1;
+	}
+
+	result = m_file.close();
+	if (result != XST_SUCCESS) {
+		printf("Failed closing file %s\r\n", name.c_str());
+		return result;
+	}
+
+	mTabsValidAll = true;
+	printf("FIR coefficients loaded from file %s\r\n", name.c_str());
+	return result;
+}
+
 int Config::loadCoeff(string name)
 {
 	int result;
@@ -141,7 +177,6 @@ void Config::parseConfig(void)
 			tempConfig[mNumTemplates].max = max;
 			tempConfig[mNumTemplates].min = min;
 			tempConfig[mNumTemplates].tempCfg = tempCfg;
-			// TODO change to load different values for each channel and channel map
 			for (int ch = 0; ch < TEMP_WIDTH; ch++) {
 				 mPeakMaxLimits[mNumTemplates][ch] = max;
 				 mPeakMinLimits[mNumTemplates][ch] = min;

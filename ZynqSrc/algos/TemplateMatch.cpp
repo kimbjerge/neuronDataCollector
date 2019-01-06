@@ -39,7 +39,7 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 		pFirFilter[i]->Init(pIrq, XPAR_FABRIC_FIRFILTER_0_INTERRUPT_INTR+i);
 	}
 	if (pConfig->isTabsValid())
-		pCoeffFloat = pConfig->getCoeffs();
+		pCoeffFloat = pConfig->getCoeffs(); // Use coefficients from FIR.txt file
 	else {
 		pCoeffFloat = (float *)FIR_coeffs; // Use default coefficients
 		printf("Using default FIR coefficients number of taps %d\r\n", FIR_TAPS);
@@ -47,7 +47,7 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 
 	// Create NXCOR filters
 	for (int i = 0; i < TEMP_NUM; i++) {
-		pNXCOR[i] = new NXCOR(XPAR_NXCOR_0_DEVICE_ID+i, TEMP_LENGTH, TEMP_WIDTH);
+		pNXCOR[i] = new NXCOR(XPAR_NXCOR_0_DEVICE_ID+i, pConfig->getLength(i), pConfig->getWidth(i));
 		if (i < 4)  pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_0_INTERRUPT_INTR+i);
 		if (i == 4)	pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_4_INTERRUPT_INTR);
 		if (i == 5) pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_5_INTERRUPT_INTR);
@@ -55,7 +55,7 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 
 		if (i < pConfig->getNumTemplates()) {
 			// Load template from file defined by pTempNames
-			pTemplate[i]->loadTemplate(pConfig->getTemplateName(i));
+			pTemplate[i]->loadTemplate(pConfig->getTemplateName(i), pConfig->getLength(i), pConfig->getWidth(i));
 			pNXCOR[i]->setNXCORThreshold(pConfig->getThreshold(i));
 			pNXCOR[i]->setPeakThreshold(pConfig->getMin(i), pConfig->getMax(i));
 			pNXCOR[i]->setMaxPeakLimits(pConfig->getPeakMaxLimits(i));
@@ -85,19 +85,36 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 	else
 		mTemplate12Counter = 0;
 
+	mpConfig = pConfig;
+
 	return 0;
 }
 
 void TemplateMatch::updateCoefficients()
 {
 	// Updating coefficients based on table with double numbers
-	for (int i = 0; i < FIR_TAPS; i++) {
-		// TODO update different coefficients for each filter
-		mCoeff[i] = (int)round(pCoeffFloat[i]*pow(2,FIR_FORMAT)); // Convert to format 1.FIR_FORMAT
+	if (mpConfig->isAllTabsValid()) {
+		// Update FIR filters with taps from binary configuration file
+		for (int ch = 0; ch < NUM_CHANNELS; ch++) {
+			float *pTabs = mpConfig->getCoeffsAll(ch);
+			// Convert coefficients from float to integer format 1.23
+			for (int i = 0; i < FIR_TAPS; i++) {
+				mCoeff[i] = (int)round(pTabs[i]*pow(2,FIR_FORMAT)); // Convert to format 1.FIR_FORMAT
+			}
+			int i = ch/FIR_SIZE; // Index to FIR HLS core
+			int j = ch%FIR_SIZE; // Index to FIR filter within HLS core
+			pFirFilter[i]->updateCoefficients(mCoeff, j);
+		}
 	}
-	for (int i = 0; i < FIR_NUM; i++) {
-		for (int ch = 0; ch < FIR_SIZE; ch++)
-			pFirFilter[i]->updateCoefficients(mCoeff, ch);
+	else {
+		// Update FIR filters with same taps
+		for (int i = 0; i < FIR_TAPS; i++) {
+			mCoeff[i] = (int)round(pCoeffFloat[i]*pow(2,FIR_FORMAT)); // Convert to format 1.FIR_FORMAT
+		}
+		for (int i = 0; i < FIR_NUM; i++) {
+			for (int ch = 0; ch < FIR_SIZE; ch++)
+				pFirFilter[i]->updateCoefficients(mCoeff, ch);
+		}
 	}
 }
 

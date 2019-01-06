@@ -65,6 +65,7 @@ private:
     Leds leds;
     TestIO testOut;
     Switch sw;
+    Config *mpConfig;
 
     // Trigger used to control digital TestIO::JB9
     // Digital output will be high if neuron template 1 and 2 are activated

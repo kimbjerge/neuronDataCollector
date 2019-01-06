@@ -12,6 +12,7 @@
 
 //#define NXCOR_CONVOLUTION // Flip template and perform convolution like MATLAB does
 
+// NOT USED AFTER Ver. 1.1
 void Template::readChOffset(string name)
 {
 	int i, posOffset = name.find("_") + 1;
@@ -26,9 +27,10 @@ void Template::readChOffset(string name)
 	}
 }
 
-int Template::loadTemplate(string name)
+int Template::loadTemplate(string name, int length, int width)
 {
 	int result;
+	unsigned int fileSize;
 
 	clearTemplate();
 
@@ -40,26 +42,48 @@ int Template::loadTemplate(string name)
 		result = m_file.read((void *)mTemplate, sizeof(mTemplate));
 		if (result != XST_SUCCESS) printf("Failed reading from file %s\r\n", name.c_str());
 
+		fileSize = m_file.getReadSize();
+		if (fileSize != mLength*mWidth*sizeof(float)) {
+			printf("Wrong size of binary coefficients file %s\r\n", name.c_str());
+			printf("The size of template length %d width %d and file size %d is wrong!!!\r\n", length, width, fileSize);
+		}
+
 		result = m_file.close();
 		if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name.c_str());
 	}
+
+	mLength = length;
+	mWidth = width;
 
 #ifdef NXCOR_CONVOLUTION
 	// Reverse template - Convolution - MATLAB NXCOR
 	for (int i = 0; i < TEMP_LENGTH; i++) {
 		for (int j = 0; j < TEMP_WIDTH; j++) {
-			mTemplateInt[j + i*TEMP_WIDTH] = round(mTemplate[j + (TEMP_LENGTH-1-i)*TEMP_WIDTH]*pow(2, DATA_FORMAT));
+			if (i < mLength && j < mWidth)
+				mTemplateInt[j + i*TEMP_WIDTH] = round(mTemplate[j + (TEMP_LENGTH-1-i)*TEMP_WIDTH]*pow(2, DATA_FORMAT));
+			else
+				mTemplateInt[j + i*TEMP_WIDTH] = 0;
 		}
 	}
 #else
-	// Cross correlation
+	/*
 	for(int i = 0; i < TEMP_SIZE; i++)
 		mTemplateInt[i] = round(mTemplate[i]*pow(2, DATA_FORMAT));
+	*/
+	// Cross correlation
+	for (int i = 0; i < TEMP_LENGTH; i++) {
+		for (int j = 0; j < TEMP_WIDTH; j++) {
+			if (i < mLength && j < mWidth)
+				mTemplateInt[j + i*TEMP_WIDTH] = round(mTemplate[j + i*mWidth]*pow(2, DATA_FORMAT));
+			else
+				mTemplateInt[j + i*TEMP_WIDTH] = 0; // Clear part of template not used
+		}
+	}
 #endif
 
 	mFileName = name;
 	if (result == XST_SUCCESS) {
-		readChOffset(name);
+		//readChOffset(name); // NOT USED ANY MORE
 		calcMeanVariance();
 	}
 	return result;
@@ -76,6 +100,21 @@ void Template::clearTemplate(void)
 void Template::calcMeanVariance(void)
 {
 	mMean = 0.0;
+	for (int i = 0; i < mLength; i++)
+		for (int j = 0; j < mWidth; j++)
+			mMean += mTemplateInt[j + i*TEMP_WIDTH];
+	mMean /= (mLength*mWidth);
+
+	mVariance = 0;
+	for (int i = 0; i < mLength; i++)
+		for (int j = 0; j < mWidth; j++)
+			mVariance += pow((mTemplateInt[j + i*TEMP_WIDTH] - mMean), 2);
+}
+
+/* OLD VERSION
+void Template::calcMeanVariance(void)
+{
+	mMean = 0.0;
 	for (int i = 0; i < TEMP_LENGTH; i++)
 		for (int j = 0; j < TEMP_WIDTH; j++)
 			mMean += mTemplateInt[j + i*TEMP_WIDTH];
@@ -86,4 +125,4 @@ void Template::calcMeanVariance(void)
 		for (int j = 0; j < TEMP_WIDTH; j++)
 			mVariance += pow((mTemplateInt[j + i*TEMP_WIDTH] - mMean), 2);
 }
-
+*/
