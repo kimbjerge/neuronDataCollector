@@ -1,4 +1,4 @@
-function [ ] = SaveFilterHeaderFile( y, fc, fileName )
+function [ ] = SaveFilterHeaderFile( y, fileName )
 % Save coefficeints to fileName
     format long;
     fid = fopen(fileName, 'w');

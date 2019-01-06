@@ -55,7 +55,10 @@ fvtool(filter1.numerator, filter1.denominator, 'OverlayedAnalysis','phase')
 %filter1 = AnalyseFilter(filter1);
 
 %% Save coefficeints to header file
-SaveFilterHeaderFile(filter1.numerator, filter1.fc1, 'FIRFilter_coeffs.h');
+name = 'FIR300';
+SaveFilterHeaderFile(filter1.numerator, 'FIRFilter_coeffs.h');
+SaveFilterTxtFile(filter1.numerator, [name '.txt']);
+SaveFilterBinFile(32, filter1.numerator, [name '.bin']);
 
 %% Test filter on templates
 load 'simulation_parameters.mat'
