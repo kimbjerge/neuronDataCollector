@@ -1,6 +1,7 @@
 close all
 % Number of samples to load
-samples = 30000*60; % 60 seconds at fs=30kHz
+%samples = 30000*60; % 60 seconds at fs=30kHz
+samples = 3000; % 60 seconds at fs=30kHz
 % Channel to filter and plot
 chPlot = 16;
 
@@ -50,6 +51,8 @@ for i=1:numTemplates
     offset = templatesConfig(i).offset;
     width = templatesConfig(i).width;
     signalSearchTemplate = filteredSignal(offset+1:width+offset,:);
+    %
+    %signalSearchTemplate = filteredSignal([27,28,31,32],:);
     %signalSearchTemplate = orgSignal(offset+1:tempWidth+offset,:);  
     template = templates{i};
     nxcorrTgold = nxcor(template, signalSearchTemplate);

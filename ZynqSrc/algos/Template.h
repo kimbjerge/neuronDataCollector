@@ -12,7 +12,9 @@
 using namespace std;
 #include "FileSDCard.h"
 
-#define DATA_FORMAT     15  // Number of bits used for data and template
+#define DATA_FORMAT_CHAR     7   // Number of bits used for data and template
+#define DATA_FORMAT_SHORT    15  // Number of bits used for data and template
+
 #define TEMP_WIDTH  	9	// Template width 8/9(Thesis - optimized)
 #define TEMP_LENGTH     17  // Template length 16/17(Thesis - optimized)
 #define TEMP_SIZE       (TEMP_WIDTH*TEMP_LENGTH)
