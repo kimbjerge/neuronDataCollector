@@ -10,7 +10,7 @@
 #include "Template.h"
 #include "LxRecord.h"
 
-//#define NXCOR_CONVOLUTION // Flip template and perform convolution like MATLAB does
+#define NXCOR_CONVOLUTION // Flip template and perform convolution like MATLAB does
 
 // NOT USED AFTER Ver. 1.1
 void Template::readChOffset(string name)
@@ -88,7 +88,7 @@ int Template::loadTemplate(string name, int length, int width)
 	for (int i = 0; i < TEMP_LENGTH; i++) {
 		for (int j = 0; j < TEMP_WIDTH; j++) {
 			if (i < mLength && j < mWidth)
-				mTemplateInt[j + i*TEMP_WIDTH] = round(mTemplate[j + (TEMP_LENGTH-1-i)*TEMP_WIDTH]*pow(2, dataFormat));
+				mTemplateInt[j + i*TEMP_WIDTH] = round(mTemplate[j + (mLength-1-i)*mWidth]*pow(2, dataFormat));
 			else
 				mTemplateInt[j + i*TEMP_WIDTH] = 0;
 		}
