@@ -41,7 +41,7 @@ int main()
 	//init_net_server(dataThread.threadMapper, &dataThread);
 
 	printf("-------------------------------------------------------------\r\n");
-	printf("Neuron Real Time Template Matching Algorithm Version 1.4\r\n");
+	printf("Neuron Real Time Template Matching Algorithm Version 1.5\r\n");
 	printf("Loads data from SD card of 32 channels and max. 6 templates\r\n");
 	printf("Template max. size of width 9 channels and 17 in length \r\n");
 	printf("Performs 60 taps FIR filtering and NXCOR template matching\r\n");
