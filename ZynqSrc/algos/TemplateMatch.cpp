@@ -60,6 +60,7 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 			pNXCOR[i]->setPeakThreshold(pConfig->getMin(i), pConfig->getMax(i));
 			pNXCOR[i]->setMaxPeakLimits(pConfig->getPeakMaxLimits(i));
 			pNXCOR[i]->setMinPeakLimits(pConfig->getPeakMinLimits(i));
+			pNXCOR[i]->setMinGradient(pConfig->getMinGradient(i));
 			pNXCOR[i]->setChannelMap(pConfig->getChannelMap(i));
 			pNXCOR[i]->printSettings();
 		} else

@@ -163,11 +163,14 @@ void Config::parseConfig(void)
 	int max;
 	int counter;
 	int offset;
+	int minGradient;
 
 	mPos = 0;
 	mNumTemplates = 0;
 	while (getNextLine()) {
-		sscanf(mLineTxt, "%s %d %d %f %d %d %d %d %s", tempName, &width, &length, &threshold, &counter, &max, &min, &offset, tempCfg);
+		sscanf(mLineTxt, "%s %d %d %f %d %d %d %d %d %s",
+				tempName, &width, &length, &threshold, &counter,
+				&max, &min, &offset, &minGradient, tempCfg);
 		if (mNumTemplates < MAX_CFG_TEMPLATES) {
 			tempConfig[mNumTemplates].name = tempName;
 			tempConfig[mNumTemplates].width = width;
@@ -176,6 +179,7 @@ void Config::parseConfig(void)
 			tempConfig[mNumTemplates].counter = counter;
 			tempConfig[mNumTemplates].max = max;
 			tempConfig[mNumTemplates].min = min;
+			tempConfig[mNumTemplates].minGradient = minGradient;
 			tempConfig[mNumTemplates].tempCfg = tempCfg;
 			for (int ch = 0; ch < TEMP_WIDTH; ch++) {
 				 mPeakMaxLimits[mNumTemplates][ch] = max;

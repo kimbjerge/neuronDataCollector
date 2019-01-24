@@ -16,6 +16,7 @@ void NXCOR::printSettings(void)
 	printf("  Length      : %d\r\n", mLength);
 	printf("  Width       : %d\r\n", mWidth);
 	printf("  Threshold   : %f\r\n", mNXCORThreshold);
+	printf("  Gradient min: %d\r\n", mPeakMinGradient);
 	printf("  Peak max.   : ");
 	for (int ch = 0; ch < TEMP_WIDTH; ch++)
 		printf("%5d ", mPeakMaxLimits[ch]);
@@ -154,25 +155,50 @@ void NXCOR::updateLastSamples(TTYPE *samples)
 	mLastIdx = (mLastIdx+1)%mLength;
 }
 
+bool NXCOR::checkPeakGradient(int ch)
+{
+	int offset, gradient;
+
+	offset = mPeakIdx[ch] - mPeakMinOffset; // Find offset value from mimimum peak
+	if (offset < 0) // Handle index wrap around
+		offset = mLength - offset;
+
+	// Calculate the gradient as difference between peak min. and offset value
+	gradient = abs(mLastSamples[offset][ch] - mPeakMin[ch]);
+	if (gradient < mPeakMinGradient) {
+		//printf("Gradient %d too small ch %d\r\n", gradient, ch);
+		return false;
+	} else
+		return true;
+}
+
 bool NXCOR::checkWithinChannelPeakLimits(void)
 {
 	// Set minimum values to first sample in last sample buffer
-	for (int ch = 0; ch < mWidth; ch++)
+	for (int ch = 0; ch < mWidth; ch++) {
 		mPeakMin[ch] = mLastSamples[0][ch];
+		mPeakIdx[ch] = 0;
+	}
 
 	// Search for minimum sample value for each channel in sample buffer
 	for (int i = 1; i < mLength; i++) {
 		for (int ch = 0; ch < mWidth; ch++) {
-			if (mPeakMin[ch] > mLastSamples[i][ch])
+			if (mPeakMin[ch] > mLastSamples[i][ch]) {
 				mPeakMin[ch] = mLastSamples[i][ch];
+				mPeakIdx[ch] = i;
+			}
 		}
 	}
 
 	// Check that found minimum sample is within valid limits
 	for (int ch = 0; ch < mWidth; ch++) {
 		if (mPeakMin[ch] > mPeakMaxLimits[ch] ||
-			mPeakMin[ch] < mPeakMinLimits[ch])
-			return false;
+			mPeakMin[ch] < mPeakMinLimits[ch]) {
+			//printf("Peak %d out limits ch %d\r\n", mPeakMin[ch], ch);
+			return false; // Peak not within limits
+		}
+		if (!checkPeakGradient(ch))
+			return false; // Gradient not within limits
 	}
 
 	return true;

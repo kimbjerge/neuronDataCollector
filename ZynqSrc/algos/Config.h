@@ -23,6 +23,7 @@ typedef struct TemplateCfg {
 	int counter;
 	int max;
 	int min;
+	int minGradient;
 	string tempCfg;
 } TEMPLATECFG;
 
@@ -38,6 +39,7 @@ public:
 			tempConfig[i].counter = 0;
 			tempConfig[i].max = 30000;
 			tempConfig[i].min = -30000;
+			tempConfig[i].minGradient = 0;
 		}
 	}
 
@@ -54,6 +56,7 @@ public:
 	int getMax(int idx) { return tempConfig[idx].max; }
 	int getMin(int idx) { return tempConfig[idx].min; }
 	int getCounter(int idx) { return tempConfig[idx].counter; }
+	int getMinGradient(int idx) { return tempConfig[idx].minGradient; }
 	short *getPeakMaxLimits(int idx) { return mPeakMaxLimits[idx]; }
 	short *getPeakMinLimits(int idx) { return mPeakMinLimits[idx]; }
 	short *getChannelMap(int idx) { return mChannelMap[idx]; }

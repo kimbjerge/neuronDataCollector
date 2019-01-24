@@ -9,13 +9,14 @@
 % Max      - maximum peak in signal to validate activation - used if Cfg = NONE
 % Cnt      - only used for first template in list to specify JB9 digital output to go high 
 %            the output is set high if template 1 and 2 in the list is seen within sample Cnt (3000 = 100 ms)
-% Off      - channel offset where template starts at channel offset (0-23) - used if Cfg = NONE 
+% Off      - channel offset where template starts at channel offset (0-23) - used if Cfg = NONE
+% Grad     - The gradient between mimum peak and peak(n-4) must be greather than this value for all channels in template match 
 % Cfg      - template configuration file used instead of Max, Min and Off values if file exists
 %            name must be maximum 8 characters and extension *.txt
-% Template  Wid Len Thres Cnt  Max   Min  Off  Cfg
-11011608.bin  8  16  0.70 3000 5000 -5000   1  TMP11.txt
-38011608.bin  8  16  0.67    0 5000 -5000   1  TMP38.txt
-01041608.bin  8  16  0.60    0 5000 -5000   4  TMP01.txt
-TMP09_06.bin  9  17  0.60    0 5000 -5000   6  NONE
-TMP61_13.bin  9  17  0.60    0 5000 -5000  13  NONE
-27141608.bin  8  16  0.60    0 5000 -5000  14  NONE
+% Template  Wid Len Thres Cnt  Max   Min  Off  Grad Cfg
+11011608.bin  8  16  0.70 3000 5000 -5000   1    0  TMP11.txt
+38011608.bin  8  16  0.67    0 5000 -5000   1    0  TMP38.txt
+01041608.bin  8  16  0.60    0 5000 -5000   4    0  TMP01.txt
+TMP09_06.bin  9  17  0.60    0 5000 -5000   6    0  NONE
+TMP61_13.bin  9  17  0.60    0 5000 -5000  13    0  NONE
+27141608.bin  8  16  0.60    0 5000 -5000  14    0  NONE

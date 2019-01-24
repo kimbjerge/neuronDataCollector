@@ -50,9 +50,9 @@ pause(1);
 for i=1:numTemplates
     offset = templatesConfig(i).offset;
     width = templatesConfig(i).width;
-    signalSearchTemplate = filteredSignal(offset+1:width+offset,:);
+    %signalSearchTemplate = filteredSignal(offset+1:width+offset,:);
     %
-    %signalSearchTemplate = filteredSignal([27,28,31,32],:);
+    signalSearchTemplate = filteredSignal([27,28,31,32],:);
     %signalSearchTemplate = orgSignal(offset+1:tempWidth+offset,:);  
     template = templates{i};
     nxcorrTgold = nxcor(template, signalSearchTemplate);
