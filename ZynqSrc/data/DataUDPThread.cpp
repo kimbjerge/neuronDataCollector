@@ -22,7 +22,7 @@
 
 #include "DataUDPThread.h"
 
-void print_ip(char *msg, struct ip_addr *ip);
+void print_ip(char *msg, ip_addr_t *ip);
 
 /* print_app_header: function to print a header at start time */
 void DataUDPThread::print_app_header()
@@ -35,11 +35,14 @@ void DataUDPThread::print_app_header()
 static volatile short SendResults = 0;
 
 /* recv_callback: function that handles responding to UDP packets */
-static void recv_callback(void *arg, struct udp_pcb *upcb,
-                               struct pbuf *p, struct ip_addr *addr, u16_t port)
+static void recv_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
+#ifdef RTOS10 // Freertos10
+						  const
+#endif
+					      ip_addr_t *addr, u16_t port)
 {
 	u16_t    			RemotePort;
-	struct ip_addr  	RemoteAddr;
+	ip_addr_t  			RemoteAddr;
 	struct udp_pcb 		send_pcb;
 
 	/* Do not read the packet if we are not in ESTABLISHED state */
@@ -96,7 +99,7 @@ int  DataUDPThread::create_bind_socket(unsigned port)
 
 // Global Variables for Ethernet handling
 static u16_t    			RemotePort = DATA_UDP_PORT;
-static struct ip_addr  		RemoteAddr;
+static ip_addr_t  			RemoteAddr;
 static struct udp_pcb 		send_pcb;
 
 void DataUDPThread::run()

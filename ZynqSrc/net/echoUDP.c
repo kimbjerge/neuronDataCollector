@@ -14,7 +14,7 @@
 // Include our own definitions
 #include <defsNet.h>
 
-void print_ip(char *msg, struct ip_addr *ip);
+void print_ip(char *msg, ip_addr_t *ip);
 
 // Global variables for data flow
 volatile u32		EthBytesReceived;
@@ -23,7 +23,7 @@ volatile u8			Error;
 
 // Global Variables for Ethernet handling
 u16_t    			RemotePort = FF_UDP_PORT;
-struct ip_addr  	RemoteAddr;
+ip_addr_t  			RemoteAddr;
 struct udp_pcb 		send_pcb;
 
 // Global Variables to store results and handle data flow
@@ -41,8 +41,11 @@ void print_app_header()
 }
 
 /* recv_callback: function that handles responding to UDP packets */
-void recv_callback(void *arg, struct udp_pcb *upcb,
-                              struct pbuf *p, struct ip_addr *addr, u16_t port)
+void recv_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
+#ifdef	RTOS10 // Freertos10
+		           const
+#endif
+		           ip_addr_t *addr, u16_t port)
 {
 	/* Do not read the packet if we are not in ESTABLISHED state */
 	if (!p) {
