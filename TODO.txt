@@ -1,10 +1,2 @@
-Status for ZedNeuronC Ver. 1.1
-02-01-2019
-
-FIR:
-Coefficienter til hver 4 kanaler bedst eller hver 8
-
-MIN/MAX:
-Min max for hver kanal hver template
-Mapning af kanaler i templates
-
+Status for ZedNeuronD Ver. 1.4
+Tested by Jesper - OK 
