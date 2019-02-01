@@ -21,7 +21,7 @@ void TestFileSDCard(void)
 	if (result != XST_SUCCESS) printf("Failed to mount SD card\r\n");
 
 	// Create a new file if doesn't exist
-	result = file.open((char*)"README.txt", FA_CREATE_ALWAYS | FA_WRITE);
+	result = file.open((char*)"TEST.txt", FA_CREATE_ALWAYS | FA_WRITE);
 	if (result != XST_SUCCESS) printf("Failed open file for writing\r\n");
 
 	// Write to start of file
@@ -32,7 +32,7 @@ void TestFileSDCard(void)
 	if (result != XST_SUCCESS) printf("Failed closing file\r\n");
 
 	// Open created test file
-	result = file.open((char*)"README.txt", FA_OPEN_EXISTING | FA_READ);
+	result = file.open((char*)"TEST.txt", FA_OPEN_EXISTING | FA_READ);
 	if (result != XST_SUCCESS) printf("Failed open file for reading\r\n");
 
 	// Read contents of test file
