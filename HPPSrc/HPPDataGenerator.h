@@ -22,7 +22,7 @@ public:
 
 	int InitHPPDataGenerator(int ttl_output_bitnum);
 
-private:
+protected:
 	bool m_initialized;
 };
 
