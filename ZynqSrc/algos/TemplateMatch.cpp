@@ -12,6 +12,14 @@
 
 #define DEBUG_FILES // When disabled doesn't save time
 
+// Define dummy interrupts if not used
+#ifndef XPAR_FABRIC_FIRFILTER_0_INTERRUPT_INTR
+#define XPAR_FABRIC_FIRFILTER_0_INTERRUPT_INTR 	60
+#define XPAR_FABRIC_NXCOR_0_INTERRUPT_INTR 		70
+#define XPAR_FABRIC_NXCOR_4_INTERRUPT_INTR 		74
+#define XPAR_FABRIC_NXCOR_5_INTERRUPT_INTR 		75
+#endif
+
 TemplateMatch::~TemplateMatch()
 {
 	if (mNumSamples > 0) {

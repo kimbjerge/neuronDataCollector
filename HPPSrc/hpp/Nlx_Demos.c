@@ -1508,7 +1508,7 @@ portBASE_TYPE Start_Burst_Analysis(char *pcWriteBuffer, size_t xWriteBufferLen, 
 			params.ch_to_match[i] = i;
 		}
 
-		xReturn = xTaskCreate(vBurstAnalysis, "vBurstAnalysis", (uint16_t)65535, (void *)&params, TASK_PRIORITY, (void**)xBurst_Analysis_Handle);
+		xReturn = xTaskCreate(vBurstAnalysis, "vBurstAnalysis", (uint16_t)65535, (void *)&params, TASK_PRIORITY, &xBurst_Analysis_Handle);
 		sprintf(pcWriteBuffer,"vBurstAnalysis created with return value of %d\n\r", (int)xReturn);
 	}
 	return pdFALSE; //No more lines for the command line to be generated

@@ -162,8 +162,13 @@ void vSetupHPP(void)
 	vSetup_HPP_GPIO();
 
 
+#ifdef STOP_HPP_TASKS
+	xil_printf("vFile_System_Task not created\n\r");
+#else
 	xReturn = xTaskCreate(vFile_System_Task, "vFile_System_Task", (uint16_t)65535, NULL, TASK_PRIORITY, NULL); //KBE??? priority change from 5 to 2
-	xil_printf("vFile_System_Task created with return value of %d\n\r", xReturn);
+	xil_printf("vFile_System_Task not created with return value of %d\n\r", xReturn);
+#endif
+
 }
 
 
@@ -1049,6 +1054,7 @@ s8 SetDIOPortBit(u8 portnum, u8 bitnum, enum BitValue bitval)
 	XGpioPs_Write(&xGpiops, GPIO_BANK_3, gpio_bank3);
 
 	//Need to process acknowledgment, so take data semaphore
+	/* KBE?? locks? */
 	if(xSemaphoreTake(xHPP_Response_Sem, portMAX_DELAY) == pdTRUE)
 	{
 		status = ProcessAck(unused);

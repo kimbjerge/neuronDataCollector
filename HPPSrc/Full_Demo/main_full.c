@@ -256,7 +256,12 @@ void main_full( void )
 	//BaseType_t xReturn;
 
 	/* Start the tasks that implements the command console on the UART*/
+#ifdef STOP_HPP_TASKS
+	xil_printf("UART command console not started\n\r");
+#else
 	vUARTCommandConsoleStart( mainUART_COMMAND_CONSOLE_STACK_SIZE, mainUART_COMMAND_CONSOLE_TASK_PRIORITY );
+	xil_printf("UART command console started\n\r");
+#endif
 
 	/* Register the standard CLI commands. */
 	vRegisterSampleCLICommands();
