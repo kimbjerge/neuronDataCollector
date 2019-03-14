@@ -8,6 +8,10 @@
 #ifndef SRC_HAL_TESTIO_H_
 #define SRC_HAL_TESTIO_H_
 
+// Defined in HPPIO.cpp
+void setPort2Bit0(bool on);
+void setAllPortsOn(bool on);
+
 class TestIO : public Gpio
 {
 public:
@@ -30,15 +34,10 @@ public:
 
 	void setOn(IOTypes io, bool on)
 	{
-		int bits = readio();
-
-        if (on)
-        	bits |= 1 << io;
-        else {
-        	bits &= ~(1 << io);
-        }
-
-		writeio(bits);
+		if (io == JB1) {
+			//setPort2Bit0(on);
+			setAllPortsOn(on);
+		}
 	}
 
 };
