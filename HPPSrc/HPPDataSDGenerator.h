@@ -21,8 +21,12 @@ public:
 
 	virtual int16_t *GenerateSamples(void);
 
+	void setFromSDCard (bool fromSDCard) { m_dataFromSDCard = fromSDCard; };
+
 private:
 	TestDataSDCard *pTestDataSDCard;
+	int16_t m_Samples[NUM_CHANNELS];
+	bool m_dataFromSDCard;
 };
 
 

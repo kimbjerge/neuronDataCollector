@@ -39,9 +39,6 @@ int HPPDataGenerator::InitHPPDataGenerator(int ttl_output_bitnum = 4)
 	//Initialize HPP with required control messages
 	IdentifyDIOParams(ttl_output_bitnum, &portnum, &bitnum);
 
-	//params[0].portnum = portnum;
-	//params[0].bitnum = bitnum;
-
 	//Assert PS control (as opposed to fabric control) over the commands sent to the motherboard
 	status = SetPSControl(PS_Ctrl);
 	if(status != 0)
@@ -53,105 +50,56 @@ int HPPDataGenerator::InitHPPDataGenerator(int ttl_output_bitnum = 4)
 		xil_printf("\n\rSetPSControl(PS_Ctrl) successfully called.\n\r");
 	}
 
-
-	//Assert HPP control over MB TTL lines
-	status = SetDIOCtrl(portnum, HPP_Ctrl);
-	if(status != 0)
+	for(portnum = 0; portnum < 4; portnum++)
 	{
-		xil_printf("\n\rProblem with SetDigitalIOCtrl(%d, HPP_Ctrl), Status = %d", portnum, status);
-	}
+		//Assert HPP control over MB TTL lines
+		status = SetDIOCtrl(portnum, HPP_Ctrl);
+		if(status != 0)
+		{
+			xil_printf("\n\rProblem with SetDigitalIOCtrl(%d, HPP_Ctrl), Status = %d", portnum, status);
+		}
 
-	//Set TTLs to outputs
-	status = SetDIOPortDir(portnum, DIO_PORT_DIR_OUTPUT);
-	if(status != 0)
-	{
-		xil_printf("\n\rProblem with SetDigitalIOPortDir(%d, DIO_PORT_DIR_OUTPUT), Status = %d", portnum, status);
+		//Set TTLs to outputs
+		status = SetDIOPortDir(portnum, DIO_PORT_DIR_OUTPUT);
+		if(status != 0)
+		{
+			xil_printf("\n\rProblem with SetDigitalIOPortDir(%d, DIO_PORT_DIR_OUTPUT), Status = %d", portnum, status);
+		}
 	}
 
 	SetPSReady(PS_Ctrl);
 
 	xil_printf("\n\rHPP Data generator successfully initialized.\n\r");
 
+	//Assume LED Control
+	status = SetFPLEDCtrl(HPP_Ctrl);
+	if(status != 0)
+	{
+		xil_printf("\n\rProblem with SetFPLEDCtrl(LED_S1), Status = %d", status);
+	}
+
 	return 0;
 }
 
-/* From Spike Detector Demo
-int HPPDataGenerator::InitHPPDataGenerator(int ttl_output_bitnum = 4)
+void HPPDataGenerator::SetLEDOn(bool on)
 {
-	u8	i = 0;
-	u8 portnum = 0;
-	u8 bitnum = 0;
 	u8 status = 0;
 
-	//Initialize HPP with required control messages
-	IdentifyDIOParams(ttl_output_bitnum, &portnum, &bitnum);
-
-	//params[0].portnum = portnum;
-	//params[0].bitnum = bitnum;
-
-	//Assert PS control (as opposed to fabric control) over the commands sent to the motherboard
-	status = SetPSControl(PS_Ctrl);
-	if(status != 0)
-	{
-		xil_printf("\n\rProblem with SetPSControl(PS_Ctrl)");
-	}
-	else
-	{
-		xil_printf("\n\rSetPSControl(PS_Ctrl) successfully called.\n\r");
-	}
-
-	//Assert HPP control over MB TTL lines
-	status = SetDIOCtrl(portnum, HPP_Ctrl);
-	if(status != 0)
-	{
-		xil_printf("\n\rProblem with SetDigitalIOCtrl(%d, HPP_Ctrl), Status = %d", portnum, status);
-	}
-
-	//Set TTLs to outputs
-	status = SetDIOPortDir(portnum, DIO_PORT_DIR_OUTPUT);
-	if(status != 0)
-	{
-		xil_printf("\n\rProblem with SetDigitalIOPortDir(%d, DIO_PORT_DIR_OUTPUT), Status = %d", portnum, status);
-	}
-
-	//Added for Cheetah Debug
-	//Assert HPP control over MB TTL lines
-	status = SetDIOCtrl(1, HPP_Ctrl);
-	if(status != 0)
-	{
-		xil_printf("\n\rProblem with SetDigitalIOCtrl(%d, HPP_Ctrl), Status = %d", portnum, status);
-	}
-	//Set TTLs to outputs
-	status = SetDIOPortDir(1, DIO_PORT_DIR_OUTPUT);
-	if(status != 0)
-	{
-		xil_printf("\n\rProblem with SetDigitalIOPortDir(%d, DIO_PORT_DIR_OUTPUT), Status = %d", portnum, status);
-	}
-
-	//For SfN Demos
-	for(i = 0; i < 4; i++)
-	{
-		//Assert HPP control over MB TTL lines
-		status = SetDIOCtrl(i, HPP_Ctrl);
+	if (on) {
+		//Toggle each LED once for verification of functionality before template matching
+		status = SetFPLED(LED_S1, LED_On);
 		if(status != 0)
 		{
-			xil_printf("\n\rProblem with SetDigitalIOCtrl(%d, HPP_Ctrl), Status = %d", i, status);
+			xil_printf("\n\rProblem with SetFPLED(LED_S1, LED_On), Status = %d", status);
 		}
-
-		//Set TTLs to outputs
-		status = SetDIOPortDir(i, DIO_PORT_DIR_OUTPUT);
+	} else {
+		status = SetFPLED(LED_S1, LED_Off);
 		if(status != 0)
 		{
-			xil_printf("\n\rProblem with SetDigitalIOPortDir(%d, DIO_PORT_DIR_OUTPUT), Status = %d", i, status);
+			xil_printf("\n\rProblem with SetFPLED(LED_S1, LED_Off), Status = %d", status);
 		}
 	}
-	xil_printf("\n\rAll digital I/O ports setup with HPP control and as outputs\n\r");
-
-	SetPSReady(PS_Ctrl);
-
-	return 0;
 }
-*/
 
 void HPPDataGenerator::GenerateSampleRecord(LRECORD *pLxRecord)
 {
@@ -168,7 +116,9 @@ void HPPDataGenerator::GenerateSampleRecord(LRECORD *pLxRecord)
 		if (xHPP_Spike_Detect_Sem != NULL)
 		{
 			if (!m_initialized) {
+				printf("Calling InitHPPDataGenerator\r\n");
 				InitHPPDataGenerator(4);
+				printf("InitHPPDataGenerator initialized\r\n");
 				m_initialized = true;
 			}
 

@@ -21,6 +21,7 @@ public:
 	virtual void GenerateSampleRecord(LRECORD *pLxRecord);
 
 	int InitHPPDataGenerator(int ttl_output_bitnum);
+	void SetLEDOn(bool on);
 
 protected:
 	bool m_initialized;

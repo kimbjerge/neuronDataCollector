@@ -24,6 +24,7 @@ extern SemaphoreHandle_t xHPP_Spike_Detect_Sem;
 HPPDataSDGenerator::HPPDataSDGenerator(TestDataSDCard *pDataSDCard)
 {
 	pTestDataSDCard = pDataSDCard;
+	m_dataFromSDCard = true;
 }
 
 HPPDataSDGenerator::~HPPDataSDGenerator()
@@ -44,13 +45,22 @@ int16_t *HPPDataSDGenerator::GenerateSamples(void)
 				InitHPPDataGenerator(4);
 				printf("InitHPPDataGenerator initialized\r\n");
 				m_initialized = true;
+				SetLEDOn(true); // Turn LED S1 on
 			}
 			if (xSemaphoreTake(xHPP_Spike_Detect_Sem, portMAX_DELAY) == pdTRUE)
 			{
 				if (num_data_buffers_loaded > 31)
 				{
 					cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK; // & is faster than %, so the mask is setup for &
-					nextSamples = pTestDataSDCard->GenerateSamples(); // Use samples from SD card instead of HPP
+					if (m_dataFromSDCard) {
+		 				// Data from SD card
+						nextSamples = pTestDataSDCard->GenerateSamples(); // Use samples from SD card instead of HPP
+					} else {
+						// Data from Digital Lynx
+						for (int ch = 0; ch < NUM_CHANNELS; ch++)
+							m_Samples[ch] = HPP_Data[cur_index].AD[ch];
+						nextSamples = (int16_t *)m_Samples;
+					}
 
 					if (cur_index != (num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK)) // & is faster than %, so the mask is setup for &
 					{

@@ -24,7 +24,7 @@
 
 // main_hpp.c in directory hpp calls main_full in directory Full_Demo (A UART Cli interface to FreeRTOS)
 int main_hpp( void );
-void TestFileSDCard(void);
+//void TestFileSDCard(void);
 
 NeuronChannels neuronChannels;
 //TestDataGenerator testDataGenerator;
@@ -40,6 +40,7 @@ HPPDataSDGenerator HPPSDGenerator(&testDataSDCard);
 TemplateMatch mTemplateMatch(&HPPSDGenerator); // Wait for new HPP samples before read next sample data from SD Card
 Config 		  config;
 
+
 int main()
 {
 	//init_net_server(echo_tcp_thread, 0);
@@ -47,12 +48,13 @@ int main()
 	//init_net_server(dataThread.threadMapper, &dataThread);
 #if 1
 	printf("-------------------------------------------------------------\r\n");
-	printf("Neuron Real Time Template Matching Algorithm Version 1.6\r\n");
+	printf("Neuron Real Time Template Matching Algorithm Version %d.%d\r\n", VERSION_HI, VERSION_LO);
 	printf("Loads data from SD card of 32 channels and max. 6 templates\r\n");
 	printf("Template max. size of width 9 channels and 17 in length \r\n");
 	printf("Performs 60 taps FIR filtering and NXCOR template matching\r\n");
 	printf("Maximum 60 seconds of samples will be used from DATA.bin\r\n");
 	printf("-------------------------------------------------------------\r\n");
+	HPPSDGenerator.setFromSDCard(true); // Data from SD Card or Digital Lynx SX
 
 	// Initialize HPP and FreeRTOS CLI using UART with neural spike processing demos
 	main_hpp();
@@ -74,13 +76,17 @@ int main()
 	}
 
 #else
-	cliThread.addCommand(&cliCommand);
-	init_net_server(cliThread.threadMapper, &cliThread);
+	// For testing
+	// Testing socket connection and commands
+	//cliThread.addCommand(&cliCommand);
+	//init_net_server(cliThread.threadMapper, &cliThread);
 
-	//UserThread mUserThread(Thread::PRIORITY_NORMAL, "UserControlThread");
+	// Testing user thread controlling TTL ouputs and LEDS
+	UserThread mUserThread(Thread::PRIORITY_NORMAL, "UserControlThread");
 
 	// Initialize HPP and FreeRTOS CLI using UART with neural spike processing demos
 	main_hpp();
+
 #endif
 
 	/* Start FreeRTOS, the tasks running. */
