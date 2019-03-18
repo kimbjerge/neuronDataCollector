@@ -186,9 +186,9 @@ void Config::parseConfig(void)
 				 mPeakMinLimits[mNumTemplates][ch] = min;
 				 mChannelMap[mNumTemplates][ch] = ch+offset; // Use offset to map channels
 			}
+			printf("Using template %d file %s cfg %s\r\n", mNumTemplates, tempName, tempCfg);
 			mNumTemplates++;
 		}
-		printf("Using template %d file %s\r\n", mNumTemplates, tempName);
 	}
 }
 

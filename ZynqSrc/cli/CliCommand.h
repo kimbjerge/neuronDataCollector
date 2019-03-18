@@ -11,8 +11,8 @@
 #include "NeuronChannels.h"
 #include "DataUDPThread.h"
 
-#define VERSION_HI		0
-#define VERSION_LO		1
+#define VERSION_HI		1
+#define VERSION_LO		6
 #define CMD_BUF_SIZE    4096
 
 class CliCommand {

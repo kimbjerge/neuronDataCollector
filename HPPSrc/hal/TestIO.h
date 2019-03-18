@@ -8,37 +8,37 @@
 #ifndef SRC_HAL_TESTIO_H_
 #define SRC_HAL_TESTIO_H_
 
-// Defined in HPPIO.cpp
-void setPort2Bit0(bool on);
-void setAllPortsOn(bool on);
-
-class TestIO : public Gpio
+class TestIO
 {
 public:
 
 	enum IOTypes {
-		JB1 = 0,
-		JB2 = 1,
-		JB3 = 2,
-		JB4 = 3,
-		JB7 = 4,
-		JB8 = 5,
-		JB9 = 6,
-		JB10 = 7
+		JB1 = 16, // Port 2, bit 0
+		JB2 = 17,
+		JB3 = 18,
+		JB4 = 19,
+		JB5 = 20,
+		JB6 = 21,
+		JB7 = 22,
+		JB8 = 23, // Port 2, bit 7
+		JB9 = 25, // Port 3, bit 1
+		JB10 = 24 // Port 3, bit 0
 	};
 
-	TestIO() : Gpio(0)
+	TestIO()
 	{
-		//XGpio_SetDataDirection(&mGpioHandle, mChannel, 0xff);
+		ttlPortValues = 0;
 	};
 
-	void setOn(IOTypes io, bool on)
-	{
-		if (io == JB1) {
-			//setPort2Bit0(on);
-			setAllPortsOn(on);
-		}
-	}
+	void setOn(IOTypes io, bool on);
+
+	private:
+	    // Actual TTL values of port outputs
+	    // Bit 0-7   - port 0 - not working
+		// Bit 8-15  - port 1 - not working
+    	// Bit 16-23 - port 2 - working (JB1 - JB8)
+	    // Bit 24-31 - port 3 - working (JB9 - JB10)
+		int ttlPortValues;
 
 };
 

@@ -13,11 +13,11 @@ void Leds::setOn(LedTypes led, bool on)
 	LEDNum ledNum;
 	u8 status = 0;
 
-	// Only control LED0 = LED_S1 (template 0)
-	// LED7 = LED_S2 (template within window
-	if (led == LED0)
+	// Only control LED6 = LED_S1 (start/stop)
+	// LED7 = LED_S2 (template within trigger window)
+	if (led == LED6) // Processing in progress
 		ledNum = LED_S1;
-	else if (led == LED7)
+	else if (led == LED7) // Template trigger
 		ledNum = LED_S2;
 	else
 		return;

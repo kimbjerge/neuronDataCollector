@@ -168,11 +168,11 @@ void TemplateMatch::processResults(void)
 					pNXCOR[i]->getNXCORResult());
 					//pNXCOR[i]->getMaxPeak());
 			leds.setOn((Leds::LedTypes)i, true);
-			testOut.setOn((TestIO::IOTypes)i, true);
+			testOut.setOn((TestIO::IOTypes)(i+TestIO::JB1), true);
 		}
 		if (state == 3) {
 			leds.setOn((Leds::LedTypes)i, false);
-			testOut.setOn((TestIO::IOTypes)i, false);
+			testOut.setOn((TestIO::IOTypes)(i+TestIO::JB1), false);
 		}
 	}
 }
@@ -218,7 +218,6 @@ void TemplateMatch::reset(void)
 void TemplateMatch::run()
 {
 	int count = mNumSamples;
-    bool firstTime = true;
     STYPE *pSampleData;
     int start_tick, end_tick;
 
@@ -232,27 +231,30 @@ void TemplateMatch::run()
 		// Clear NXCORE and FIR filter IP Core's HW Memory
 		clearIPCoresMemory();
 
-		printf("Turn SW0 on to start\r\n");
+		testOut.setOn(TestIO::JB9, false); // Clear digital outputs
+		testOut.setOn(TestIO::JB10, false);
+		printf("Turn SW0 on (ZedBoard) or start acquisition on Digital Lynx SX\r\n");
 		while (!sw.isOn(Switch::SW0))
 			Sleep(100);
 
 		// Reset counters and indexes
 		reset();
-
-		// LED + Hardware signals for debugging
-		leds.setOn(Leds::LED6 , true);
-		testOut.setOn(TestIO::JB10, true);
 		mCount = 0;
 		count = mNumSamples;
-		firstTime = true;
 
-		start_tick = xTaskGetTickCount();
 		while (count > 0) {
 
 			// Get next sample from data generator
 			pSampleData = pNeuronData->GenerateSamples();
 
-			if (!firstTime) {
+			if (mCount < 1) { // First time
+				// LED + Hardware signals for debugging
+				leds.setOn(Leds::LED6 , true);
+				testOut.setOn(TestIO::JB10, true);
+				printf("Acquisition started, sample %d\r\n", mCount+1);
+				// Read start counter
+				start_tick = xTaskGetTickCount();
+			} else {
 				// After fist iteration read filtered samples
 				for (int i = 0; i < FIR_NUM; i++) {
 					pFirFilter[i]->readFiltered(&mFiltered[i*FIR_SIZE]);
@@ -290,7 +292,6 @@ void TemplateMatch::run()
 			//printf(".");
 			//vTaskDelay( pdMS_TO_TICKS( 1 ) );
 			//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
-			firstTime = false;
 			count--;
 			mCount++;
 		}
@@ -303,6 +304,7 @@ void TemplateMatch::run()
 
 		printf("Tick start %d and tick end %d, duration = %d ms\r\n", start_tick, end_tick, (1000*(end_tick-start_tick))/configTICK_RATE_HZ);
 		printf("Neuron template matching completed after %d samples\r\n", mNumSamples);
+		printf("Saving results to binary files - please wait....\r\n");
 
 #ifdef DEBUG_FILES
 		// Save test result from memory to files
@@ -314,6 +316,8 @@ void TemplateMatch::run()
 		}
 		printf("Saved result to files FIRFilt.bin and NXCORT1-%d.bin\r\n", mNumCfgTemplates);
 #endif
+		// Clear sample interrupts
+		pSampleData = pNeuronData->GenerateSamples();
 
 	} // while (1)
 
