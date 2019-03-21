@@ -38,39 +38,72 @@ TemplateMatch::~TemplateMatch()
 	}
 }
 
+void TemplateMatch::printSettings(void)
+{
+	for (int i = 0; i < TEMP_NUM; i++) {
+		if (i < mpConfig->getNumTemplates()) {
+			pNXCOR[i]->printSettings();
+		} else {
+			printf("NXCOR template %d is not used\r\n", i+1);
+		}
+	}
+}
+
+void TemplateMatch::updateConfig(int numSamples)
+{
+	if (mpConfig->isTabsValid())
+		pCoeffFloat = mpConfig->getCoeffs(); // Use coefficients from FIR.txt file
+	else {
+		pCoeffFloat = (float *)FIR_coeffs; // Use default coefficients
+		printf("Using default FIR coefficients number of taps %d\r\n", FIR_TAPS);
+	}
+
+	mNumCfgTemplates = mpConfig->getNumTemplates();
+
+	for (int i = 0; i < TEMP_NUM; i++) {
+		if (i < mNumCfgTemplates) {
+			pNXCOR[i]->setSize(mpConfig->getLength(i), mpConfig->getWidth(i));
+			pNXCOR[i]->setNXCORThreshold(mpConfig->getThreshold(i));
+			pNXCOR[i]->setPeakThreshold(mpConfig->getMin(i), mpConfig->getMax(i));
+			pNXCOR[i]->setMaxPeakLimits(mpConfig->getPeakMaxLimits(i));
+			pNXCOR[i]->setMinPeakLimits(mpConfig->getPeakMinLimits(i));
+			pNXCOR[i]->setMinGradient(mpConfig->getMinGradient(i));
+			pNXCOR[i]->setChannelMap(mpConfig->getChannelMap(i));
+			pNXCOR[i]->printSettings();
+		} else
+			pTemplate[i]->clearTemplate();
+	}
+
+	mNumSamples = numSamples;
+	// Set sample counter used to trigger when template 1 and 2 is seen at the same time
+	if (mNumCfgTemplates >= 2) {
+		mTemplate12Counter = mpConfig->getCounter(0);
+		printf("Trigger output JB9/LD7 when template 1 and 2 seen within %d samples\r\n", mTemplate12Counter);
+	}
+	else
+		mTemplate12Counter = 0;
+}
+
 int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 {
+	mpConfig = pConfig;
 
 	// Create FIR filters
 	for (int i = 0; i < FIR_NUM; i++) {
 		pFirFilter[i] = new FirFilter(XPAR_FIRFILTER_0_DEVICE_ID+i, FIR_SIZE, FIR_TAPS);
 		pFirFilter[i]->Init(pIrq, XPAR_FABRIC_FIRFILTER_0_INTERRUPT_INTR+i);
 	}
-	if (pConfig->isTabsValid())
-		pCoeffFloat = pConfig->getCoeffs(); // Use coefficients from FIR.txt file
-	else {
-		pCoeffFloat = (float *)FIR_coeffs; // Use default coefficients
-		printf("Using default FIR coefficients number of taps %d\r\n", FIR_TAPS);
-	}
 
-	// Create NXCOR filters
+	// Create NXCOR filters and templates
 	for (int i = 0; i < TEMP_NUM; i++) {
-		pNXCOR[i] = new NXCOR(XPAR_NXCOR_0_DEVICE_ID+i, pConfig->getLength(i), pConfig->getWidth(i));
+		pNXCOR[i] = new NXCOR(XPAR_NXCOR_0_DEVICE_ID+i, mpConfig->getLength(i), mpConfig->getWidth(i));
 		if (i < 4)  pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_0_INTERRUPT_INTR+i);
 		if (i == 4)	pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_4_INTERRUPT_INTR);
 		if (i == 5) pNXCOR[i]->Init(pIrq, XPAR_FABRIC_NXCOR_5_INTERRUPT_INTR);
 		pTemplate[i] = new Template();
-
-		if (i < pConfig->getNumTemplates()) {
+		if (i < mpConfig->getNumTemplates()) {
 			// Load template from file defined by pTempNames
-			pTemplate[i]->loadTemplate(pConfig->getTemplateName(i), pConfig->getLength(i), pConfig->getWidth(i));
-			pNXCOR[i]->setNXCORThreshold(pConfig->getThreshold(i));
-			pNXCOR[i]->setPeakThreshold(pConfig->getMin(i), pConfig->getMax(i));
-			pNXCOR[i]->setMaxPeakLimits(pConfig->getPeakMaxLimits(i));
-			pNXCOR[i]->setMinPeakLimits(pConfig->getPeakMinLimits(i));
-			pNXCOR[i]->setMinGradient(pConfig->getMinGradient(i));
-			pNXCOR[i]->setChannelMap(pConfig->getChannelMap(i));
-			pNXCOR[i]->printSettings();
+			pTemplate[i]->loadTemplate(mpConfig->getTemplateName(i), mpConfig->getLength(i), mpConfig->getWidth(i));
 		} else
 			pTemplate[i]->clearTemplate();
 	}
@@ -84,17 +117,7 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 	pResultFIR->allocateContent(numSamples*NUM_CHANNELS);
 #endif
 
-	mNumCfgTemplates = pConfig->getNumTemplates();
-	mNumSamples = numSamples;
-	// Set sample counter used to trigger when template 1 and 2 is seen at the same time
-	if (mNumCfgTemplates >= 2) {
-		mTemplate12Counter = pConfig->getCounter(0);
-		printf("Trigger output JB9/LD7 when template 1 and 2 seen within %d samples\r\n", mTemplate12Counter);
-	}
-	else
-		mTemplate12Counter = 0;
-
-	mpConfig = pConfig;
+	updateConfig(numSamples);
 
 	return 0;
 }
@@ -217,7 +240,6 @@ void TemplateMatch::reset(void)
 
 void TemplateMatch::run()
 {
-	int count = mNumSamples;
     STYPE *pSampleData;
     int start_tick, end_tick;
 
@@ -225,8 +247,9 @@ void TemplateMatch::run()
     updateCoefficients();
     updateTemplates();
 	printf("Neuron template matching running\r\n");
+	mRunning = true;
 
-	while (1)
+	while (mRunning)
 	{
 		// Clear NXCORE and FIR filter IP Core's HW Memory
 		clearIPCoresMemory();
@@ -234,15 +257,20 @@ void TemplateMatch::run()
 		testOut.setOn(TestIO::JB9, false); // Clear digital outputs
 		testOut.setOn(TestIO::JB10, false);
 		printf("Turn SW0 on (ZedBoard) or start acquisition on Digital Lynx SX\r\n");
-		while (!sw.isOn(Switch::SW0))
+		while (!sw.isOn(Switch::SW0) && mRunning) {
 			Sleep(100);
+		}
+
+		// Break if task stopped
+		if (!mRunning) break;
 
 		// Reset counters and indexes
 		reset();
 		mCount = 0;
-		count = mNumSamples;
+		mCounter = mNumSamples;
+		start_tick = xTaskGetTickCount();
 
-		while (count > 0) {
+		while (mCounter > 0) {
 
 			// Get next sample from data generator
 			pSampleData = pNeuronData->GenerateSamples();
@@ -292,7 +320,7 @@ void TemplateMatch::run()
 			//printf(".");
 			//vTaskDelay( pdMS_TO_TICKS( 1 ) );
 			//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
-			count--;
+			mCounter--;
 			mCount++;
 		}
 		end_tick = xTaskGetTickCount();
@@ -319,7 +347,8 @@ void TemplateMatch::run()
 		// Clear sample interrupts
 		pSampleData = pNeuronData->GenerateSamples();
 
-	} // while (1)
-
+	} // while (mRunning)
+    printf("Neuron template matching thread shutting down and exit\r\n");
+    vTaskDelete(NULL);
 }
 

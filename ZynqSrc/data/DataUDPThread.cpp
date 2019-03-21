@@ -161,7 +161,7 @@ void DataUDPThread::run()
 
 	// Jump point for failure
 ErrorOrDone:
-	xil_printf("Shutting down and exiting...\n\r");
+	xil_printf("UDP data thread shutting down and exit\n\r");
 
 	while (Error != 0) {
 		// Blinking with led when error

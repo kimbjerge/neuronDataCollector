@@ -39,6 +39,12 @@ public:
 	~TemplateMatch();
 
 	int Init(Config *pConfig, int numSamples, IRQ* pIrq = 0);
+	void updateConfig(int numSamples);
+	void stopRunning(void) { mRunning = false; };
+	void printSettings(void);
+	void updateTemplateData(int id, float *data, int width, int length)
+		{  pTemplate[id]->updateData(data, width, length, id+1); }
+	Config *getConfig(void) { return mpConfig; }
 
 	virtual void run();
 
@@ -53,6 +59,7 @@ private:
     int mNumCfgTemplates;
 	int mNumSamples;
 	int mCount;
+	int mCounter;
 	NeuronData *pNeuronData;
 	FirFilter *pFirFilter[FIR_NUM];
     NXCOR *pNXCOR[TEMP_NUM];
@@ -73,6 +80,7 @@ private:
     int mTemplate12Counter;
     int mTemplate12Trigger;
     int mTemplate12TriggerIdx;
+    bool mRunning;
 };
 
 #endif /* SRC_TEMPLATE_MATCH_H_ */

@@ -27,6 +27,84 @@ void Template::readChOffset(string name)
 	}
 }
 
+void Template::convertData(void)
+{
+	float abs_max_value = 0;
+
+	// Search for maximum absolute template value
+	for (int i = 0; i < TEMP_LENGTH; i++) {
+		for (int j = 0; j < TEMP_WIDTH; j++) {
+			if (i < mLength && j < mWidth)
+				 if (abs_max_value < abs(mTemplate[j + i*mWidth]))
+						 abs_max_value =  abs(mTemplate[j + i*mWidth]) ;
+		}
+	}
+
+	// Find data format to scale template
+	int dataFormat  =  0; // Don't scale template values if absolute max value > 255
+	if (abs_max_value < 0) {
+		dataFormat = DATA_FORMAT_SHORT; // Template values between -1.0 and 1.0 - then multiply with 2^23
+	} else if (abs_max_value < 256) { // Template values between -256 and 256 - then multiply with 2^7
+		dataFormat = DATA_FORMAT_CHAR;
+	}
+	printf("Template %s - all values scaled with 2^%d = %.0f\r\n", mFileName.c_str(), dataFormat, pow(2, dataFormat));
+
+
+#ifdef NXCOR_CONVOLUTION
+	// Reverse template - Convolution - MATLAB NXCOR
+	for (int i = 0; i < TEMP_LENGTH; i++) {
+		for (int j = 0; j < TEMP_WIDTH; j++) {
+			if (i < mLength && j < mWidth)
+				mTemplateInt[j + i*TEMP_WIDTH] = round(mTemplate[j + (mLength-1-i)*mWidth]*pow(2, dataFormat));
+			else
+				mTemplateInt[j + i*TEMP_WIDTH] = 0;
+		}
+	}
+#else
+	/*
+	for(int i = 0; i < TEMP_SIZE; i++)
+		mTemplateInt[i] = round(mTemplate[i]*pow(2, dataFormat));
+	*/
+	// Cross correlation
+	for (int i = 0; i < TEMP_LENGTH; i++) {
+		for (int j = 0; j < TEMP_WIDTH; j++) {
+			if (i < mLength && j < mWidth)
+				mTemplateInt[j + i*TEMP_WIDTH] = round(mTemplate[j + i*mWidth]*pow(2, dataFormat));
+			else
+				mTemplateInt[j + i*TEMP_WIDTH] = 0; // Clear part of template not used
+		}
+	}
+#endif
+
+	//readChOffset(name); // NOT USED ANY MORE
+	calcMeanVariance();
+}
+
+void Template::updateData(float *data, int length, int width, int nr)
+{
+	char name[20];
+	clearTemplate();
+
+	// Limitation of input parameters
+	if (length < TEMP_LENGTH)
+		mLength = length;
+	else
+		mLength = TEMP_LENGTH;
+
+	if (width < TEMP_WIDTH)
+		mWidth = width;
+	else
+		mWidth = TEMP_WIDTH;
+
+	memcpy(mTemplate, data, sizeof(mTemplate));
+
+    sprintf(name, "TEMPLATE%d", nr);
+	mFileName = name;
+
+	convertData();
+}
+
+
 int Template::loadTemplate(string name, int length, int width)
 {
 	int result;
@@ -61,8 +139,12 @@ int Template::loadTemplate(string name, int length, int width)
 
 		result = m_file.close();
 		if (result != XST_SUCCESS) printf("Failed closing file %s\r\n", name.c_str());
+
+		mFileName = name;
+		convertData();
 	}
 
+/*
 	// Search for maximum absolute template value
 	float abs_max_value = 0;
 	for (int i = 0; i < TEMP_LENGTH; i++) {
@@ -94,10 +176,9 @@ int Template::loadTemplate(string name, int length, int width)
 		}
 	}
 #else
-	/*
-	for(int i = 0; i < TEMP_SIZE; i++)
-		mTemplateInt[i] = round(mTemplate[i]*pow(2, dataFormat));
-	*/
+	//for(int i = 0; i < TEMP_SIZE; i++)
+	//	mTemplateInt[i] = round(mTemplate[i]*pow(2, dataFormat));
+
 	// Cross correlation
 	for (int i = 0; i < TEMP_LENGTH; i++) {
 		for (int j = 0; j < TEMP_WIDTH; j++) {
@@ -110,10 +191,12 @@ int Template::loadTemplate(string name, int length, int width)
 #endif
 
 	mFileName = name;
+
 	if (result == XST_SUCCESS) {
 		//readChOffset(name); // NOT USED ANY MORE
 		calcMeanVariance();
 	}
+*/
 	return result;
 }
 

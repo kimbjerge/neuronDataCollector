@@ -36,8 +36,10 @@ public:
 	float getMean(void) { return mMean; }
 	//int getChOffset(void) { return mChOffset; } // NOT USED after Ver. 1.1
 	const char *getTemplateName(void) { return mFileName.c_str(); }
+	void updateData(float *data, int length, int width, int nr);
 
 private:
+	void convertData(void);
 	void calcMeanVariance(void);
 	void readChOffset(string name);
     float mTemplate[TEMP_SIZE];

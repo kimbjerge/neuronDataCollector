@@ -1,0 +1,39 @@
+% Enable using number of templates
+% Nr       - template 1-max
+s,n,1
+
+% Set template data of size Wid*Len
+% Nr       - template 1-max
+% Wid      - width of template (maximum 9)
+% Len      - length of template (maximum 17)
+% Data     - template data in float
+s,d,1,4,10,1.0,2.0,3.0,4.0,1.0,2.0,3.0,4.0,1.0,2.0,3.0,4.0,1.0,2.0,3.0,4.0,1.0,2.0,3.0,4.0,1.0,2.0,3.0,4.0,1.0,2.0,3.0,4.0
+
+% Set threshold of template (t)
+% Nr       - template 1-max
+% Thres    - threshold used to detect neuron activations after normalized cross correlation
+s,t,1,0.90
+
+% Set gradient of template (g)
+% Nr       - template 1-max
+% Grad     - The gradient between mimum peak and peak(n-4) must be greather than this value for all channels in template match
+s,g,1,25
+
+% Set Line peak high limits for mapped channels (0-8) - format short 
+% Nr       - template 1-max
+s,h,1,-38,-70,-49,-27,15011,16011,17011,18011,19011
+
+% Set Line peak low limits for mapped channels (0-8) - format short
+% Nr       - template 1-max
+s,l,1,-214,-233,-221,-194,-14011,-15011,-16011,-17011,-18011
+
+% Set Line template channel mapping to neuron channel (0-31) used to match template - format short
+% Nr       - template 1-max
+s,m,1,26,27,30,31,4,5,6,7,8
+
+% Set processing mode (0=data from HPP, 1=data from SD card DATA.bin)
+s,p,<0|1>
+
+% Read configuration
+g,c
+

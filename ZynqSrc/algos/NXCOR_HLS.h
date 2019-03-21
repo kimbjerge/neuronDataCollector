@@ -35,6 +35,7 @@ public:
 
 	void updateTemplate(TTYPE *temp, int avgTemp);
 
+	void setSize(int length, int width) { mLength = length; mWidth = width; }
 	void setNXCORThreshold(float threshold) { mNXCORThreshold = threshold; }
 	void setMaxPeakLimits(TTYPE *max); // Set max peak limits for each channel
 	void setMinPeakLimits(TTYPE *min); // Set min peak limits for each channel
