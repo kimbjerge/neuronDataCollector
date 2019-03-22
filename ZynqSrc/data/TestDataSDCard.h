@@ -25,11 +25,14 @@ public:
 	virtual void GenerateSampleRecord(LRECORD *pLxRecord);
 	virtual int16_t *GenerateSamples(void);
 	int getNumSamples(void) { return mNumDataSamples; }
+	void resetDataBuffer(void) { m_pWriteData = &(m_data[0][0]); mNumDataSamples = 0; }
+	void appendDataSamples(float *pData, int length);
 
 protected:
     FileSDCard m_file;
     // Sample buffer read from file
     int mNumDataSamples;
+    float *m_pWriteData;
 	float m_data[MAX_NUM_SAMPLES][NUM_CHANNELS];
 };
 

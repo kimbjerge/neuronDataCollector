@@ -16,7 +16,6 @@ figure, surf(template1);
 ylabel('Channels');
 xlabel('Samples');
 title(['Template 1 - ' tempName]);
-cmdTemplate1 = CreateTemplateCmd(template1, tempNr); % Create command to update template
 
 pause();
 
@@ -27,6 +26,7 @@ reply = SendCmd(t, 'g,v')          % Read version number, expected ver. 1.7
 reply = SendCmd(t, 's,p,2')        % Neuron data from SD card (2) or HPP (1)
 reply = SendCmd(t, sprintf('s,n,%d', numTemplates)) % Set number of templates to use
 
+cmdTemplate1 = CreateTemplateCmd(template1, tempNr); % Create command to update template
 reply = SendCmd(t, cmdTemplate1)   % Sets template data
 reply = SendCmd(t, sprintf('s,t,%d,%f', tempNr, threshold)) % Set template thredshold 
 reply = SendCmd(t, sprintf('s,g,%d,%d', tempNr, gradient)) % Set template gradient 

@@ -11,6 +11,7 @@
 
 #include "HPPDataGenerator.h"
 #include "TestDataSDCard.h"
+#include "CliCmdTemplates.h"
 
 class HPPDataSDGenerator : public HPPDataGenerator
 {
@@ -22,9 +23,11 @@ public:
 	virtual int16_t *GenerateSamples(void);
 
 	void setFromSDCard (bool fromSDCard) { m_dataFromSDCard = fromSDCard; };
+	void addCliCommand(CliCommand *pCliCommand) { m_pCliCommand = pCliCommand; };
 
 private:
-	TestDataSDCard *pTestDataSDCard;
+	TestDataSDCard *m_pTestDataSDCard;
+	CliCommand *m_pCliCommand;
 	int16_t m_Samples[NUM_CHANNELS];
 	bool m_dataFromSDCard;
 };

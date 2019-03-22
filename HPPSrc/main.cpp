@@ -1,8 +1,4 @@
 /*
- * Empty C++ Application
- */
-
-/*
  * main.cpp
  *
  *  Created on: 20. July 2018
@@ -10,8 +6,7 @@
  */
 #include <defsNet.h>
 
-#include "NeuronChannels.h"
-#include "CliCommand.h"
+#include "CliCmdTemplates.h"
 #include "DataUDPThread.h"
 #include "CliTCPThread.h"
 #include "UserThread.h"
@@ -24,22 +19,19 @@
 
 // main_hpp.c in directory hpp calls main_full in directory Full_Demo (A UART Cli interface to FreeRTOS)
 int main_hpp( void );
-//void TestFileSDCard(void);
-
-NeuronChannels neuronChannels;
-//TestDataGenerator testDataGenerator;
-//DataUDPThread dataThread(&testDataGenerator);
-HPPDataGenerator hppDataGenerator;
-DataUDPThread dataThread(&hppDataGenerator);
-CliCommand    cliCommand(&neuronChannels, &dataThread);
-CliTCPThread  cliThread;
 
 TestDataSDCard testDataSDCard;
 HPPDataSDGenerator HPPSDGenerator(&testDataSDCard);
 //TemplateMatch mTemplateMatch(&testDataSDCard); // Read next sample data from SD Card
 TemplateMatch mTemplateMatch(&HPPSDGenerator); // Wait for new HPP samples before read next sample data from SD Card
-Config 		  config;
 
+//TestDataGenerator testDataGenerator;
+//DataUDPThread dataThread(&testDataGenerator);
+HPPDataGenerator hppDataGenerator;
+DataUDPThread dataThread(&hppDataGenerator);
+Config 		  config;
+CliTCPThread  cliThread;
+CliCommand    cliCommand(&mTemplateMatch, &dataThread, &testDataSDCard);
 
 int main()
 {
@@ -54,12 +46,12 @@ int main()
 	printf("Performs 60 taps FIR filtering and NXCOR template matching\r\n");
 	printf("Maximum 60 seconds of samples will be used from DATA.bin\r\n");
 	printf("-------------------------------------------------------------\r\n");
-	HPPSDGenerator.setFromSDCard(true); // Data from SD Card or Digital Lynx SX
+
+	//HPPSDGenerator.setFromSDCard(true); // Data from SD Card or Digital Lynx SX
+	HPPSDGenerator.addCliCommand(&cliCommand); // Use CLI interface to control processing mode
 
 	// Initialize HPP and FreeRTOS CLI using UART with neural spike processing demos
 	main_hpp();
-
-	//TestFileSDCard();
 
 	printf("Read template configuration from CONFIG.txt\r\n");
 	config.loadConfig("CONFIG.txt");
@@ -69,24 +61,24 @@ int main()
 	config.loadCoeffBin("FIR.bin");
 
 	printf("Reading test samples from DATA.bin\r\n");
-	if (testDataSDCard.readFile((char *)"DATA.bin") == XST_SUCCESS)
-	{
-		mTemplateMatch.Init(&config, testDataSDCard.getNumSamples()); // Use number of data samples read from file
+	if (testDataSDCard.readFile((char *)"DATA.bin") != XST_SUCCESS) return 0;
+
+	mTemplateMatch.Init(&config, testDataSDCard.getNumSamples()); // Use number of data samples read from file
+
+	#if 0
 		mTemplateMatch.runThread(Thread::PRIORITY_NORMAL, "TemplateMatch");
-	}
+	#else
+		// Initialize network and command CLI socket TCP interface
+		cliThread.addCommand(&cliCommand);
+		init_net_server(cliThread.threadMapper, &cliThread);
+	#endif
 
 #else
-	// For testing
-	// Testing socket connection and commands
-	//cliThread.addCommand(&cliCommand);
-	//init_net_server(cliThread.threadMapper, &cliThread);
-
 	// Testing user thread controlling TTL ouputs and LEDS
 	UserThread mUserThread(Thread::PRIORITY_NORMAL, "UserControlThread");
 
 	// Initialize HPP and FreeRTOS CLI using UART with neural spike processing demos
 	main_hpp();
-
 #endif
 
 	/* Start FreeRTOS, the tasks running. */

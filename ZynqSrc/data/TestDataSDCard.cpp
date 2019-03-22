@@ -45,6 +45,16 @@ int TestDataSDCard::readFile(char * name)
 	return result;
 }
 
+void TestDataSDCard::appendDataSamples(float *pData, int length)
+{
+	if (mNumDataSamples+length <= MAX_NUM_SAMPLES*NUM_CHANNELS)
+	{
+		memcpy(m_pWriteData, pData, length*sizeof(float));
+		m_pWriteData += length;
+		mNumDataSamples += length;
+	}
+}
+
 int16_t *TestDataSDCard::GenerateSamples(void)
 {
 	for (int i = 0; i < NUM_CHANNELS; i++)

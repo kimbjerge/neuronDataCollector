@@ -17,15 +17,17 @@ void TestFileSDCard(void);
 
 #define CMD_DELIMITER    ","
 
-CliCommand::CliCommand(TemplateMatch *pTemplateMatch, DataUDPThread *pDataThread) : m_file((char *)"0:/")
+CliCommand::CliCommand(TemplateMatch *pTemplateMatch, DataUDPThread *pDataThread, TestDataSDCard *pTestDataSDCard) : m_file((char *)"0:/")
 {
 	m_pTemplateMatch = pTemplateMatch;
 	m_pDataThread = pDataThread;
+	m_pTestDataSDCard = pTestDataSDCard;
 	m_numSamples = MAX_NUM_SAMPLES; // Default 60 seconds
 	majorVer_ = VERSION_HI;
 	minorVer_ = VERSION_LO;
 	m_fileSize = 0;
-	m_executeMode = 1;
+	m_dataSize = 0;
+	m_executeMode = 2; // Default mode - template matching using data from SD card
 }
 
 //------------------------------------------------------------------------------------------------
@@ -134,6 +136,18 @@ int CliCommand::parseCmd1(int *value)
 	return ok;
 }
 
+int CliCommand::okAnswer(char *pAnswer)
+{
+	strcpy(pAnswer, "ok\n");
+	return 4;
+}
+
+int CliCommand::errorAnswer(char *pAnswer)
+{
+	strcpy(pAnswer, "error\n");
+	return 7;
+}
+
 int CliCommand::openFile(char *name)
 {
 	int result;
@@ -174,6 +188,27 @@ int CliCommand::writeToFile(char *data, int len)
 	return result;
 }
 
+bool CliCommand::writeToSampleData(char *data, int len)
+{
+	bool ok = true;
+	int samples;
+
+	if (len%4 != 0) {
+		printf("Transmitted data block size invalid %d\n", len);
+		m_dataSize = 0;
+		ok = false;
+	} else {
+		samples = len/4;
+		if (m_dataSize > samples) {
+			m_dataSize -= samples;
+		} else {
+			m_dataSize = 0;
+		}
+		m_pTestDataSDCard->appendDataSamples((float*)data, samples);
+	}
+	return ok;
+}
+
 bool CliCommand::checkNr(int nr)
 {
 	return (nr > 0 && nr <= TEMP_NUM);
@@ -205,6 +240,19 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 					m_numSamples = value*30000; // Sample rate = 30 kHz
 					printf("Duration of experiment set to %d sec. processing %d samples\n", value, m_numSamples);
 					ok = 1;
+				}
+				break;
+
+			case 'f': // Upload file name of file size
+				if (parseStrCmd2(m_fileName, &m_fileSize)) {
+					if (strlen(m_fileName) < 13) { // Filenames max. 8 chars + extension 4
+						printf("Start upload file %s of size %d\n", m_fileName, m_fileSize);
+						if (openFile(m_fileName) == XST_SUCCESS)
+							ok = 1;
+					}  else {
+						printf("Invalid file %s of size %d\n", m_fileName, m_fileSize);
+						m_fileSize = 0;
+					}
 				}
 				break;
 
@@ -281,19 +329,17 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 				}
 				break;
 
-			case 'u': // Upload file name of file size
-				if (parseStrCmd2(m_fileName, &m_fileSize)) {
-					if (strlen(m_fileName) < 13 && m_fileSize < 1048577) { // Filenames max. 8 chars + extension 4 and max. 1 Mbyte
-						printf("Upload file %s of size %d\n", m_fileName, m_fileSize);
-						if (openFile(m_fileName) == XST_SUCCESS)
-							ok = 1;
-					}  else {
-						printf("Invalid file %s of size %d\n", m_fileName, m_fileSize);
-						m_fileSize = 0;
+			case 'u': // Upload sample data used for testing
+				if (parseCmd1(&value)) {
+					if (value < int(MAX_NUM_SAMPLES*NUM_CHANNELS) &&
+						m_pTestDataSDCard != 0) {
+						m_pTestDataSDCard->resetDataBuffer();
+						m_dataSize = value;
+						printf("Start upload sample data of size %d\n", value);
+						ok = 1;
 					}
 				}
 				break;
-
 		}
 	}
 
@@ -352,16 +398,23 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 	if (m_fileSize > 0) {
 		// Handling of file transfer
 		if (writeToFile(cmd, len) == XST_SUCCESS) {
-			printf("File written to SD card\r\n");
-			strcpy(pAnswer, "ok\n");
-			length = 4;
+			printf("Data written to SD card left %d bytes\r\n", m_fileSize);
+			length = okAnswer(pAnswer);
 		} else {
 			m_fileSize = 0;
-			strcpy(pAnswer, "error\n");
-			length = 7;
+			length = errorAnswer(pAnswer);
+		}
+	} else if (m_dataSize > 0) {
+		// Handling of updating test sample data
+		if (writeToSampleData(cmd, len)) {
+			printf("Data written to buffer left %d samples\r\n", m_dataSize);
+			length = okAnswer(pAnswer);
+		} else {
+			m_dataSize = 0;
+			length = errorAnswer(pAnswer);
 		}
 	} else {
-
+		// Handling of ASCII commands
 		switch (cmd[0]) {
 
 			case 's': // Set parameter
@@ -372,25 +425,22 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 				length = getParameter(&cmd[1], pAnswer);
 				break;
 
-			case 'b': // Start UDP stream of neuron samples
-				//m_pDataThread->runThread(Thread::PRIORITY_NORMAL, "DataUDPThread"); //KBE?? not blocking priority
+			case 'b': // Start processing neuron samples
 				if (m_executeMode == 0)
 					m_pDataThread->runThread(Thread::PRIORITY_ABOVE_NORMAL, "DataUDPThread");
 				else {
 					m_pTemplateMatch->updateConfig(m_numSamples);
 					m_pTemplateMatch->runThread(Thread::PRIORITY_ABOVE_NORMAL, "TemplateMatch");
 				}
-				strcpy(pAnswer, "ok\n");
-				length = 4;
+				length = okAnswer(pAnswer);
 				break;
 
-			case 'e': // Stop UDP Stream of neuron samples
+			case 'e': // Stop processing of neuron samples
 				if (m_executeMode == 0)
 					m_pDataThread->setStreaming(false);
 				else
 					m_pTemplateMatch->stopRunning();
-				strcpy(pAnswer, "ok\n");
-				length = 4;
+				length = okAnswer(pAnswer);
 				break;
 
 			case '?':
@@ -430,6 +480,8 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "s,e,<sec> - set duration of experiment in seconds\r\n");
 	strcat(commandsText, string);
+	sprintf(string, "s,f,<filename>,<size> - upload file to SD card of size in bytes - binary data to be send after command\r\n");
+	strcat(commandsText, string);
 	sprintf(string, "s,g,<nr>,<grad> - set gradient for template (1-6) where min. peak and peak(n-4) must be greater than <grad> for all channels in match\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,h,<nr>,<h0>,<h1>,<h2>..<h8> - set template (1-6) peak high limits for mapped channels (h0-h8)\r\n");
@@ -444,7 +496,7 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "s,t,<nr>,<thres> - set threshold for template (1-6) used to trigger neuron activation using normalized cross correlation (NXCOR)\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,u,<filename>,<size> - upload file to SD card of size in bytes\r\n");
+	sprintf(string, "s,u,<size> - upload sample data (32 channels) of size in bytes - binary data to be send after command\r\n");
 	strcat(commandsText, string);
 
 	sprintf(string, "g,c - read configuration for template matching using NXCOR\r\n");
