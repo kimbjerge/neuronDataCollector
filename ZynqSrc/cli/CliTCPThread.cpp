@@ -80,16 +80,14 @@ void CliTCPThread::process_echo_request(void *p)
 			n = m_pCliCommand->execute(recv_buf, recv_buf, n);
 
 		/* break if client closed connection */
-		if (n < 0) break;
+		if (n <= 0) break;
 
-		if (n > 0) {
-			/* handle response */
-			if ((nwrote = write(sd, recv_buf, n)) < 0) {
-				xil_printf("%s: ERROR responding to client request. received = %d, written = %d\r\n",
-						__FUNCTION__, n, nwrote);
-				xil_printf("Closing socket %d\r\n", sd);
-				break;
-			}
+		/* handle response */
+		if ((nwrote = write(sd, recv_buf, n)) < 0) {
+			xil_printf("%s: ERROR responding to client request. received = %d, written = %d\r\n",
+					__FUNCTION__, n, nwrote);
+			xil_printf("Closing socket %d\r\n", sd);
+			break;
 		}
 	}
 
