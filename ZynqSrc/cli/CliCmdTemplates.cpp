@@ -430,8 +430,11 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 		// Handling of file transfer
 		if (writeToFile(cmd, len) == XST_SUCCESS) {
 			m_blockCnt++;
-			printf("%05d Data to SD card - left %d bytes\r\n", m_blockCnt, m_fileSize);
+			//printf("%05d Data to SD card - left %d bytes\r\n", m_blockCnt, m_fileSize);
+			xil_printf("%05d-%06d\r", m_blockCnt, m_fileSize/1024); // Kilo bytes
 			length = okAnswer(pAnswer);
+			if (m_fileSize == 0)
+				printf("\nFile transfer completed\r\n");
 		} else {
 			m_fileSize = 0;
 			length = errorAnswer(pAnswer);
@@ -440,8 +443,11 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 		// Handling of updating test sample data
 		if (writeToSampleData(cmd, len)) {
 			m_blockCnt++;
-			printf("%05d Data block - left %d samples\r\n", m_blockCnt, m_dataSize);
-			length = 0; //okAnswer(pAnswer);
+			//printf("%05d Data block - left %d samples\r\n", m_blockCnt, m_dataSize);
+			xil_printf("%05d-%07d\r", m_blockCnt, m_dataSize);
+			length = okAnswer(pAnswer);
+			if (m_dataSize == 0)
+				printf("\nData transfer completed\r\n");
 		} else {
 			m_dataSize = 0;
 			length = errorAnswer(pAnswer);

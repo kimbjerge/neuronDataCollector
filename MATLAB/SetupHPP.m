@@ -1,5 +1,5 @@
 %% This Script connects to the real-time neuron detector version 1.7 
-durationSec = 10; 
+durationSec = 5; 
 % Template length and width 
 tempLength = 10; % Max. 17
 tempWidth = 4; % Max. 9
@@ -25,7 +25,7 @@ port = 7;
 t = tcpclient('192.168.1.10', port, 'Timeout', 3);
 reply = SendCmd(t, 'g,v')          % Read version number, expected ver. 1.7
 reply = SendCmd(t, 's,p,2')        % Neuron data from SD card (2) or HPP (1)
-reply = SendCmd(t, sprintf('s,n,%d,', numTemplates)) % Set number of templates to use
+reply = SendCmd(t, sprintf('s,n,%d', numTemplates)) % Set number of templates to use
 
 cmdTemplate1 = CreateTemplateCmd(template1, tempNr); % Create command to update template
 reply = SendCmd(t, cmdTemplate1)   % Sets template data
