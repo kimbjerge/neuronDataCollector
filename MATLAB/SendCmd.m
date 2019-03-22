@@ -1,4 +1,4 @@
-function [ reply ] = PulseCmd ( t, cmd )
+function [ reply ] = SendCmd ( t, cmd )
 %Writes a command to pulse detector and returns answer
 
 time = 0.1;

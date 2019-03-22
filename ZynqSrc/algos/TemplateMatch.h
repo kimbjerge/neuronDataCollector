@@ -28,6 +28,7 @@ using namespace AbstractOS;
 #define FIR_NUM         (NUM_CHANNELS/FIR_SIZE)  // Number of FIRFilter classes
 #define TEMP_NUM		6   // Number of templates
 
+#define SAMPLES_SAVED   60*30000 // Maximum number of samples to save in files for debugging
 
 class TemplateMatch : public Thread
 {
@@ -42,8 +43,7 @@ public:
 	void updateConfig(int numSamples);
 	void stopRunning(void) { mRunning = false; };
 	void printSettings(void);
-	void updateTemplateData(int id, float *data, int width, int length)
-		{  pTemplate[id]->updateData(data, width, length, id+1); }
+	void updateTemplateData(int id, float *data, int length, int width);
 	Config *getConfig(void) { return mpConfig; }
 
 	virtual void run();

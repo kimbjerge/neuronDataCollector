@@ -72,6 +72,7 @@ public:
     void setChannelMap(int idx, short *map) { memcpy(mChannelMap[idx], map, sizeof(short)*TEMP_WIDTH); };
     void setNumTemplates(int num) { mNumTemplates = num; };
     void setThreshold(int idx, float threshold) { tempConfig[idx].threshold = threshold; }
+    void setSize(int idx, int length, int width) {  tempConfig[idx].length = length;  tempConfig[idx].width = width; };
 
 private:
 	void parseConfig(void);

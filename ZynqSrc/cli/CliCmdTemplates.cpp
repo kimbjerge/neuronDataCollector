@@ -21,7 +21,7 @@ CliCommand::CliCommand(TemplateMatch *pTemplateMatch, DataUDPThread *pDataThread
 {
 	m_pTemplateMatch = pTemplateMatch;
 	m_pDataThread = pDataThread;
-	m_numSamples = MAX_NUM_SAMPLES; // Default 10 seconds
+	m_numSamples = MAX_NUM_SAMPLES; // Default 60 seconds
 	majorVer_ = VERSION_HI;
 	minorVer_ = VERSION_LO;
 	m_fileSize = 0;
@@ -51,7 +51,7 @@ int CliCommand::parseTemplate(int *nr, int *W, int *L)
 			if (dStr != 0)
 				mTemplate[i] = atof(dStr);
 			else {
-				printf("Insufficient data for template %d of size %d*%d\r\n", *nr, w, l);
+				printf("Insufficient data for template %d of size %d*%d end %d\r\n", *nr, w, l, i);
 				ok = 0;
 				break;
 			}
@@ -176,7 +176,7 @@ int CliCommand::writeToFile(char *data, int len)
 
 bool CliCommand::checkNr(int nr)
 {
-	return (nr > 0 && nr < TEMP_NUM);
+	return (nr > 0 && nr <= TEMP_NUM);
 }
 
 int CliCommand::setParameter(char *paramStr, char *answer)
@@ -193,10 +193,18 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 			case 'd': // Update template data
 				if (parseTemplate(&nr, &W, &L)) {
 					if (checkNr(nr)) {
-						m_pTemplateMatch->updateTemplateData(nr-1, mTemplate, W, L);
+						m_pTemplateMatch->updateTemplateData(nr-1, mTemplate, L, W);
 						printf("Template %d of size %d*%d updated\n", nr, W, L);
 						ok = 1;
 					}
+				}
+				break;
+
+			case 'e': // Set duration of experiment in seconds
+				if (parseCmd1(&value)) {
+					m_numSamples = value*30000; // Sample rate = 30 kHz
+					printf("Duration of experiment set to %d sec. processing %d samples\n", value, m_numSamples);
+					ok = 1;
 				}
 				break;
 
@@ -255,7 +263,7 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 
 			case 'p': // Set processing mode
 				if (parseCmd1(&value)) {
-					if (0 <= value && value <= 1) {
+					if (0 <= value && value <= 2) {
 						printf("Processing mode %d\n", value);
 						m_executeMode = value;
 						ok = 1;
@@ -420,6 +428,8 @@ int CliCommand::printCommands(void)
 
 	sprintf(string, "s,d,<nr>,<W>,<L>,<d1>,<d2>..<dN> - update template (1-6) of size N=W*L with flattered data d1..dN using floats (dX=12.1234) \r\n");
 	strcat(commandsText, string);
+	sprintf(string, "s,e,<sec> - set duration of experiment in seconds\r\n");
+	strcat(commandsText, string);
 	sprintf(string, "s,g,<nr>,<grad> - set gradient for template (1-6) where min. peak and peak(n-4) must be greater than <grad> for all channels in match\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,h,<nr>,<h0>,<h1>,<h2>..<h8> - set template (1-6) peak high limits for mapped channels (h0-h8)\r\n");
@@ -430,7 +440,7 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "s,n,<num> - set number (1-6) of templates to be used\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,p,<mode> - set processing mode: (0) transmit raw samples over UDP to computer, (1) real-time TTL trigger of neuron activations\r\n");
+	sprintf(string, "s,p,<mode> - set processing mode: (0) transmit UDP samples to computer, (1) real-time TTL trigger of activations, (2) SD Card\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,t,<nr>,<thres> - set threshold for template (1-6) used to trigger neuron activation using normalized cross correlation (NXCOR)\r\n");
 	strcat(commandsText, string);

@@ -49,6 +49,12 @@ void TemplateMatch::printSettings(void)
 	}
 }
 
+void TemplateMatch::updateTemplateData(int id, float *data,  int length, int width)
+{
+	mpConfig->setSize(id, length, width);
+    pTemplate[id]->updateData(data, length, width, id+1);
+}
+
 void TemplateMatch::updateConfig(int numSamples)
 {
 	if (mpConfig->isTabsValid())
@@ -111,10 +117,10 @@ int TemplateMatch::Init(Config *pConfig, int numSamples, IRQ* pIrq)
 #ifdef DEBUG_FILES
 	for (int i = 0; i < TEMP_NUM; i++) {
 		pResultNXCOR[i] = new ResultFile<float>();
-		pResultNXCOR[i]->allocateContent(numSamples);
+		pResultNXCOR[i]->allocateContent(SAMPLES_SAVED);
 	}
 	pResultFIR = new ResultFile<STYPE>();
-	pResultFIR->allocateContent(numSamples*NUM_CHANNELS);
+	pResultFIR->allocateContent(SAMPLES_SAVED*NUM_CHANNELS);
 #endif
 
 	updateConfig(numSamples);
@@ -308,12 +314,14 @@ void TemplateMatch::run()
 
 			// Append test result to memory
 #ifdef DEBUG_FILES
-			pResultFIR->appendData(mFiltered, NUM_CHANNELS);
-			for (int i = 0; i < mNumCfgTemplates; i++) {
-				float NXCORRes = pNXCOR[i]->getNXCORResult();
-				if (pNXCOR[i]->getActiveState() == 1)
-					NXCORRes = 1.0; // Set to max when active
-				pResultNXCOR[i]->appendData(&NXCORRes, 1);
+			if (mCount < SAMPLES_SAVED) {
+				pResultFIR->appendData(mFiltered, NUM_CHANNELS);
+				for (int i = 0; i < mNumCfgTemplates; i++) {
+					float NXCORRes = pNXCOR[i]->getNXCORResult();
+					if (pNXCOR[i]->getActiveState() == 1)
+						NXCORRes = 1.0; // Set to max when active
+					pResultNXCOR[i]->appendData(&NXCORRes, 1);
+				}
 			}
 #endif
 			// Wait for one sample delay
@@ -346,6 +354,7 @@ void TemplateMatch::run()
 #endif
 		// Clear sample interrupts
 		pSampleData = pNeuronData->GenerateSamples();
+		mRunning = false; // Only one iteration
 
 	} // while (mRunning)
     printf("Neuron template matching thread shutting down and exit\r\n");
