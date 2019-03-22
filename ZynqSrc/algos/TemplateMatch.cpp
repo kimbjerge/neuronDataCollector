@@ -190,12 +190,12 @@ void TemplateMatch::processResults(void)
 		int state = pNXCOR[i]->verifyActivation();
 		if (state == 1) {
 			//printf("%06d %04d %s %.3f P%05d\r\n",
-			printf("%06d %04d %s %.3f\r\n",
-					mCount,
-					pNXCOR[i]->getNumActivations(),
-					pTemplate[i]->getTemplateName(),
-					pNXCOR[i]->getNXCORResult());
-					//pNXCOR[i]->getMaxPeak());
+			xil_printf("%06d %04d %s %.3f\r\n",
+						mCount,
+						pNXCOR[i]->getNumActivations(),
+						pTemplate[i]->getTemplateName(),
+						pNXCOR[i]->getNXCORResult());
+					    //pNXCOR[i]->getMaxPeak());
 			leds.setOn((Leds::LedTypes)i, true);
 			testOut.setOn((TestIO::IOTypes)(i+TestIO::JB1), true);
 		}
@@ -220,7 +220,7 @@ void TemplateMatch::triggerTemplate12(void)
 					testOut.setOn(TestIO::JB9, true);
 					leds.setOn(Leds::LED7, true);
 					mTemplate12Trigger = 31; // Keep trigger high in min. 1 ms
-					printf("%06d TRIG %d\r\n", mCount, i+1);
+					xil_printf("%06d TRIG %d\r\n", mCount, i+1);
 				} else {
 					mTemplate12Trigger = mTemplate12Counter; // First neuron activation
 					mTemplate12TriggerIdx = i;
@@ -285,7 +285,7 @@ void TemplateMatch::run()
 				// LED + Hardware signals for debugging
 				leds.setOn(Leds::LED6 , true);
 				testOut.setOn(TestIO::JB10, true);
-				printf("Acquisition started, sample %d\r\n", mCount+1);
+				xil_printf("Acquisition started, sample %d\r\n", mCount+1);
 				// Read start counter
 				start_tick = xTaskGetTickCount();
 			} else {

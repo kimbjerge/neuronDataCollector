@@ -29,6 +29,7 @@ public:
     int write(const void* buffer, int size, bool append=false); // Default write to start of file (append=false)
     int close();
     unsigned int size(char *name);
+    int list(char *names, int len); // Returns files in directory (max. 50 files)
 
 	static bool m_mounted;
 
@@ -38,6 +39,8 @@ private:
 	unsigned int mNumBytesWritten;
 	unsigned int mNumBytesRead;
 	FIL m_fil;
+	DIR m_dir;
+	FILINFO m_fileInfo;
 };
 
 #endif /* SRC_FILESDCARD_H_ */
