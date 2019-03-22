@@ -69,14 +69,17 @@ int CliCommand::parseShortArray(int *nr)
 	nrStr = strtok(NULL, CMD_DELIMITER);
 	if (nrStr != 0) {
 		*nr = atoi(nrStr);
-		memset(mShortArray, 0, sizeof(mShortArray));
-		ok = 1;
-		for (int i = 0; i < TEMP_WIDTH; i++) {
-			dStr = strtok(NULL, CMD_DELIMITER);
-			if (dStr != 0)
-				mShortArray[i] = (short)atoi(dStr);
-			else
-				break;
+		dStr = strtok(NULL, CMD_DELIMITER);
+		if (dStr != 0) {
+			memset(mShortArray, 0, sizeof(mShortArray));
+			ok = 1;
+			for (int i = 0; i < TEMP_WIDTH; i++) {
+				if (dStr != 0)
+					mShortArray[i] = (short)atoi(dStr);
+				else
+					break;
+				dStr = strtok(NULL, CMD_DELIMITER);
+			}
 		}
 	}
 	return ok;
@@ -173,7 +176,7 @@ int CliCommand::writeToFile(char *data, int len)
 	}
 
 	// Write to file
-	result = m_file.write((void *)data, len);
+	result = m_file.write((void *)data, len, true);
 	if (result != XST_SUCCESS) {
 		printf("Failed writing to file\r\n");
 		m_file.close();
@@ -194,7 +197,7 @@ bool CliCommand::writeToSampleData(char *data, int len)
 	int samples;
 
 	if (len%4 != 0) {
-		printf("Transmitted data block size invalid %d\n", len);
+		printf("Transmitted data block size invalid %d - terminated\n", len);
 		m_dataSize = 0;
 		ok = false;
 	} else {
@@ -225,6 +228,20 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 
 		switch (param[0]) {
 
+			 case 'b': // Load sample data from file name using specified number of samples
+			 	if (parseStrCmd2(m_fileName, &value)) {
+					if (strlen(m_fileName) < 13 && m_pTestDataSDCard != 0) { // Filenames max. 8 chars + extension 4
+						printf("Load test data from file %s using %d samples\n", m_fileName, value);
+						if (m_pTestDataSDCard->readFile(m_fileName) == XST_SUCCESS) {
+							m_numSamples = value;
+							ok = 1;
+						}
+					}  else {
+						printf("Invalid file %s or not possible\n", m_fileName);
+					}
+				}
+				break;
+
 			case 'd': // Update template data
 				if (parseTemplate(&nr, &W, &L)) {
 					if (checkNr(nr)) {
@@ -247,8 +264,10 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 				if (parseStrCmd2(m_fileName, &m_fileSize)) {
 					if (strlen(m_fileName) < 13) { // Filenames max. 8 chars + extension 4
 						printf("Start upload file %s of size %d\n", m_fileName, m_fileSize);
-						if (openFile(m_fileName) == XST_SUCCESS)
+						if (openFile(m_fileName) == XST_SUCCESS) {
+							m_blockCnt = 0;
 							ok = 1;
+						}
 					}  else {
 						printf("Invalid file %s of size %d\n", m_fileName, m_fileSize);
 						m_fileSize = 0;
@@ -335,6 +354,7 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 						m_pTestDataSDCard != 0) {
 						m_pTestDataSDCard->resetDataBuffer();
 						m_dataSize = value;
+						m_blockCnt = 0;
 						printf("Start upload sample data of size %d\n", value);
 						ok = 1;
 					}
@@ -365,6 +385,17 @@ int CliCommand::getParameter(char *paramStr, char *answer)
 			ok = 1;
 			break;
 
+		case 'e': // Read execution time
+			printf("Execution time %d sec, samples %d\n", m_numSamples/30000, m_numSamples);
+			sprintf(answer, "Time,%d\n", m_numSamples/30000);
+			ok = 1;
+			break;
+
+		case 'p': // Read processing mode
+			printf("Processing mode %d\n", m_executeMode);
+			sprintf(answer, "Mode,%d\n", m_executeMode);
+			ok = 1;
+			break;
 
 		case 's': // Read switch settings on ZedBoard
 			//value = IO::getIOInst()->readSwitches();
@@ -398,7 +429,8 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 	if (m_fileSize > 0) {
 		// Handling of file transfer
 		if (writeToFile(cmd, len) == XST_SUCCESS) {
-			printf("Data written to SD card left %d bytes\r\n", m_fileSize);
+			m_blockCnt++;
+			printf("%05d Data to SD card - left %d bytes\r\n", m_blockCnt, m_fileSize);
 			length = okAnswer(pAnswer);
 		} else {
 			m_fileSize = 0;
@@ -407,8 +439,9 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 	} else if (m_dataSize > 0) {
 		// Handling of updating test sample data
 		if (writeToSampleData(cmd, len)) {
-			printf("Data written to buffer left %d samples\r\n", m_dataSize);
-			length = okAnswer(pAnswer);
+			m_blockCnt++;
+			printf("%05d Data block - left %d samples\r\n", m_blockCnt, m_dataSize);
+			length = 0; //okAnswer(pAnswer);
 		} else {
 			m_dataSize = 0;
 			length = errorAnswer(pAnswer);
@@ -476,6 +509,8 @@ int CliCommand::printCommands(void)
 	sprintf(string, "-------------------------\r\n");
 	strcat(commandsText, string);
 
+	sprintf(string, "s,b,<filename>,<samples> - load sample data file from SD card\r\n");
+	strcat(commandsText, string);
 	sprintf(string, "s,d,<nr>,<W>,<L>,<d1>,<d2>..<dN> - update template (1-6) of size N=W*L with flattered data d1..dN using floats (dX=12.1234) \r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,e,<sec> - set duration of experiment in seconds\r\n");
@@ -492,14 +527,18 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "s,n,<num> - set number (1-6) of templates to be used\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,p,<mode> - set processing mode: (0) transmit UDP samples to computer, (1) real-time TTL trigger of activations, (2) SD Card\r\n");
+	sprintf(string, "s,p,<mode> - set processing mode: transmit UDP samples(0), real-time neuron trigger(1), trigger from SD card(2)\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,t,<nr>,<thres> - set threshold for template (1-6) used to trigger neuron activation using normalized cross correlation (NXCOR)\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,u,<size> - upload sample data (32 channels) of size in bytes - binary data to be send after command\r\n");
+	sprintf(string, "s,u,<size> - upload sample data (32 channels) of size in bytes - binary floats to be send after command\r\n");
 	strcat(commandsText, string);
 
 	sprintf(string, "g,c - read configuration for template matching using NXCOR\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "g,e - read execution time\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "g,p - read processing mode: transmit UDP samples(0), real-time neuron trigger(1), trigger from SD card(2)\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "g,s - read switch settings only on ZedBoard\r\n");
 	strcat(commandsText, string);

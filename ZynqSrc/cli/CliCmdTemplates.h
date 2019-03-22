@@ -47,6 +47,7 @@ private:
 	int m_fileSize;
 	int m_executeMode; // 0 = UDP transfer data, 1 = Template matching, 2 = Template matching from SD card
 	int m_numSamples;
+	int m_blockCnt;
 	char m_fileName[50];
 	char commandsText[CMD_BUF_SIZE];
 	FileSDCard m_file;

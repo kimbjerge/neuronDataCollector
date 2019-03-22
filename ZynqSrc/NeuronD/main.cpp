@@ -1,8 +1,4 @@
 /*
- * Empty C++ Application
- */
-
-/*
  * main.cpp
  *
  *  Created on: 20. July 2018
@@ -22,7 +18,6 @@
 
 // main_hpp.c in directory hpp calls main_full in directory Full_Demo (A UART Cli interface to FreeRTOS)
 int main_hpp( void );
-// CLI command not implemented
 
 //TestDataGenerator testDataGenerator;
 //DataUDPThread dataThread(&testDataGenerator);
@@ -31,7 +26,7 @@ TestDataSDCard testDataSDCard;
 DataUDPThread dataThread(&testDataSDCard); // Task to upload data using UDP
 Config 		  config;
 TemplateMatch mTemplateMatch(&testDataSDCard); // Task to perform neural template matching
-CliCommand    cliCommand(&mTemplateMatch, &dataThread); // Task to handle user command line interface (CLI) over sockets
+CliCommand    cliCommand(&mTemplateMatch, &dataThread, &testDataSDCard); // Task to handle user command line interface (CLI) over sockets
 CliTCPThread  cliThread; // Task to create and wait for socket connection
 
 int main()

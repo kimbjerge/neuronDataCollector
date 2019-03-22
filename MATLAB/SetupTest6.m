@@ -2,7 +2,7 @@ clear;
 close all;
 %% This Script connects to the real-time neuron detector version 1.7 
 % Duration of experiment in seconds
-durationSec = 30; 
+durationSec = 1; 
 % Sending 6 templates
 numTemplates = 6;
 % Template names
@@ -49,7 +49,7 @@ for i=1:numTemplates
     templates{i} = template;
 end
 
-pause();
+pause(2);
 
 % Sends setup commands for using test templates, use correct DATA.BIN file
 port = 7;

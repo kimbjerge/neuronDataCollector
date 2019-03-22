@@ -49,6 +49,7 @@ void TestDataSDCard::appendDataSamples(float *pData, int length)
 {
 	if (mNumDataSamples+length <= MAX_NUM_SAMPLES*NUM_CHANNELS)
 	{
+		//memcpy(m_testData, pData, NUM_CHANNELS*sizeof(float)); // Debug
 		memcpy(m_pWriteData, pData, length*sizeof(float));
 		m_pWriteData += length;
 		mNumDataSamples += length;
