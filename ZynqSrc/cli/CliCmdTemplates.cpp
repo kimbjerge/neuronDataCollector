@@ -88,12 +88,38 @@ int CliCommand::parseShortArray(int *nr)
 int CliCommand::parseStrCmd2(char *name, int *value)
 {
 	int ok = 0;
-	char *idStr, *valueStr;
-	idStr = strtok(NULL, CMD_DELIMITER);
+	char *nameStr, *valueStr;
+	nameStr = strtok(NULL, CMD_DELIMITER);
 	valueStr = strtok(NULL, CMD_DELIMITER);
-	if ((idStr != 0) && (valueStr != 0)) {
-		strcpy(name, idStr);
+	if ((nameStr != 0) && (valueStr != 0)) {
+		strcpy(name, nameStr);
 		*value = atoi(valueStr);
+		ok = 1;
+	}
+	return ok;
+}
+
+int CliCommand::parseStrCmd2(char *name1, char *name2)
+{
+	int ok = 0;
+	char *name1Str, *name2Str;
+	name1Str = strtok(NULL, CMD_DELIMITER);
+	name2Str = strtok(NULL, CMD_DELIMITER);
+	if ((name1Str != 0) && (name2Str != 0)) {
+		strcpy(name1, name1Str);
+		strcpy(name2, name2Str);
+		ok = 1;
+	}
+	return ok;
+}
+
+int CliCommand::parseStrCmd1(char *name)
+{
+	int ok = 0;
+	char *nameStr;
+	nameStr = strtok(NULL, CMD_DELIMITER);
+	if (nameStr != 0) {
+		strcpy(name, nameStr);
 		ok = 1;
 	}
 	return ok;
@@ -217,6 +243,63 @@ bool CliCommand::checkNr(int nr)
 	return (nr > 0 && nr <= TEMP_NUM);
 }
 
+int CliCommand::fileOperation(char *paramStr, char *answer)
+{
+	char *param = strtok(paramStr, CMD_DELIMITER);
+	int ok = 0;
+
+	if (param != NULL) {
+
+		switch (param[0]) {
+
+			case 'd': // Delete file on SD card
+				if (parseStrCmd1(m_fileName)) {
+					if (strlen(m_fileName) < 13) { // Filenames max. 8 chars + extension 4
+						if (m_file.del(m_fileName) == XST_SUCCESS) {
+							ok = 1;
+						}
+					}  else {
+						printf("Too long file name %s\n", m_fileName);
+					}
+				}
+				break;
+
+			case 'n': // Rename file on SD Card
+				if (parseStrCmd2(m_fileName, m_fileNameNew)) {
+					if (strlen(m_fileName) < 13 && strlen(m_fileNameNew) < 13 ) { // Filenames max. 8 chars + extension 4
+						if (m_file.rename(m_fileName, m_fileNameNew) == XST_SUCCESS) {
+							ok = 1;
+						}
+					}  else {
+						printf("Too long file names  %s -> %s\n", m_fileName, m_fileNameNew);
+					}
+				}
+				break;
+
+			case 'u': // Upload file of size
+				if (parseStrCmd2(m_fileName, &m_fileSize)) {
+					if (strlen(m_fileName) < 13) { // Filenames max. 8 chars + extension 4
+						printf("Start upload file %s of size %d\n", m_fileName, m_fileSize);
+						if (openFile(m_fileName) == XST_SUCCESS) {
+							m_blockCnt = 0;
+							ok = 1;
+						}
+					}  else {
+						printf("Invalid file %s of size %d\n", m_fileName, m_fileSize);
+						m_fileSize = 0;
+					}
+				}
+				break;
+
+		}
+	}
+
+	// Return answer to file command
+	if (ok) strcpy(answer, "f,ok\n");
+	else strcpy(answer, "f,error\n");
+	return strlen(answer)+1;
+}
+
 int CliCommand::setParameter(char *paramStr, char *answer)
 {
 	int value,nr,W,L;
@@ -243,21 +326,6 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 					m_numSamples = value*30000; // Sample rate = 30 kHz
 					printf("Duration of experiment set to %d sec. processing %d samples\n", value, m_numSamples);
 					ok = 1;
-				}
-				break;
-
-			case 'f': // Upload file name of file size
-				if (parseStrCmd2(m_fileName, &m_fileSize)) {
-					if (strlen(m_fileName) < 13) { // Filenames max. 8 chars + extension 4
-						printf("Start upload file %s of size %d\n", m_fileName, m_fileSize);
-						if (openFile(m_fileName) == XST_SUCCESS) {
-							m_blockCnt = 0;
-							ok = 1;
-						}
-					}  else {
-						printf("Invalid file %s of size %d\n", m_fileName, m_fileSize);
-						m_fileSize = 0;
-					}
 				}
 				break;
 
@@ -453,6 +521,8 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 			length = errorAnswer(pAnswer);
 		}
 	} else {
+
+		if (length > 0) cmd[length-1] = 0; // Remove newline character
 		// Handling of ASCII commands
 		switch (cmd[0]) {
 
@@ -462,6 +532,17 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 
 			case 'g': // Get parameter
 				length = getParameter(&cmd[1], pAnswer);
+				break;
+
+			case 'f': // File operations
+				length = fileOperation(&cmd[1], pAnswer);
+				break;
+
+			case 'l':
+				if (m_file.list(commandsText, sizeof(commandsText)) == 0)
+					strcpy(commandsText, (char*)"No files on SD card\n");
+			    length = strlen(commandsText)+1;
+				strcpy(pAnswer, commandsText);
 				break;
 
 			case 'b': // Start processing neuron samples
@@ -510,6 +591,20 @@ int CliCommand::printCommands(void)
 	sprintf(string, "e - end processing neuron samples\r\n");
 	strcat(commandsText, string);
 
+	sprintf(string, "\r\nFile operations SD card:\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "------------------------\r\n");
+	strcat(commandsText, string);
+
+	sprintf(string, "l - list files on SD card\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "f,d,<filename> - delete file on SD card\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "f,n,<oldName>,<newName> - rename file on SD card\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "f,u,<filename>,<size> - upload file to SD card of size in bytes - binary data to be send after command\r\n");
+	strcat(commandsText, string);
+
 	sprintf(string, "\r\nSet(s)/Get(g) parameters:\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "-------------------------\r\n");
@@ -518,8 +613,6 @@ int CliCommand::printCommands(void)
 	sprintf(string, "s,d,<nr>,<W>,<L>,<d1>,<d2>..<dN> - update template (1-6) of size N=W*L with flattered data d1..dN using floats (dX=12.1234) \r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,e,<sec> - set duration of experiment in seconds\r\n");
-	strcat(commandsText, string);
-	sprintf(string, "s,f,<filename>,<size> - upload file to SD card of size in bytes - binary data to be send after command\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,g,<nr>,<grad> - set gradient for template (1-6) where min. peak and peak(n-4) must be greater than <grad> for all channels in match\r\n");
 	strcat(commandsText, string);

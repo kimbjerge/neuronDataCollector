@@ -15,7 +15,7 @@
 
 #define VERSION_HI		1
 #define VERSION_LO		7
-#define CMD_BUF_SIZE    4096
+#define CMD_BUF_SIZE    8192
 
 class CliCommand {
 public:
@@ -30,11 +30,14 @@ private:
 	int parseTemplate(int *nr, int *W, int *L);
 	int parseShortArray(int *nr);
 	int parseStrCmd2(char *name, int *value);
+	int parseStrCmd2(char *name1, char *name2);
+	int parseStrCmd1(char *name);
 	int parseCmd2(int *id, int *value);
 	int parseCmd2(int *id, float *value);
 	int parseCmd1(int *value);
 	int okAnswer(char *pAnswer);
 	int errorAnswer(char *pAnswer);
+	int fileOperation(char *paramStr, char *answer);
 	int setParameter(char *paramStr, char *answer);
 	int getParameter(char *paramStr, char *answer);
 	int openFile(char *name);
@@ -49,6 +52,7 @@ private:
 	int m_numSamples;
 	int m_blockCnt;
 	char m_fileName[50];
+	char m_fileNameNew[50];
 	char commandsText[CMD_BUF_SIZE];
 	FileSDCard m_file;
     float mTemplate[TEMP_SIZE];

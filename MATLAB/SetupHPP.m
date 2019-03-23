@@ -29,11 +29,11 @@ reply = SendCmd(t, sprintf('s,n,%d', numTemplates)) % Set number of templates to
 
 cmdTemplate1 = CreateTemplateCmd(template1, tempNr); % Create command to update template
 reply = SendCmd(t, cmdTemplate1)   % Sets template data
-reply = SendCmd(t, sprintf('s,t,%d,%f,', tempNr, threshold)) % Set template thredshold 
-reply = SendCmd(t, sprintf('s,g,%d,%d,', tempNr, gradient)) % Set template gradient 
-reply = SendCmd(t, sprintf('s,m,%d,26,27,30,31,', tempNr)) % Set template channel map
-reply = SendCmd(t, sprintf('s,h,%d,-38,-70,-49,-27,', tempNr)) % Set template peak max. limits
-reply = SendCmd(t, sprintf('s,l,%d,-214,-233,-221,-194,', tempNr)) % Set template peak min. limits
+reply = SendCmd(t, sprintf('s,t,%d,%f', tempNr, threshold)) % Set template thredshold 
+reply = SendCmd(t, sprintf('s,g,%d,%d', tempNr, gradient)) % Set template gradient 
+reply = SendCmd(t, sprintf('s,m,%d,26,27,30,31', tempNr)) % Set template channel map
+reply = SendCmd(t, sprintf('s,h,%d,-38,-70,-49,-27', tempNr)) % Set template peak max. limits
+reply = SendCmd(t, sprintf('s,l,%d,-214,-233,-221,-194', tempNr)) % Set template peak min. limits
 
 reply = SendCmd(t, 'g,c');         % Reads configuration
 pause();                            % Check that the configuration in USB terminal window
