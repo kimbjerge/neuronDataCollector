@@ -9,26 +9,70 @@
 #include <math.h>
 #include <stdio.h>
 
-void NXCOR::printSettings(void)
+void NXCOR::printSettings(char *buf)
 {
-	printf("---------------------------------------------------------------------\r\n");
-	printf("NXCOR template %2d settings:\r\n", mDeviceId+1);
-	printf("  Length      : %d\r\n", mLength);
-	printf("  Width       : %d\r\n", mWidth);
-	printf("  Threshold   : %f\r\n", mNXCORThreshold);
-	printf("  Gradient min: %d\r\n", mPeakMinGradient);
-	printf("  Peak max.   : ");
-	for (int ch = 0; ch < TEMP_WIDTH; ch++)
-		printf("%5d ", mPeakMaxLimits[ch]);
-	printf("\r\n");
-	printf("  Peak min.   : ");
-	for (int ch = 0; ch < TEMP_WIDTH; ch++)
-		printf("%5d ", mPeakMinLimits[ch]);
-	printf("\r\n");
-	printf("  Channel map : ");
-	for (int ch = 0; ch < TEMP_WIDTH; ch++)
-		printf("%5d ", mChannelMap[ch]);
-	printf("\r\n");
+	char text[200];
+
+	if (buf == 0) {
+		// Print to USB-UART output
+		printf("---------------------------------------------------------------------\r\n");
+		printf("NXCOR template %2d settings:\r\n", mDeviceId+1);
+		printf("  Length      : %d\r\n", mLength);
+		printf("  Width       : %d\r\n", mWidth);
+		printf("  Threshold   : %f\r\n", mNXCORThreshold);
+		printf("  Gradient min: %d\r\n", mPeakMinGradient);
+		printf("  Peak max.   : ");
+		for (int ch = 0; ch < TEMP_WIDTH; ch++)
+			printf("%5d ", mPeakMaxLimits[ch]);
+		printf("\r\n");
+		printf("  Peak min.   : ");
+		for (int ch = 0; ch < TEMP_WIDTH; ch++)
+			printf("%5d ", mPeakMinLimits[ch]);
+		printf("\r\n");
+		printf("  Channel map : ");
+		for (int ch = 0; ch < TEMP_WIDTH; ch++)
+			printf("%5d ", mChannelMap[ch]);
+		printf("\r\n");
+	} else {
+		// Print to text buffer output
+		sprintf(text, "---------------------------------------------------------------------\r\n");
+		strcat(buf, text);
+		sprintf(text, "NXCOR template %2d settings:\r\n", mDeviceId+1);
+		strcat(buf, text);
+		sprintf(text, "  Length      : %d\r\n", mLength);
+		strcat(buf, text);
+		sprintf(text, "  Width       : %d\r\n", mWidth);
+		strcat(buf, text);
+		sprintf(text, "  Threshold   : %f\r\n", mNXCORThreshold);
+		strcat(buf, text);
+		sprintf(text, "  Gradient min: %d\r\n", mPeakMinGradient);
+		strcat(buf, text);
+		sprintf(text, "  Peak max.   : ");
+		strcat(buf, text);
+		for (int ch = 0; ch < TEMP_WIDTH; ch++) {
+			sprintf(text, "%5d ", mPeakMaxLimits[ch]);
+			strcat(buf, text);
+		}
+		sprintf(text, "\r\n");
+		strcat(buf, text);
+		sprintf(text, "  Peak min.   : ");
+		strcat(buf, text);
+		for (int ch = 0; ch < TEMP_WIDTH; ch++) {
+			sprintf(text, "%5d ", mPeakMinLimits[ch]);
+			strcat(buf, text);
+		}
+		sprintf(text, "\r\n");
+		strcat(buf, text);
+		sprintf(text, "  Channel map : ");
+		strcat(buf, text);
+		for (int ch = 0; ch < TEMP_WIDTH; ch++) {
+			sprintf(text, "%5d ", mChannelMap[ch]);
+			strcat(buf, text);
+		}
+		sprintf(text, "\r\n");
+		strcat(buf, text);
+	}
+
 	//printf("  Peak max : %d\r\n", mMaxPeakThreshold); // NOT USED OLD VER. 1.0
 	//printf("  Peak min : %d\r\n", mMinPeakThreshold); // NOT USED OLD VER. 1.0
 }

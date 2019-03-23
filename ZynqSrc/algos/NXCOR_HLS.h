@@ -47,7 +47,7 @@ public:
 	int getNumActivations(void) { return mCounts; }
 	int getMaxPeak(void) { return mPeakSample; }
 	int getActiveState(void) { return mActiveState; }
-	void printSettings(void);
+	void printSettings(char *buf = 0);
 
 	void startNXCOR(TTYPE *samples); // Start NXCOR asynchronous
 	float readResultNXCOR(float varTemplate); // Wait for NXCOR to complete and return result

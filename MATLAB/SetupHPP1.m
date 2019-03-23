@@ -8,6 +8,12 @@ tempName = '11011608.bin';
 tempNr = 1;
 threshold = 0.90;
 gradient = 25;
+% Template channel mappings
+mapping = [26,27,30,31];
+% Template peak max. limits for each mapped channel
+peakMaxLimits = [-38,-70,-49,-27];
+% Template peak min. limits for each mapped channel
+peakMinLimits = [-214,-233,-221,-194];
 % Sending only one template
 numTemplates = 1;
 
@@ -18,7 +24,7 @@ ylabel('Channels');
 xlabel('Samples');
 title(['Template 1 - ' tempName]);
 
-pause();
+%pause();
 
 % sends setup commands for using pulse test generator
 port = 7;
@@ -31,12 +37,15 @@ cmdTemplate1 = CreateTemplateCmd(template1, tempNr); % Create command to update 
 reply = SendCmd(t, cmdTemplate1)   % Sets template data
 reply = SendCmd(t, sprintf('s,t,%d,%f', tempNr, threshold)) % Set template thredshold 
 reply = SendCmd(t, sprintf('s,g,%d,%d', tempNr, gradient)) % Set template gradient 
-reply = SendCmd(t, sprintf('s,m,%d,26,27,30,31', tempNr)) % Set template channel map
-reply = SendCmd(t, sprintf('s,h,%d,-38,-70,-49,-27', tempNr)) % Set template peak max. limits
-reply = SendCmd(t, sprintf('s,l,%d,-214,-233,-221,-194', tempNr)) % Set template peak min. limits
+cmdMap = CreateArrayCmd('m', tempNr, mapping); % Create mapping command
+reply = SendCmd(t, cmdMap)         % Set template channel map
+cmdPeakMax = CreateArrayCmd('h', tempNr, peakMaxLimits);
+reply = SendCmd(t, cmdPeakMax)     % Set template peak max. limits
+cmdPeakMin = CreateArrayCmd('l', tempNr, peakMinLimits);
+reply = SendCmd(t, cmdPeakMin)     % Set template peak min. limits
 
 reply = SendCmdTime(t, 'g,c', 1)   % Reads configuration, wait 1 sec for answer
-pause();                            % Check that the configuration in USB terminal window
+pause();                           % Check that the configuration in USB terminal window
 
 reply = SendCmdTime(t, sprintf('s,o,DATAFINE.bin,%d,',durationSec*30000), 2) % fs = 30 kHz waits 2 sec to load file
 %reply = SendCmd(t, sprintf('s,e,%d,', durationSec))

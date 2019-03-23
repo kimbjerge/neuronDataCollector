@@ -72,10 +72,12 @@ for tempNr=1:numTemplates
     reply = SendCmd(t, cmdPeakMin) % Set template peak min. limits
 end
 
-reply = SendCmd(t, 'g,c');         % Reads configuration
+config = SendCmdTime(t, 'g,c', 1)  % Reads configuration - waits 1 sec for answer
 pause();                           % Check that the configuration in USB terminal window
 
 reply = SendCmd(t, sprintf('s,e,%d', durationSec));
+reply = SendCmdTime(t, sprintf('s,o,DATA.bin,%d,',durationSec*30000), durationSec) % fs = 30 kHz waits to load file
+
 reply = SendCmd(t, 'b');           % Set to begin processing neuron samples
 
 %pause();

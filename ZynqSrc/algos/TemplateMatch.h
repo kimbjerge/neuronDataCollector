@@ -42,7 +42,7 @@ public:
 	int Init(Config *pConfig, int numSamples, IRQ* pIrq = 0);
 	void updateConfig(int numSamples);
 	void stopRunning(void) { mRunning = false; };
-	void printSettings(void);
+	void printSettings(char *buf = 0);
 	void updateTemplateData(int id, float *data, int length, int width);
 	Config *getConfig(void) { return mpConfig; }
 

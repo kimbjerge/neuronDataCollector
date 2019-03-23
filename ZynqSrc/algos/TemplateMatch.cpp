@@ -38,11 +38,11 @@ TemplateMatch::~TemplateMatch()
 	}
 }
 
-void TemplateMatch::printSettings(void)
+void TemplateMatch::printSettings(char *buf)
 {
 	for (int i = 0; i < TEMP_NUM; i++) {
 		if (i < mpConfig->getNumTemplates()) {
-			pNXCOR[i]->printSettings();
+			pNXCOR[i]->printSettings(buf);
 		} else {
 			printf("NXCOR template %d is not used\r\n", i+1);
 		}

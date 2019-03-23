@@ -311,6 +311,14 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 
 		switch (param[0]) {
 
+			case 'c': // Set trigger output when template 1 and 2 seen within samples
+				if (parseCmd1(&value)) {
+					m_pTemplateMatch->getConfig()->setCounter(0, value); // Only set for template 1
+					printf("Trigger output set when template 1 and 2 seen within %d samples\n", value);
+					ok = 1;
+				}
+				break;
+
 			case 'd': // Update template data
 				if (parseTemplate(&nr, &W, &L)) {
 					if (checkNr(nr)) {
@@ -448,8 +456,10 @@ int CliCommand::getParameter(char *paramStr, char *answer)
 
 		case 'c': // Read configuration
 			m_pTemplateMatch->updateConfig(m_numSamples);
-			m_pTemplateMatch->printSettings();
-			strcpy(answer, "Printed on USB-UART\n");
+			memset(commandsText, 0, sizeof(commandsText));
+			m_pTemplateMatch->printSettings(commandsText);
+			strcpy(answer, commandsText);
+			//strcpy(answer, "Printed on USB-UART\n");
 			ok = 1;
 			break;
 
@@ -611,6 +621,8 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 
 	sprintf(string, "s,d,<nr>,<W>,<L>,<d1>,<d2>..<dN> - update template (1-6) of size N=W*L with flattered data d1..dN using floats (dX=12.1234) \r\n");
+	strcat(commandsText, string);
+	sprintf(string, "s,c,<counter> - set trigger output when template 1 and 2 seen within samples\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,e,<sec> - set duration of experiment in seconds\r\n");
 	strcat(commandsText, string);

@@ -66,13 +66,14 @@ public:
 	float *getCoeffs(void) { return mCoeffs; }
 	float *getCoeffsAll(int ch) { return mCoeffsAll[ch]; }
 
-	void setMinGradient(int idx, int gradient) { tempConfig[idx].minGradient = gradient; };
-    void setPeakMaxLimits(int idx, short *limits) { memcpy(mPeakMaxLimits[idx], limits, sizeof(short)*TEMP_WIDTH); };
-    void setPeakMinLimits(int idx, short *limits) { memcpy(mPeakMinLimits[idx], limits, sizeof(short)*TEMP_WIDTH); };
-    void setChannelMap(int idx, short *map) { memcpy(mChannelMap[idx], map, sizeof(short)*TEMP_WIDTH); };
-    void setNumTemplates(int num) { mNumTemplates = num; };
+	void setMinGradient(int idx, int gradient) { tempConfig[idx].minGradient = gradient; }
+    void setPeakMaxLimits(int idx, short *limits) { memcpy(mPeakMaxLimits[idx], limits, sizeof(short)*TEMP_WIDTH); }
+    void setPeakMinLimits(int idx, short *limits) { memcpy(mPeakMinLimits[idx], limits, sizeof(short)*TEMP_WIDTH); }
+    void setChannelMap(int idx, short *map) { memcpy(mChannelMap[idx], map, sizeof(short)*TEMP_WIDTH); }
+    void setNumTemplates(int num) { mNumTemplates = num; }
     void setThreshold(int idx, float threshold) { tempConfig[idx].threshold = threshold; }
-    void setSize(int idx, int length, int width) {  tempConfig[idx].length = length;  tempConfig[idx].width = width; };
+    void setSize(int idx, int length, int width) {  tempConfig[idx].length = length;  tempConfig[idx].width = width; }
+    void setCounter(int idx, int counter) { tempConfig[idx].counter = counter; }
 
 private:
 	void parseConfig(void);
