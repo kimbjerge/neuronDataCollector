@@ -29,7 +29,9 @@ public:
     int write(const void* buffer, int size, bool append=false); // Default write to start of file (append=false)
     int close();
     unsigned int size(char *name);
-    int list(char *names, int len); // Returns files in directory (max. 50 files)
+    int list(char *fileList, int len); // Returns files in directory (max. numFiles)
+    int del(char *name); // Delete file
+    int rename(char *oldName, char *newName);
 
 	static bool m_mounted;
 

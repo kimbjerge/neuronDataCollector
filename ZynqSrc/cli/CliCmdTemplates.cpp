@@ -228,20 +228,6 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 
 		switch (param[0]) {
 
-			 case 'b': // Load sample data from file name using specified number of samples
-			 	if (parseStrCmd2(m_fileName, &value)) {
-					if (strlen(m_fileName) < 13 && m_pTestDataSDCard != 0) { // Filenames max. 8 chars + extension 4
-						printf("Load test data from file %s using %d samples\n", m_fileName, value);
-						if (m_pTestDataSDCard->readFile(m_fileName) == XST_SUCCESS) {
-							m_numSamples = value;
-							ok = 1;
-						}
-					}  else {
-						printf("Invalid file %s or not possible\n", m_fileName);
-					}
-				}
-				break;
-
 			case 'd': // Update template data
 				if (parseTemplate(&nr, &W, &L)) {
 					if (checkNr(nr)) {
@@ -324,6 +310,20 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 						m_pTemplateMatch->getConfig()->setNumTemplates(value);
 						printf("Number of templates to use %d\n", value);
 						ok = 1;
+					}
+				}
+				break;
+
+			case 'o': // Open and load sample data from file name using specified number of samples
+			 	if (parseStrCmd2(m_fileName, &value)) {
+					if (strlen(m_fileName) < 13 && m_pTestDataSDCard != 0) { // Filenames max. 8 chars + extension 4
+						printf("Load test data from file %s using %d samples\n", m_fileName, value);
+						if (m_pTestDataSDCard->readFile(m_fileName) == XST_SUCCESS) {
+							m_numSamples = value;
+							ok = 1;
+						}
+					}  else {
+						printf("Invalid file %s or not possible\n", m_fileName);
 					}
 				}
 				break;
@@ -515,8 +515,6 @@ int CliCommand::printCommands(void)
 	sprintf(string, "-------------------------\r\n");
 	strcat(commandsText, string);
 
-	sprintf(string, "s,b,<filename>,<samples> - load sample data file from SD card\r\n");
-	strcat(commandsText, string);
 	sprintf(string, "s,d,<nr>,<W>,<L>,<d1>,<d2>..<dN> - update template (1-6) of size N=W*L with flattered data d1..dN using floats (dX=12.1234) \r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,e,<sec> - set duration of experiment in seconds\r\n");
@@ -532,6 +530,8 @@ int CliCommand::printCommands(void)
 	sprintf(string, "s,m,<nr>,<c0>,<c1>,<c2>..<c8> - set template (1-6) channel mapping to neuron channels (cX = 0-31)\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,n,<num> - set number (1-6) of templates to be used\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "s,o,<filename>,<samples> - open and load sample data file from SD card\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,p,<mode> - set processing mode: transmit UDP samples(0), real-time neuron trigger(1), trigger from SD card(2)\r\n");
 	strcat(commandsText, string);

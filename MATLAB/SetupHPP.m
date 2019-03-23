@@ -38,7 +38,7 @@ reply = SendCmd(t, sprintf('s,l,%d,-214,-233,-221,-194,', tempNr)) % Set templat
 reply = SendCmd(t, 'g,c');         % Reads configuration
 pause();                            % Check that the configuration in USB terminal window
 
-reply = SendCmd(t, sprintf('s,b,DATAFINE.bin,%d,',durationSec*30000)) % fs = 30 kHz
+reply = SendCmd(t, sprintf('s,o,DATAFINE.bin,%d,',durationSec*30000)) % fs = 30 kHz
 %reply = SendCmd(t, sprintf('s,e,%d,', durationSec))
 reply = SendCmd(t, 'b');           % Set to begin processing neuron samples
 

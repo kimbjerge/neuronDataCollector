@@ -24,11 +24,45 @@ int FileSDCard::mount(bool remount)
 	return XST_SUCCESS;
 }
 
-int FileSDCard::list(char *names, int len)
+int FileSDCard::del(char *name)
+{
+	FRESULT Res;
+	mount(false);
+	Res = f_unlink(name);
+	if (Res != FR_OK) {
+		return XST_FAILURE;
+	}
+	return XST_SUCCESS;
+}
+
+int FileSDCard::rename(char *oldName, char *newName)
+{
+	FRESULT Res;
+	char oldFilePath[50] = {0};
+	char newFilePath[50] = {0};
+
+	mount(false);
+
+	strcpy(oldFilePath, pathName);
+	strcat(oldFilePath, oldName);
+	strcpy(newFilePath, pathName);
+	strcat(newFilePath, newName);
+
+	Res = f_rename(oldFilePath, newFilePath);
+	if (Res != FR_OK) {
+		return XST_FAILURE;
+	}
+	return XST_SUCCESS;
+}
+
+
+int FileSDCard::list(char *fileList, int len)
 {
 	FRESULT Res;
 	int num = 0;
+	char text[40];
 
+	memset(fileList, 0, len);
     mount(false);
 
     Res = f_opendir(&m_dir, pathName);
@@ -38,11 +72,13 @@ int FileSDCard::list(char *names, int len)
 	while (Res == FR_OK) {
 		Res = f_readdir(&m_dir, &m_fileInfo);
 		if (Res == FR_OK) {
-			if (strlen(names) < unsigned(len-16)) {
-				strcat(names, m_fileInfo.fname);
-				strcat(names, "\r\n");
-			}
-			num++;
+			// List files and sizes
+			if (strlen(fileList) < unsigned(len-sizeof(text)) && strlen(m_fileInfo.fname) > 0) {
+				sprintf(text, "%15s %10d bytes\r\n", m_fileInfo.fname, m_fileInfo.fsize);
+				strcat(fileList, text);
+				num++;
+			} else
+				break;
 		}
 	}
 	f_closedir(&m_dir);

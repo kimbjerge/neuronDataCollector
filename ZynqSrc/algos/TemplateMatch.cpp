@@ -190,11 +190,11 @@ void TemplateMatch::processResults(void)
 		int state = pNXCOR[i]->verifyActivation();
 		if (state == 1) {
 			//printf("%06d %04d %s %.3f P%05d\r\n",
-			xil_printf("%06d %04d %s %.3f\r\n",
+			xil_printf("%06d %04d %s %02d\r\n",
 						mCount,
 						pNXCOR[i]->getNumActivations(),
 						pTemplate[i]->getTemplateName(),
-						pNXCOR[i]->getNXCORResult());
+						(int)round(pNXCOR[i]->getNXCORResult()*100)); // Percentage
 					    //pNXCOR[i]->getMaxPeak());
 			leds.setOn((Leds::LedTypes)i, true);
 			testOut.setOn((TestIO::IOTypes)(i+TestIO::JB1), true);
