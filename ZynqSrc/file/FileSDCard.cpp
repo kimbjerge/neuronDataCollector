@@ -74,9 +74,14 @@ int FileSDCard::list(char *fileList, int len)
 		if (Res == FR_OK) {
 			// List files and sizes
 			if (strlen(fileList) < unsigned(len-sizeof(text)) && strlen(m_fileInfo.fname) > 0) {
-				sprintf(text, "%15s %10d bytes\r\n", m_fileInfo.fname, m_fileInfo.fsize);
-				strcat(fileList, text);
-				num++;
+				if ((m_fileInfo.fattrib & AM_SYS) != AM_SYS) {    // Don't display system files
+					if ((m_fileInfo.fattrib & AM_DIR) == AM_DIR)
+						sprintf(text, "%15s            <DIR>\r\n", m_fileInfo.fname); // Directory
+					else
+						sprintf(text, "%15s %10d bytes\r\n", m_fileInfo.fname, m_fileInfo.fsize); // File
+					strcat(fileList, text);
+					num++;
+				}
 			} else
 				break;
 		}
