@@ -15,7 +15,7 @@ function [reply] = SendFloatData(t, data)
         end
         write(t, dataFloat);
         pause(time);
-        reply = char(read(t));
+        reply = char(read(t))
     end
 
 end

@@ -20,8 +20,9 @@
 class CliCommand {
 public:
 	CliCommand(TemplateMatch *pTemplateMatch, DataUDPThread *pDataThread, TestDataSDCard *pTestDataSDCard = 0);
-	int execute(char *cmd, char *pAnswer, int len);
+	int execute(char *cmd, char *pAnswer, int len, int id);
 	int printCommands(void);
+	void reset(void);
 	int getMode(void) { return m_executeMode; }
 private:
 	TemplateMatch *m_pTemplateMatch;
@@ -46,11 +47,12 @@ private:
 	bool checkNr(int nr);
 	int majorVer_;
 	int minorVer_;
-	int m_dataSize;
-	int m_fileSize;
+	int m_dataSize; // Used to transfer data samples
+	int m_fileSize; // Used to transfer data files
+	int m_idLocked; // Locked by socket id
+	int m_blockCnt;
 	int m_executeMode; // 0 = UDP transfer data, 1 = Template matching, 2 = Template matching from SD card
 	int m_numSamples;
-	int m_blockCnt;
 	char m_fileName[50];
 	char m_fileNameNew[50];
 	char commandsText[CMD_BUF_SIZE];

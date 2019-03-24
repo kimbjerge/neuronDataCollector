@@ -76,22 +76,29 @@ void CliTCPThread::process_echo_request(void *p)
 			break;
 		}
 
-		if (m_pCliCommand)
-			n = m_pCliCommand->execute(recv_buf, recv_buf, n);
-
 		/* break if client closed connection */
-		if (n <= 0) break;
-
-		/* handle response */
-		if ((nwrote = write(sd, recv_buf, n)) < 0) {
-			xil_printf("%s: ERROR responding to client request. received = %d, written = %d\r\n",
-					__FUNCTION__, n, nwrote);
-			xil_printf("Closing socket %d\r\n", sd);
+		if (n <= 0) {
+			xil_printf("%s: ERROR responding from client. received = %d.\r\n",
+						__FUNCTION__, n);
 			break;
+		}
+
+		if (m_pCliCommand)
+			n = m_pCliCommand->execute(recv_buf, recv_buf, n, sd);
+
+		if (n > 0) {
+			/* handle response if any */
+			if ((nwrote = write(sd, recv_buf, n)) < 0) {
+				xil_printf("%s: ERROR responding to client request. received = %d, written = %d\r\n",
+							__FUNCTION__, n, nwrote);
+				break;
+			}
 		}
 	}
 
 	/* close connection */
+	xil_printf("Closing socket %d\r\n", sd);
+	if (m_pCliCommand) m_pCliCommand->reset(); // Reset data transfer
 	close(sd);
 	vTaskDelete(NULL);
 }

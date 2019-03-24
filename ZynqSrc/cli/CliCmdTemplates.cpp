@@ -27,7 +27,15 @@ CliCommand::CliCommand(TemplateMatch *pTemplateMatch, DataUDPThread *pDataThread
 	minorVer_ = VERSION_LO;
 	m_fileSize = 0;
 	m_dataSize = 0;
+	m_idLocked = 0;
 	m_executeMode = 2; // Default mode - template matching using data from SD card
+}
+
+void CliCommand::reset(void) // Reset transfer if connection lost
+{
+	m_fileSize = 0;
+	m_dataSize = 0;
+	m_blockCnt = 0;
 }
 
 //------------------------------------------------------------------------------------------------
@@ -245,6 +253,7 @@ bool CliCommand::checkNr(int nr)
 
 int CliCommand::fileOperation(char *paramStr, char *answer)
 {
+	int value;
 	char *param = strtok(paramStr, CMD_DELIMITER);
 	int ok = 0;
 
@@ -277,16 +286,18 @@ int CliCommand::fileOperation(char *paramStr, char *answer)
 				break;
 
 			case 'u': // Upload file of size
-				if (parseStrCmd2(m_fileName, &m_fileSize)) {
+				if (parseStrCmd2(m_fileName, &value)) {
 					if (strlen(m_fileName) < 13) { // Filenames max. 8 chars + extension 4
-						printf("Start upload file %s of size %d\n", m_fileName, m_fileSize);
 						if (openFile(m_fileName) == XST_SUCCESS) {
+							m_fileSize = value;
+							printf("Start upload file %s of size %d\n", m_fileName, m_fileSize);
 							m_blockCnt = 0;
 							ok = 1;
+						} else {
+							printf("Could not open file %s\n", m_fileName);
 						}
 					}  else {
-						printf("Invalid file %s of size %d\n", m_fileName, m_fileSize);
-						m_fileSize = 0;
+						printf("Invalid file name %s length (max. 8+3)\n", m_fileName);
 					}
 				}
 				break;
@@ -499,7 +510,7 @@ int CliCommand::getParameter(char *paramStr, char *answer)
 //------------------------------------------------------------------------------------------------
 // Parse and execute commands
 // -----------------------------------------------------------------------------------------------
-int CliCommand::execute(char *cmd, char *pAnswer, int len)
+int CliCommand::execute(char *cmd, char *pAnswer, int len, int id)
 {
 	int length = len;
 	//TimeMeasure time;
@@ -508,9 +519,10 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 		// Handling of file transfer
 		if (writeToFile(cmd, len) == XST_SUCCESS) {
 			m_blockCnt++;
-			//printf("%05d Data to SD card - left %d bytes\r\n", m_blockCnt, m_fileSize);
 			xil_printf("%06d-%06d\r", m_blockCnt, m_fileSize/1024); // Kilo bytes
-			length = okAnswer(pAnswer);
+			sprintf(pAnswer, "%06d\r", m_blockCnt);
+			length = strlen(pAnswer); // Block count reply
+			//length = 0; // No reply
 			if (m_fileSize == 0)
 				printf("\nFile transfer completed\r\n");
 		} else {
@@ -521,9 +533,10 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len)
 		// Handling of updating test sample data
 		if (writeToSampleData(cmd, len)) {
 			m_blockCnt++;
-			//printf("%05d Data block - left %d samples\r\n", m_blockCnt, m_dataSize);
 			xil_printf("%06d-%07d\r", m_blockCnt, m_dataSize);
-			length = okAnswer(pAnswer);
+			sprintf(pAnswer, "%06d\r", m_blockCnt);
+			length = strlen(pAnswer); // Block count reply
+			//length = okAnswer(pAnswer);
 			if (m_dataSize == 0)
 				printf("\nData transfer completed\r\n");
 		} else {
@@ -590,7 +603,7 @@ int CliCommand::printCommands(void)
 	char string[200];
 	commandsText[0] = 0;
 
-	sprintf(string, "\r\nNeuron Data Collector Version %d.%d:\r\n", majorVer_, minorVer_);
+	sprintf(string, "\r\nNeuron Data Analyzer Version %d.%d:\r\n", majorVer_, minorVer_);
 	strcat(commandsText, string);
 	sprintf(string, "-----------------------------------\r\n");
 	strcat(commandsText, string);
@@ -620,13 +633,13 @@ int CliCommand::printCommands(void)
 	sprintf(string, "-------------------------\r\n");
 	strcat(commandsText, string);
 
-	sprintf(string, "s,d,<nr>,<W>,<L>,<d1>,<d2>..<dN> - update template (1-6) of size N=W*L with flattered data d1..dN using floats (dX=12.1234) \r\n");
+	sprintf(string, "s,d,<nr>,<W>,<L>,<d1>,<d2>..<dN> - update template (1-6) of size N=W*L with flattered data d1..dN of floats\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,c,<counter> - set trigger output when template 1 and 2 seen within samples\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,e,<sec> - set duration of experiment in seconds\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,g,<nr>,<grad> - set gradient for template (1-6) where min. peak and peak(n-4) must be greater than <grad> for all channels in match\r\n");
+	sprintf(string, "s,g,<nr>,<grad> - set gradient for template (1-6) where min. peak and peak(n-4) must be greater than <grad>\r\n"); // For all channels
 	strcat(commandsText, string);
 	sprintf(string, "s,h,<nr>,<h0>,<h1>,<h2>..<h8> - set template (1-6) peak high limits for mapped channels (h0-h8)\r\n");
 	strcat(commandsText, string);
@@ -640,7 +653,7 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "s,p,<mode> - set processing mode: transmit UDP samples(0), real-time neuron trigger(1), trigger from SD card(2)\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,t,<nr>,<thres> - set threshold for template (1-6) used to trigger neuron activation using normalized cross correlation (NXCOR)\r\n");
+	sprintf(string, "s,t,<nr>,<thres> - set threshold for template (1-6) used to trigger neuron activation using NXCOR\r\n"); // Normalized cross correlation
 	strcat(commandsText, string);
 	sprintf(string, "s,u,<size> - upload sample data (32 channels) of size in bytes - binary floats to be send after command\r\n");
 	strcat(commandsText, string);

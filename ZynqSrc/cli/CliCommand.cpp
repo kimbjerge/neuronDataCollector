@@ -25,6 +25,10 @@ CliCommand::CliCommand(NeuronChannels *pNeuronChannels, DataUDPThread *pDataThre
 	minorVer_ = VERSION_LO;
 }
 
+void CliCommand::reset(void) // Reset if connection lost
+{
+}
+
 //------------------------------------------------------------------------------------------------
 // Parsing Commands
 // -----------------------------------------------------------------------------------------------
@@ -224,7 +228,7 @@ int CliCommand::getParameter(char *paramStr, char *answer)
 //------------------------------------------------------------------------------------------------
 // Parse and execute commands
 // -----------------------------------------------------------------------------------------------
-int CliCommand::execute(char *cmd, char *pAnswer, int len)
+int CliCommand::execute(char *cmd, char *pAnswer, int len, int id)
 {
 	int length = len;
 	//TimeMeasure time;

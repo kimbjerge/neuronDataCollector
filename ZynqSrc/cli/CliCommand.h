@@ -18,8 +18,9 @@
 class CliCommand {
 public:
 	CliCommand(NeuronChannels *pNeuronChannels, DataUDPThread *pDataThread);
-	int execute(char *cmd, char *pAnswer, int len);
+	int execute(char *cmd, char *pAnswer, int len, int id);
 	int printCommands(void);
+	void reset(void);
 private:
 	NeuronChannels *m_pNeuronChannels;
 	DataUDPThread *m_pDataThread;
