@@ -13,16 +13,16 @@ class TestIO
 public:
 
 	enum IOTypes {
-		JB1 = 16, // Port 2, bit 0
-		JB2 = 17,
-		JB3 = 18,
-		JB4 = 19,
-		JB5 = 20,
-		JB6 = 21,
-		JB7 = 22,
-		JB8 = 23, // Port 2, bit 7
-		JB9 = 25, // Port 3, bit 1
-		JB10 = 24 // Port 3, bit 0
+		JB1 = 16, // Port 2, bit 0 - Template 1
+		JB2 = 17, // Port 2, bit 1 - Template 2
+		JB3 = 18, // Port 2, bit 2 - Template 3
+		JB4 = 19, // Port 2, bit 3 - Template 4
+		JB5 = 20, // Port 2, bit 4 - Template 5
+		JB6 = 21, // Port 2, bit 5 - Template 6
+		JB7 = 22, // Port 2, bit 6 - NOT USED
+		JB8 = 25, // Port 3, bit 1 - NOT WORKING???
+		JB9 = 23, // Port 2, bit 7 - Toggle when template 1 and 2 seen within sample window
+		JB10 = 24 // Port 3, bit 0 - Processing active
 	};
 
 	TestIO()

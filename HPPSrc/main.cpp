@@ -39,13 +39,20 @@ int main()
 	//init_net_server(demo_udp_thread, 0);
 	//init_net_server(dataThread.threadMapper, &dataThread);
 #if 1
-	printf("-------------------------------------------------------------\r\n");
-	printf("Neuron Real Time Template Matching Algorithm Version %d.%d\r\n", VERSION_HI, VERSION_LO);
-	printf("Loads data from SD card of 32 channels and max. 6 templates\r\n");
-	printf("Template max. size of width 9 channels and 17 in length \r\n");
+	printf("--------------------------------------------------------------------\r\n");
+	printf("Real Time Neuron Template Matching Algorithm Version %d.%d\r\n", VERSION_HI, VERSION_LO);
+	printf("--------------------------------------------------------------------\r\n");
+	printf("Loads test data from SD card of 32 channels and max. 6 templates\r\n");
+	printf("Template max. size of width 9 channels and 17 in length\r\n");
 	printf("Performs 60 taps FIR filtering and NXCOR template matching\r\n");
-	printf("Maximum 60 seconds of samples will be used from DATA.bin\r\n");
-	printf("-------------------------------------------------------------\r\n");
+	printf("Loads samples DATA.bin, configuration CONFIG.txt, filter FIR.txt\r\n");
+	printf("Maximum 60 seconds of samples and NXCOR will be logged for debugging\r\n");
+	printf("--------------------------------------------------------------------\r\n");
+	printf("Control operation remotely on Ethernet 198.168.1.10 port 7 using telnet\r\n");
+	printf("SX TTL port 2 bit 0-5 goes high when a template 1-6 match is found\r\n");
+	printf("SX TTL port 2 bit 7 toggles when template 1/2 is seen within window\r\n");
+	printf("SX TTL port 3 bit 0 is set high during processing and analyzing data\r\n");
+	printf("--------------------------------------------------------------------\r\n");
 
 	//HPPSDGenerator.setFromSDCard(true); // Data from SD Card or Digital Lynx SX
 	HPPSDGenerator.addCliCommand(&cliCommand); // Use CLI interface to control processing mode
@@ -56,12 +63,13 @@ int main()
 	printf("Read template configuration from CONFIG.txt\r\n");
 	config.loadConfig("CONFIG.txt");
 	config.loadTemplateConfig();
-	printf("Read FIR coefficients from FIR.txt\r\n");
+
+	printf("Read FIR coefficients from FIR.txt or FIR.bin\r\n");
 	config.loadCoeff("FIR.txt");
 	config.loadCoeffBin("FIR.bin");
 
-	printf("Reading test samples from DATA.bin\r\n");
-	if (testDataSDCard.readFile((char *)"DATA.bin") != XST_SUCCESS) return 0;
+	printf("Reading test data samples from DATA.bin\r\n");
+	testDataSDCard.readFile((char *)"DATA.bin");
 
 	mTemplateMatch.Init(&config, testDataSDCard.getNumSamples()); // Use number of data samples read from file
 
