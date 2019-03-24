@@ -339,7 +339,7 @@ void TemplateMatch::run()
 		leds.setOn(Leds::LED6 , false);
 
 		printf("Tick start %d and tick end %d, duration = %d ms\r\n", start_tick, end_tick, (1000*(end_tick-start_tick))/configTICK_RATE_HZ);
-		printf("Neuron template matching completed after %d samples\r\n", mNumSamples);
+		printf("Neuron template matching completed after %d samples\r\n", mCount);
 		printf("Saving results to binary files - please wait....\r\n");
 
 #ifdef DEBUG_FILES
