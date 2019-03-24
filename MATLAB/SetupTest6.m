@@ -76,8 +76,9 @@ config = SendCmdTime(t, 'g,c', 1)  % Reads configuration - waits 1 sec for answe
 pause();                           % Check that the configuration in USB terminal window
 
 reply = SendCmd(t, sprintf('s,e,%d', durationSec));
-reply = SendCmdTime(t, sprintf('s,o,DATA.bin,%d,',durationSec*30000), durationSec) % fs = 30 kHz waits to load file
+reply = SendCmdTime(t, sprintf('s,o,DATA.bin,%d,',durationSec*30000), durationSec/2) % fs = 30 kHz waits to load file
 
+reply = SendCmd(t, sprintf('s,e,%d,', 120)) % test time 480 sec.
 reply = SendCmd(t, 'b');           % Set to begin processing neuron samples
 
 %pause();

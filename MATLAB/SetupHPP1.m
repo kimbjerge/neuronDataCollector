@@ -45,10 +45,11 @@ cmdPeakMin = CreateArrayCmd('l', tempNr, peakMinLimits);
 reply = SendCmd(t, cmdPeakMin)     % Set template peak min. limits
 
 reply = SendCmdTime(t, 'g,c', 1)   % Reads configuration, wait 1 sec for answer
-pause();                           % Check that the configuration in USB terminal window
+pause(3);                           % Check that the configuration in USB terminal window
 
-reply = SendCmdTime(t, sprintf('s,o,DATAFINE.bin,%d,',durationSec*30000), 2) % fs = 30 kHz waits 2 sec to load file
-%reply = SendCmd(t, sprintf('s,e,%d,', durationSec))
+reply = SendCmdTime(t, sprintf('s,o,DATAFINE.bin,%d,',durationSec*30000), durationSec/2) % fs = 30 kHz waits 2 sec to load file
+
+reply = SendCmd(t, sprintf('s,e,%d,', 240)) % test time 240 sec.
 reply = SendCmd(t, 'b');           % Set to begin processing neuron samples
 
 %pause();
