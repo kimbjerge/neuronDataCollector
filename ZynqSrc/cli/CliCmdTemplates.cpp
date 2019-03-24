@@ -574,7 +574,8 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len, int id)
 					m_pDataThread->runThread(Thread::PRIORITY_ABOVE_NORMAL, "DataUDPThread");
 				else {
 					m_pTemplateMatch->updateConfig(m_numSamples);
-					m_pTemplateMatch->runThread(Thread::PRIORITY_ABOVE_NORMAL, "TemplateMatch");
+					//m_pTemplateMatch->runThread(Thread::PRIORITY_ABOVE_NORMAL, "TemplateMatch");
+					m_pTemplateMatch->runThread(Thread::PRIORITY_NORMAL, "TemplateMatch");
 				}
 				length = okAnswer(pAnswer);
 				break;
@@ -626,7 +627,7 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "f,n,<oldName>,<newName> - rename file on SD card\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "f,u,<filename>,<size> - upload file to SD card of size in bytes - binary data to be send after command\r\n");
+	sprintf(string, "f,u,<filename>(,<size>) - upload file to SD card (size in bytes and binary data to be send after command)\r\n");
 	strcat(commandsText, string);
 
 	sprintf(string, "\r\nSet(s)/Get(g) parameters:\r\n");
