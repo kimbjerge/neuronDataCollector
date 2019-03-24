@@ -1,5 +1,5 @@
 %% This Script connects to the real-time neuron detector version 1.7 
-durationSec = 10; 
+durationSec = 60; 
 % Template length and width 
 tempLength = 10; % Max. 17
 tempWidth = 4; % Max. 9

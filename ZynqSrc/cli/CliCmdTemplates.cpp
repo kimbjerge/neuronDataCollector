@@ -16,6 +16,8 @@
 void TestFileSDCard(void);
 
 #define CMD_DELIMITER    ","
+#define FILE_NAME_LEN    14 // Max. length of file names
+#define Fs_RATE          30000 // Sample rate
 
 CliCommand::CliCommand(TemplateMatch *pTemplateMatch, DataUDPThread *pDataThread, TestDataSDCard *pTestDataSDCard) : m_file((char *)"0:/")
 {
@@ -263,7 +265,7 @@ int CliCommand::fileOperation(char *paramStr, char *answer)
 
 			case 'd': // Delete file on SD card
 				if (parseStrCmd1(m_fileName)) {
-					if (strlen(m_fileName) < 13) { // Filenames max. 8 chars + extension 4
+					if (strlen(m_fileName) < FILE_NAME_LEN) { // Filenames max. 8 chars + extension 4
 						if (m_file.del(m_fileName) == XST_SUCCESS) {
 							ok = 1;
 						}
@@ -275,7 +277,7 @@ int CliCommand::fileOperation(char *paramStr, char *answer)
 
 			case 'n': // Rename file on SD Card
 				if (parseStrCmd2(m_fileName, m_fileNameNew)) {
-					if (strlen(m_fileName) < 13 && strlen(m_fileNameNew) < 13 ) { // Filenames max. 8 chars + extension 4
+					if (strlen(m_fileName) < FILE_NAME_LEN && strlen(m_fileNameNew) < FILE_NAME_LEN ) { // Filenames max. 8 chars + extension 4
 						if (m_file.rename(m_fileName, m_fileNameNew) == XST_SUCCESS) {
 							ok = 1;
 						}
@@ -287,7 +289,7 @@ int CliCommand::fileOperation(char *paramStr, char *answer)
 
 			case 'u': // Upload file of size
 				if (parseStrCmd2(m_fileName, &value)) {
-					if (strlen(m_fileName) < 13) { // Filenames max. 8 chars + extension 4
+					if (strlen(m_fileName) < FILE_NAME_LEN) { // Filenames max. 8 chars + extension 4
 						if (openFile(m_fileName) == XST_SUCCESS) {
 							m_fileSize = value;
 							printf("Start upload file %s of size %d\n", m_fileName, m_fileSize);
@@ -342,7 +344,7 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 
 			case 'e': // Set duration of experiment in seconds
 				if (parseCmd1(&value)) {
-					m_numSamples = value*30000; // Sample rate = 30 kHz
+					m_numSamples = value*Fs_RATE; // Sample rate = 30 kHz
 					printf("Duration of experiment set to %d sec. processing %d samples\n", value, m_numSamples);
 					ok = 1;
 				}
@@ -403,7 +405,7 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 
 			case 'o': // Open and load sample data from file name using specified number of samples
 			 	if (parseStrCmd2(m_fileName, &value)) {
-					if (strlen(m_fileName) < 13 && m_pTestDataSDCard != 0) { // Filenames max. 8 chars + extension 4
+					if (strlen(m_fileName) < FILE_NAME_LEN && m_pTestDataSDCard != 0) { // Filenames max. 8 chars + extension 4
 						printf("Load test data from file %s using %d samples\n", m_fileName, value);
 						if (m_pTestDataSDCard->readFile(m_fileName) == XST_SUCCESS) {
 							m_numSamples = value;
@@ -475,8 +477,8 @@ int CliCommand::getParameter(char *paramStr, char *answer)
 			break;
 
 		case 'e': // Read execution time
-			printf("Execution time %d sec, samples %d\n", m_numSamples/30000, m_numSamples);
-			sprintf(answer, "Time,%d\n", m_numSamples/30000);
+			printf("Execution time %d sec, samples %d\n", m_numSamples/Fs_RATE, m_numSamples);
+			sprintf(answer, "Time,%d\n", m_numSamples/Fs_RATE);
 			ok = 1;
 			break;
 
@@ -487,7 +489,6 @@ int CliCommand::getParameter(char *paramStr, char *answer)
 			break;
 
 		case 's': // Read switch settings on ZedBoard
-			//value = IO::getIOInst()->readSwitches();
 			value = sw.readio();
 			printf("Switches 0x%02X\n", value);
 			sprintf(answer, "Switches,0x%02X\n", value);
