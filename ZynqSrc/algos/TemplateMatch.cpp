@@ -274,6 +274,8 @@ void TemplateMatch::run()
 		reset();
 		mCount = 0;
 		mCounter = mNumSamples;
+		printf("Acquisition running for %.2f seconds\r\n", (float)mCounter/Fs_RATE);
+
 		start_tick = xTaskGetTickCount();
 
 		while (mCounter > 0) {
@@ -285,7 +287,8 @@ void TemplateMatch::run()
 				// LED + Hardware signals for debugging
 				leds.setOn(Leds::LED6 , true);
 				testOut.setOn(TestIO::JB10, true);
-				xil_printf("Acquisition started, sample %d\r\n", mCount+1);
+				xil_printf("Acquisition started count %d, c0 %d, c1 %d.. c30 %d, c31 %d\r\n",
+						   mCount+1, pSampleData[0], pSampleData[1], pSampleData[30], pSampleData[31]);
 				// Read start counter
 				start_tick = xTaskGetTickCount();
 			} else {

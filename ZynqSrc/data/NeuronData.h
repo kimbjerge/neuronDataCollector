@@ -20,8 +20,7 @@ public:
 		m_generatePulse = generate;
 	}
 
-	void reset(void) { m_n = 0; }
-
+	virtual void reset(void) { m_n = 0; }
 	virtual void GenerateSampleRecord(LRECORD *pLxRecord);
 	virtual int16_t *GenerateSamples(void);
 

@@ -28,7 +28,8 @@ using namespace AbstractOS;
 #define FIR_NUM         (NUM_CHANNELS/FIR_SIZE)  // Number of FIRFilter classes
 #define TEMP_NUM		6   // Number of templates
 
-#define SAMPLES_SAVED   60*30000 // Maximum number of samples to save in files for debugging
+#define Fs_RATE         30000 // Sample rate
+#define SAMPLES_SAVED   60*Fs_RATE // Maximum number of samples to save in files for debugging
 
 class TemplateMatch : public Thread
 {

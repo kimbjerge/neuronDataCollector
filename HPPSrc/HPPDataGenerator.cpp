@@ -45,10 +45,6 @@ int HPPDataGenerator::InitHPPDataGenerator(int ttl_output_bitnum = 4)
 	{
 		xil_printf("\n\rProblem with SetPSControl(PS_Ctrl)");
 	}
-	else
-	{
-		xil_printf("\n\rSetPSControl(PS_Ctrl) successfully called.\n\r");
-	}
 
 	for(portnum = 0; portnum < 4; portnum++)
 	{
@@ -69,7 +65,7 @@ int HPPDataGenerator::InitHPPDataGenerator(int ttl_output_bitnum = 4)
 
 	SetPSReady(PS_Ctrl);
 
-	xil_printf("\n\rHPP Data generator successfully initialized.\n\r");
+	//xil_printf("\n\rHPP Data generator successfully initialized.\n\r");
 
 	//Assume LED Control
 	status = SetFPLEDCtrl(HPP_Ctrl);
@@ -116,9 +112,9 @@ void HPPDataGenerator::GenerateSampleRecord(LRECORD *pLxRecord)
 		if (xHPP_Spike_Detect_Sem != NULL)
 		{
 			if (!m_initialized) {
-				printf("Calling InitHPPDataGenerator\r\n");
+				//xil_printf("Calling InitHPPDataGenerator\r\n");
 				InitHPPDataGenerator(4);
-				printf("InitHPPDataGenerator initialized\r\n");
+				xil_printf("Interface to SX motherboard initialized\r\n");
 				m_initialized = true;
 			}
 
@@ -142,7 +138,7 @@ void HPPDataGenerator::GenerateSampleRecord(LRECORD *pLxRecord)
 
 					if (cur_index != (num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK)) // & is faster than %, so the mask is setup for &
 					{
-						xil_printf("\n\rHPP Algorithm is too slow for real time...\n\r");
+						xil_printf("!!!HPP Algorithm is too slow for real time!!!\n\r");
 					}
 					m_n++;
 				}

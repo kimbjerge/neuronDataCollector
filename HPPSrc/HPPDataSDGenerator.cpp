@@ -42,11 +42,11 @@ int16_t *HPPDataSDGenerator::GenerateSamples(void)
 		if (xHPP_Spike_Detect_Sem != NULL)
 		{
 			if (!m_initialized) {
-				printf("Calling InitHPPDataGenerator\r\n");
+				//printf("Calling InitHPPDataGenerator\r\n");
 				InitHPPDataGenerator(4);
-				printf("InitHPPDataGenerator initialized\r\n");
+				xil_printf("Interface to SX motherboard initialized\r\n");
 				m_initialized = true;
-				SetLEDOn(true); // Turn LED S1 on
+				//SetLEDOn(true); // Turn LED S1 on
 			}
 			if (xSemaphoreTake(xHPP_Spike_Detect_Sem, portMAX_DELAY) == pdTRUE)
 			{
@@ -67,7 +67,7 @@ int16_t *HPPDataSDGenerator::GenerateSamples(void)
 
 					if (cur_index != (num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK)) // & is faster than %, so the mask is setup for &
 					{
-						xil_printf("\n\rHPP Algorithm is too slow for real time...\n\r");
+						xil_printf("!!!HPP Algorithm is too slow for real time!!!\n\r");
 					}
 				}
 			}

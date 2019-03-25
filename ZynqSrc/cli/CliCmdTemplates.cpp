@@ -17,7 +17,6 @@ void TestFileSDCard(void);
 
 #define CMD_DELIMITER    ","
 #define FILE_NAME_LEN    14 // Max. length of file names
-#define Fs_RATE          30000 // Sample rate
 
 CliCommand::CliCommand(TemplateMatch *pTemplateMatch, DataUDPThread *pDataThread, TestDataSDCard *pTestDataSDCard) : m_file((char *)"0:/")
 {

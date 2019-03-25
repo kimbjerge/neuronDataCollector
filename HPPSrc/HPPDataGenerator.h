@@ -19,6 +19,7 @@ public:
 	virtual ~HPPDataGenerator();
 
 	virtual void GenerateSampleRecord(LRECORD *pLxRecord);
+	virtual void reset(void) { m_initialized = false; m_n = 0; }
 
 	int InitHPPDataGenerator(int ttl_output_bitnum);
 	void SetLEDOn(bool on);
