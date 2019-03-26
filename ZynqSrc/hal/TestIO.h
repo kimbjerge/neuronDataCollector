@@ -25,21 +25,24 @@ public:
 
 	TestIO() : Gpio(XPAR_TESTIO_DEVICE_ID)
 	{
-		XGpio_SetDataDirection(&mGpioHandle, mChannel, 0xff);
+		XGpio_SetDataDirection(&mGpioHandle, mChannel, 0x00); // Set as output
+		mBits = 0;
+		writeio(mBits); // Turn all off
 	};
 
 	void setOn(IOTypes io, bool on)
 	{
-		int bits = readio();
-
         if (on)
-        	bits |= 1 << io;
+        	mBits |= 1 << io;
         else {
-        	bits &= ~(1 << io);
+        	mBits &= ~(1 << io);
         }
 
-		writeio(bits);
+		writeio(mBits);
 	}
+
+private:
+	int mBits;
 
 };
 

@@ -284,13 +284,13 @@ void TemplateMatch::run()
 			pSampleData = pNeuronData->GenerateSamples();
 
 			if (mCount < 1) { // First time
+				//xil_printf("Acquisition started count %d, c0 %d, c1 %d.. c30 %d, c31 %d\r\n",
+				//		   mCount+1, pSampleData[0], pSampleData[1], pSampleData[30], pSampleData[31]);
 				// LED + Hardware signals for debugging
 				leds.setOn(Leds::LED6 , true);
-				testOut.setOn(TestIO::JB10, true);
-				xil_printf("Acquisition started count %d, c0 %d, c1 %d.. c30 %d, c31 %d\r\n",
-						   mCount+1, pSampleData[0], pSampleData[1], pSampleData[30], pSampleData[31]);
 				// Read start counter
 				start_tick = xTaskGetTickCount();
+				testOut.setOn(TestIO::JB10, true);
 			} else {
 				// After fist iteration read filtered samples
 				for (int i = 0; i < FIR_NUM; i++) {
