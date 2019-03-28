@@ -35,7 +35,7 @@ class TemplateMatch : public Thread
 {
 public:
 
-	TemplateMatch(NeuronData *pData) :  mNumSamples(0), pNeuronData(pData) { mNumCfgTemplates = TEMP_NUM; }
+	TemplateMatch(NeuronData *pData) :  mNumSamples(0), pNeuronData(pData) { mNumCfgTemplates = TEMP_NUM; mPrintDebug = 1; }
 	TemplateMatch(ThreadPriority pri, string name, NeuronData *pData) :
 					Thread(pri, name), mNumSamples(0), pNeuronData(pData) { mNumCfgTemplates = TEMP_NUM; }
 	~TemplateMatch();
@@ -46,6 +46,7 @@ public:
 	void printSettings(char *buf = 0);
 	void updateTemplateData(int id, float *data, int length, int width);
 	Config *getConfig(void) { return mpConfig; }
+	void setPrintDebug(bool on) { mPrintDebug = on; };
 
 	virtual void run();
 
@@ -82,6 +83,7 @@ private:
     int mTemplate12Trigger;
     int mTemplate12TriggerIdx;
     bool mRunning;
+    bool mPrintDebug;
 };
 
 #endif /* SRC_TEMPLATE_MATCH_H_ */

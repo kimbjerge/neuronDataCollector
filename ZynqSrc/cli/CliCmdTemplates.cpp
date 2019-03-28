@@ -381,6 +381,16 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 				}
 				break;
 
+			case 'k': // Set enable printing counters during template matching
+				if (parseCmd1(&value)) {
+					if (value >= 0) {
+						m_pTemplateMatch->setPrintDebug(value > 0);
+						printf("%d printing counters during template matching\n", value);
+						ok = 1;
+					}
+				}
+				break;
+
 			case 'm': // Set channel mapping
 				if (parseShortArray(&nr)) {
 					if (checkNr(nr)) {
@@ -640,11 +650,13 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "s,e,<sec> - set duration of experiment in seconds\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,g,<nr>,<grad> - set gradient for template (1-6) where min. peak and peak(n-4) must be greater than <grad>\r\n"); // For all channels
+	sprintf(string, "s,g,<nr>,<grad> - set gradient for template (1-6) where min. peak and peak(n-6) must be greater than <grad>\r\n"); // For all channels
 	strcat(commandsText, string);
 	sprintf(string, "s,h,<nr>,<h0>,<h1>,<h2>..<h8> - set template (1-6) peak high limits for mapped channels (h0-h8)\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,l,<nr>,<l0>,<l1>,<l2>..<l8> - set template (1-6) peak low limits for mapped channels (l0-l8)\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "s,k,<0|1> - set enable (1) printing counters during template matching\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,m,<nr>,<c0>,<c1>,<c2>..<c8> - set template (1-6) channel mapping to neuron channels (cX = 0-31)\r\n");
 	strcat(commandsText, string);

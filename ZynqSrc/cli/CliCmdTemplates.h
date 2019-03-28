@@ -14,7 +14,7 @@
 #include "TestDataSDCard.h"
 
 #define VERSION_HI		1
-#define VERSION_LO		8
+#define VERSION_LO		9
 #define CMD_BUF_SIZE    8192
 
 class CliCommand {

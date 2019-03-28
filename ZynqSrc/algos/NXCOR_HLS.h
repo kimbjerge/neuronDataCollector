@@ -23,7 +23,7 @@ public:
 		mResultAvailHlsNXCOR(0), mVarianceTemplate(1),
 		mIdxPeak(0), mPeakSample(0), mActivationCounts(0),
 		mCounts(0), mActiveState(0), mLastIdx(0),
-		mPeakMinOffset(4), mPeakMinGradient(0)
+		mPeakMinOffset(6), mPeakMinGradient(0)
 	{ mPeakSamples = new int(length); }
 
 	~NXCOR() { delete mPeakSamples; }
