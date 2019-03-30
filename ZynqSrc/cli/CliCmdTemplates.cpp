@@ -349,6 +349,18 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 				}
 				break;
 
+			case 'f': // Load binary filter coefficients from SD card (*.bin)
+				if (parseStrCmd1(m_fileName)) {
+					if (strlen(m_fileName) < FILE_NAME_LEN) { // Filenames max. 8 chars + extension 4
+						if (m_pTemplateMatch->getConfig()->loadCoeffBin(m_fileName) == XST_SUCCESS) {
+							ok = 1;
+						}
+					}  else {
+						printf("Too long file name %s\n", m_fileName);
+					}
+				}
+				break;
+
 			case 'g': // Set gradient for template
 				if (parseCmd2(&nr, &value)) {
 					if (checkNr(nr)) {
@@ -649,6 +661,8 @@ int CliCommand::printCommands(void)
 	sprintf(string, "s,c,<counter> - set trigger output when template 1 and 2 seen within samples\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,e,<sec> - set duration of experiment in seconds\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "s,f,<filename> - open and load filter coefficients from SD card (only *.bin format)\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,g,<nr>,<grad> - set gradient for template (1-6) where min. peak and peak(n-6) must be greater than <grad>\r\n"); // For all channels
 	strcat(commandsText, string);

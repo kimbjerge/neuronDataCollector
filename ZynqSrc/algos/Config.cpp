@@ -52,6 +52,7 @@ int Config::loadCoeffBin(string name)
 		return result;
 	}
 
+	mTabsValidAll = false;
 	result = m_file.read((void *)mCoeffsAll, sizeof(mCoeffsAll));
 	if (result != XST_SUCCESS) {
 		printf("Failed reading from file %s\r\n", name.c_str());
