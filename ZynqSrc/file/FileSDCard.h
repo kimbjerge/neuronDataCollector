@@ -19,6 +19,7 @@ public:
 	{
 		strcpy(pathName, path);
 		strcpy(fileName, "");
+		m_Opened = false;
 	}
 
 	int mount(bool remount=false); // Mount SD card to FAT file system
@@ -43,6 +44,7 @@ private:
 	FIL m_fil;
 	DIR m_dir;
 	FILINFO m_fileInfo;
+	bool m_Opened;
 };
 
 #endif /* SRC_FILESDCARD_H_ */

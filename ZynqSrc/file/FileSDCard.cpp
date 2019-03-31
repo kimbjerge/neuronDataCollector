@@ -104,6 +104,9 @@ int FileSDCard::open(char *name, BYTE mode)
 	if (Res) {
 		return XST_FAILURE;
 	}
+
+	m_Opened = true;
+
 	Res = f_lseek(&m_fil, 0);
 	if (Res) {
 		return XST_FAILURE;
@@ -151,9 +154,12 @@ int FileSDCard::write(const void* buffer, int size, bool append)
 int FileSDCard::close()
 {
 	FRESULT Res;
-	Res = f_close(&m_fil);
-	if (Res) {
-		return XST_FAILURE;
+	if (m_Opened) {
+		Res = f_close(&m_fil);
+		m_Opened = false;
+		if (Res) {
+			return XST_FAILURE;
+		}
 	}
 	return XST_SUCCESS;
 }

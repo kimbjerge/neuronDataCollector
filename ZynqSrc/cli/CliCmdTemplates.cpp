@@ -27,6 +27,7 @@ CliCommand::CliCommand(TemplateMatch *pTemplateMatch, DataUDPThread *pDataThread
 	majorVer_ = VERSION_HI;
 	minorVer_ = VERSION_LO;
 	m_fileSize = 0;
+	m_uploadFile = true;
 	m_dataSize = 0;
 	m_idLocked = 0;
 	m_executeMode = 2; // Default mode - template matching using data from SD card
@@ -37,6 +38,8 @@ void CliCommand::reset(void) // Reset transfer if connection lost
 	m_fileSize = 0;
 	m_dataSize = 0;
 	m_blockCnt = 0;
+	m_uploadFile = true;
+	m_file.close();
 }
 
 //------------------------------------------------------------------------------------------------
@@ -186,7 +189,66 @@ int CliCommand::errorAnswer(char *pAnswer)
 	return 7;
 }
 
-int CliCommand::openFile(char *name)
+bool CliCommand::writeToSampleData(char *data, int len)
+{
+	bool ok = true;
+	int samples;
+
+	if (len%4 != 0) {
+		printf("Transmitted data block size invalid %d - terminated\n", len);
+		m_dataSize = 0;
+		ok = false;
+	} else {
+		samples = len/4;
+		if (m_dataSize > samples) {
+			m_dataSize -= samples;
+		} else {
+			m_dataSize = 0;
+		}
+		m_pTestDataSDCard->appendDataSamples((float*)data, samples);
+	}
+	return ok;
+}
+
+int CliCommand::dataTransfer(char *cmd, char *pAnswer, int len)
+{
+	int length = len;
+
+	// Handling of updating test sample data
+	if (writeToSampleData(cmd, len)) {
+		m_blockCnt++;
+		xil_printf("%06d-%07d\r", m_blockCnt, m_dataSize);
+		sprintf(pAnswer, "%06d\r", m_blockCnt);
+		length = strlen(pAnswer); // Block count reply
+		//length = okAnswer(pAnswer);
+		if (m_dataSize == 0)
+			printf("\nData transfer completed\r\n");
+	} else {
+		m_dataSize = 0;
+		length = errorAnswer(pAnswer);
+	}
+	return length;
+}
+
+int CliCommand::openFileRead(char *name, int *size)
+{
+	int result;
+
+	result = m_file.mount();
+	if (result != XST_SUCCESS) printf("Failed to mount SD card\r\n");
+
+	// Read size of file
+	*size = m_file.size(name);
+
+	// Open existing file<<
+	result = m_file.open(name, FA_OPEN_EXISTING | FA_READ);
+	if (result != XST_SUCCESS)
+		printf("Failed open file for reading\r\n");
+
+	return result;
+}
+
+int CliCommand::openFileWrite(char *name)
 {
 	int result;
 
@@ -226,25 +288,72 @@ int CliCommand::writeToFile(char *data, int len)
 	return result;
 }
 
-bool CliCommand::writeToSampleData(char *data, int len)
+int CliCommand::readFromFile(char *data, int *lenRead, int len)
 {
-	bool ok = true;
-	int samples;
+	int result;
 
-	if (len%4 != 0) {
-		printf("Transmitted data block size invalid %d - terminated\n", len);
-		m_dataSize = 0;
-		ok = false;
-	} else {
-		samples = len/4;
-		if (m_dataSize > samples) {
-			m_dataSize -= samples;
-		} else {
-			m_dataSize = 0;
-		}
-		m_pTestDataSDCard->appendDataSamples((float*)data, samples);
+	// Read from file
+	result = m_file.read((void *)data, len, false);
+	if (result != XST_SUCCESS) {
+		printf("Failed reading data size %d from file\r\n", len);
+		m_file.close();
+		m_fileSize = 0;
+		return result;
 	}
-	return ok;
+
+	// Get actual number of bytes read from file
+    *lenRead = m_file.getReadSize();
+
+    // Decrease file size
+	if (m_fileSize > *lenRead) {
+		m_fileSize -= *lenRead;
+	} else {
+		m_fileSize = 0;
+	}
+
+	// Close file when done
+	if (m_fileSize == 0) {
+		result = m_file.close();
+		if (result != XST_SUCCESS)
+			printf("Failed closing file\r\n");
+	}
+
+	return result;
+}
+
+int CliCommand::fileTransfer(char *cmd, char *pAnswer, int len)
+{
+	int length = len;
+
+	if (m_uploadFile) {
+		// Handling of file transfer, upload of files to SD card from computer
+		if (writeToFile(cmd, len) == XST_SUCCESS) {
+			m_blockCnt++;
+			xil_printf("%06d-%06d\r", m_blockCnt, m_fileSize/UPLD_BLOCK_SIZE); // Kilo bytes
+			sprintf(pAnswer, "%06d\r", m_blockCnt);
+			length = strlen(pAnswer); // Block count reply
+			//length = 0; // No reply
+			if (m_fileSize == 0)
+				printf("\nFile transfer completed\r\n");
+		} else {
+			m_fileSize = 0;
+			length = errorAnswer(pAnswer);
+		}
+	} else {
+		// Handling of file transfer, download files from SD card to computer
+		if (readFromFile(pAnswer, &length, DOWN_BLOCK_SIZE) == XST_SUCCESS) {
+			m_blockCnt++;
+			xil_printf("%06d-%06d\r", m_blockCnt, m_fileSize/DOWN_BLOCK_SIZE); // x4 Kilo bytes
+			if (m_fileSize == 0)
+				printf("\nFile transfer completed\r\n");
+		} else {
+			strcpy(pAnswer, "f,error\n");
+			length = strlen(pAnswer);
+			m_fileSize = 0;
+		}
+	}
+
+	return length;
 }
 
 bool CliCommand::checkNr(int nr)
@@ -289,12 +398,32 @@ int CliCommand::fileOperation(char *paramStr, char *answer)
 			case 'u': // Upload file of size
 				if (parseStrCmd2(m_fileName, &value)) {
 					if (strlen(m_fileName) < FILE_NAME_LEN) { // Filenames max. 8 chars + extension 4
-						if (openFile(m_fileName) == XST_SUCCESS) {
+						if (openFileWrite(m_fileName) == XST_SUCCESS) {
 							m_fileSize = value;
 							printf("Start upload file %s of size %d\n", m_fileName, m_fileSize);
+							m_uploadFile = true;
 							m_blockCnt = 0;
 							ok = 1;
 						} else {
+							printf("Could not open file %s\n", m_fileName);
+						}
+					}  else {
+						printf("Invalid file name %s length (max. 8+3)\n", m_fileName);
+					}
+				}
+				break;
+
+			case 'w': // Download file to computer
+				if (parseStrCmd1(m_fileName)) {
+					if (strlen(m_fileName) < FILE_NAME_LEN) { // Filenames max. 8 chars + extension 4
+						if (openFileRead(m_fileName, &m_fileSize) == XST_SUCCESS) {
+							printf("Start download file %s of size %d\n", m_fileName, m_fileSize);
+							m_uploadFile = false;
+							m_blockCnt = 0;
+							sprintf(answer, "f,ok,%d\n",m_fileSize);
+							ok = 2;
+						} else {
+							m_fileSize = 0;
 							printf("Could not open file %s\n", m_fileName);
 						}
 					}  else {
@@ -307,8 +436,8 @@ int CliCommand::fileOperation(char *paramStr, char *answer)
 	}
 
 	// Return answer to file command
-	if (ok) strcpy(answer, "f,ok\n");
-	else strcpy(answer, "f,error\n");
+	if (ok == 1) strcpy(answer, "f,ok\n");
+	if (ok == 0) strcpy(answer, "f,error\n");
 	return strlen(answer)+1;
 }
 
@@ -538,33 +667,11 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len, int id)
 	//TimeMeasure time;
 
 	if (m_fileSize > 0) {
-		// Handling of file transfer
-		if (writeToFile(cmd, len) == XST_SUCCESS) {
-			m_blockCnt++;
-			xil_printf("%06d-%06d\r", m_blockCnt, m_fileSize/1024); // Kilo bytes
-			sprintf(pAnswer, "%06d\r", m_blockCnt);
-			length = strlen(pAnswer); // Block count reply
-			//length = 0; // No reply
-			if (m_fileSize == 0)
-				printf("\nFile transfer completed\r\n");
-		} else {
-			m_fileSize = 0;
-			length = errorAnswer(pAnswer);
-		}
+		// Handling of file transfer (upload and download files on SD-card)
+		length = fileTransfer(cmd, pAnswer, len);
 	} else if (m_dataSize > 0) {
-		// Handling of updating test sample data
-		if (writeToSampleData(cmd, len)) {
-			m_blockCnt++;
-			xil_printf("%06d-%07d\r", m_blockCnt, m_dataSize);
-			sprintf(pAnswer, "%06d\r", m_blockCnt);
-			length = strlen(pAnswer); // Block count reply
-			//length = okAnswer(pAnswer);
-			if (m_dataSize == 0)
-				printf("\nData transfer completed\r\n");
-		} else {
-			m_dataSize = 0;
-			length = errorAnswer(pAnswer);
-		}
+		// Handling of updating test sample data (in memory)
+		length = dataTransfer(cmd, pAnswer, len);
 	} else {
 
 		if (length > 0) cmd[length-1] = 0; // Remove newline character
@@ -649,6 +756,8 @@ int CliCommand::printCommands(void)
 	sprintf(string, "f,n,<oldName>,<newName> - rename file on SD card\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "f,u,<filename>(,<size>) - upload file to SD card (size in bytes and binary data to be send after command)\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "f,w,<filename> - download a file from SD card (binary data to be received after command)\r\n");
 	strcat(commandsText, string);
 
 	sprintf(string, "\r\nSet(s)/Get(g) parameters:\r\n");

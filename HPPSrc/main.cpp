@@ -22,8 +22,11 @@ int main_hpp( void );
 
 TestDataSDCard testDataSDCard;
 HPPDataSDGenerator HPPSDGenerator(&testDataSDCard);
-//TemplateMatch mTemplateMatch(&testDataSDCard); // Read next sample data from SD Card
+#if 0 // For fast time measure reading data from SD card as fast as possible
+TemplateMatch mTemplateMatch(&testDataSDCard); // Read next sample data from SD Card
+#else
 TemplateMatch mTemplateMatch(&HPPSDGenerator); // Wait for new HPP samples before read next sample data from SD Card
+#endif
 
 //TestDataGenerator testDataGenerator;
 //DataUDPThread dataThread(&testDataGenerator);

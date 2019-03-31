@@ -15,12 +15,28 @@
 #include "TestDataSDCard.h"
 #include "TemplateMatch.h"
 #include "Config.h"
+#include "FileSDCard.h"
+#include "TestIO.h"
 
 // main_hpp.c in directory hpp calls main_full in directory Full_Demo (A UART Cli interface to FreeRTOS)
 int main_hpp( void );
 
 //TestDataGenerator testDataGenerator;
 //DataUDPThread dataThread(&testDataGenerator);
+
+char fileList[20000];
+FileSDCard filesSDCard((char *)"0:/");
+void TestSDCard(void)
+{
+	filesSDCard.list(fileList, sizeof(fileList));
+	printf(fileList);
+	filesSDCard.rename((char*)"KIM.TXT", (char*)"KBE.TXT");
+	filesSDCard.list(fileList, sizeof(fileList));
+	printf(fileList);
+	filesSDCard.del((char*)"KBE.TXT");
+	filesSDCard.list(fileList, sizeof(fileList));
+	printf(fileList);
+}
 
 TestDataSDCard testDataSDCard;
 DataUDPThread dataThread(&testDataSDCard); // Task to upload data using UDP
@@ -31,6 +47,7 @@ CliTCPThread  cliThread; // Task to create and wait for socket connection
 
 int main()
 {
+
 	//init_net_server(echo_tcp_thread, 0);
 	//init_net_server(demo_udp_thread, 0);
 	//init_net_server(dataThread.threadMapper, &dataThread);
@@ -50,7 +67,7 @@ int main()
 	config.loadCoeffBin("FIR.bin");
 
 	printf("Reading test samples from DATA.bin\r\n");
-	if (testDataSDCard.readFile((char *)"DATA.bin") != XST_SUCCESS) return 0;
+	testDataSDCard.readFile((char *)"DATA.bin");
 
 	mTemplateMatch.Init(&config, testDataSDCard.getNumSamples()); // Use number of data samples read from file
 

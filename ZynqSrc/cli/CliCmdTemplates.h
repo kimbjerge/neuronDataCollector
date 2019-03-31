@@ -13,9 +13,11 @@
 #include "FileSDCard.h"
 #include "TestDataSDCard.h"
 
-#define VERSION_HI		1
-#define VERSION_LO		10
+#define VERSION_HI		2
+#define VERSION_LO		0
 #define CMD_BUF_SIZE    8192
+#define DOWN_BLOCK_SIZE 4096 // File block size for downloading files from SD-card
+#define UPLD_BLOCK_SIZE 1024 // File block size for uploading files to SD-card
 
 class CliCommand {
 public:
@@ -41,14 +43,19 @@ private:
 	int fileOperation(char *paramStr, char *answer);
 	int setParameter(char *paramStr, char *answer);
 	int getParameter(char *paramStr, char *answer);
-	int openFile(char *name);
+	int openFileRead(char *name, int *size);
+	int openFileWrite(char *name);
 	int writeToFile(char *data, int len);
+	int readFromFile(char *data, int *lenRead, int len);
+	int fileTransfer(char *cmd, char *pAnswer, int len);
+	int dataTransfer(char *cmd, char *pAnswer, int len);
 	bool writeToSampleData(char *data, int len);
 	bool checkNr(int nr);
 	int majorVer_;
 	int minorVer_;
 	int m_dataSize; // Used to transfer data samples
 	int m_fileSize; // Used to transfer data files
+	bool m_uploadFile; // True during upload and false during download of files
 	int m_idLocked; // Locked by socket id
 	int m_blockCnt;
 	int m_executeMode; // 0 = UDP transfer data, 1 = Template matching, 2 = Template matching from SD card

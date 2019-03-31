@@ -32,6 +32,7 @@
 
 // File commands
 #define CMD_FILE_UPLOAD         "f,u"
+#define CMD_FILE_DOWNLOAD       "f,w"
 
 PulseCollector plsCollector;
 PulseFile plsFile;
@@ -112,7 +113,7 @@ int _tmain(int argc, char* argv[])
 		SOCK_Stream new_stream;
 
 	    printf("-------------------------------------------------------------------------\n");
-		printf("PC Client to setup and control Neuron Analyzer Version 1.7               \n");
+		printf("PC Client to setup and control Neuron Analyzer Version 2.0               \n");
 		printf("-------------------------------------------------------------------------\n");
 		
 		char message[4000];
@@ -154,6 +155,10 @@ int _tmain(int argc, char* argv[])
 				if (!strncmp(message, CMD_FILE_UPLOAD, 3)) {
 					// Special handling of file upload command
 					fileTransfer.sendFile(&new_stream, message);
+				}
+				else if (!strncmp(message, CMD_FILE_DOWNLOAD, 3)) {
+					// Special handling of file download command
+					fileTransfer.receiveFile(&new_stream, message);
 				} else {
 					pos = strlen(message);
 					// Send command to board
