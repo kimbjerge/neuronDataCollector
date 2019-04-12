@@ -60,8 +60,10 @@ int16_t *HPPDataSDGenerator::GenerateSamples(void)
 						nextSamples = m_pTestDataSDCard->GenerateSamples(); // Use samples from SD card instead of HPP
 					} else {
 						// Data from Digital Lynx
-						for (int ch = 0; ch < NUM_CHANNELS; ch++)
-							m_Samples[ch] = HPP_Data[cur_index].AD[ch];
+						for (int ch = 0; ch < NUM_CHANNELS; ch++) {
+							//m_SamplesInt[ch] = HPP_Data[cur_index].AD[ch]; // Max. values are +/-132.000 (18 bit)
+							m_Samples[ch] = HPP_Data[cur_index].AD[ch] >> 2; // Remove 2 bits of precision
+						}
 						nextSamples = (int16_t *)m_Samples;
 					}
 
@@ -76,5 +78,4 @@ int16_t *HPPDataSDGenerator::GenerateSamples(void)
 
 	return nextSamples;
 }
-
 

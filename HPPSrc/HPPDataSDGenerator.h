@@ -30,6 +30,7 @@ private:
 	TestDataSDCard *m_pTestDataSDCard;
 	CliCommand *m_pCliCommand;
 	int16_t m_Samples[NUM_CHANNELS];
+	//int32_t m_SamplesInt[NUM_CHANNELS];
 	bool m_dataFromSDCard;
 };
 

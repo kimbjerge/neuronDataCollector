@@ -321,7 +321,10 @@ void TemplateMatch::run()
 			// Append test result to memory
 #ifdef DEBUG_FILES
 			if (mCount < SAMPLES_SAVED) {
-				pResultFIR->appendData(mFiltered, NUM_CHANNELS);
+				if (mSaveRawData) // Save raw data from HPP
+					pResultFIR->appendData(pSampleData, NUM_CHANNELS);
+				else // Save filtered data
+					pResultFIR->appendData(mFiltered, NUM_CHANNELS);
 				for (int i = 0; i < mNumCfgTemplates; i++) {
 					float NXCORRes = pNXCOR[i]->getNXCORResult();
 					if (pNXCOR[i]->getActiveState() == 1)
@@ -350,13 +353,18 @@ void TemplateMatch::run()
 
 #ifdef DEBUG_FILES
 		// Save test result from memory to files
-		pResultFIR->saveContent("FIRFilt.bin");
 		for (int i = 0; i < mNumCfgTemplates; i++) {
 			char name[20];
 			sprintf(name, "NXCORT%d.bin", i+1);
 			pResultNXCOR[i]->saveContent(name);
 		}
-		printf("Saved result to files FIRFilt.bin and NXCORT1-%d.bin\r\n", mNumCfgTemplates);
+		if (mSaveRawData) {
+			pResultFIR->saveContent("RAWData.bin");
+			printf("Saved result to files RAWData.bin and NXCORT1-%d.bin\r\n", mNumCfgTemplates);
+		} else {
+			pResultFIR->saveContent("FIRFilt.bin");
+			printf("Saved result to files FIRFilt.bin and NXCORT1-%d.bin\r\n", mNumCfgTemplates);
+		}
 #endif
 		// Clear sample interrupts
 		pSampleData = pNeuronData->GenerateSamples();

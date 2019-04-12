@@ -599,6 +599,16 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 					}
 				}
 				break;
+
+			case 'w': // Set saving raw or filtered sample data
+				if (parseCmd1(&value)) {
+					if (value >= 0) {
+						m_pTemplateMatch->setSaveRawData(value > 0);
+						printf("%d saving raw (1) or filtered (0) sample data\n", value);
+						ok = 1;
+					}
+				}
+				break;
 		}
 	}
 
@@ -650,6 +660,13 @@ int CliCommand::getParameter(char *paramStr, char *answer)
 			sprintf(answer, "Version,%d.%d\n", majorVer_, minorVer_);
 			ok = 1;
 			break;
+
+		case 'w': // Set saving raw or filtered sample data
+			printf("Saving (%d) sample data as raw (1) or filtered (0)\n", m_pTemplateMatch->getSaveRawData());
+			sprintf(answer, "SaveRawData,%d\n",  m_pTemplateMatch->getSaveRawData());
+			ok = 1;
+			break;
+
 
 	}
 
@@ -793,6 +810,8 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "s,u,<size> - upload sample data (32 channels) of size in bytes - binary floats to be send after command\r\n");
 	strcat(commandsText, string);
+	sprintf(string, "s,w,<0|1> - set saving raw RAWDATA.BIN (1) or filtered FIRFILT.BIN (0) sample data\r\n");
+	strcat(commandsText, string);
 
 	sprintf(string, "g,c - read configuration for template matching using NXCOR\r\n");
 	strcat(commandsText, string);
@@ -803,6 +822,8 @@ int CliCommand::printCommands(void)
 	sprintf(string, "g,s - read switch settings only on ZedBoard\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "g,v - read software version\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "g,w - read saving raw (1) or filtered (0) sample data\r\n");
 	strcat(commandsText, string);
 
 	return strlen(commandsText)+1;
