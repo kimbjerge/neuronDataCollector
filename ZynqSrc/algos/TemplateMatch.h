@@ -44,13 +44,17 @@ public:
 
 	int Init(Config *pConfig, int numSamples, IRQ* pIrq = 0);
 	void updateConfig(int numSamples);
-	void stopRunning(void) { mRunning = false; mCounter = 1;};
+	void stopRunning(void) { mCounter = 1; };
+	void stopAndKill(void) { stopRunning(); mRunning = false; kill(); };
+	bool isRunning(void) { return mRunning; };
 	void printSettings(char *buf = 0);
 	void updateTemplateData(int id, float *data, int length, int width);
 	Config *getConfig(void) { return mpConfig; }
 	void setPrintDebug(bool on) { mPrintDebug = on; };
 	void setSaveRawData(bool on) { mSaveRawData = on; };
 	int getSaveRawData(void) { return mSaveRawData; };
+	unsigned int getFirstTimeStampHigh(void) { return m_FirstTimeStampHigh; }
+	unsigned int getFirstTimeStampLow(void) { return m_FirstTimeStampLow; }
 
 	virtual void run();
 
@@ -89,6 +93,8 @@ private:
     bool mRunning;
     bool mPrintDebug;
 	bool mSaveRawData;
+	uint32_t m_FirstTimeStampHigh;
+	uint32_t m_FirstTimeStampLow;
 };
 
 #endif /* SRC_TEMPLATE_MATCH_H_ */

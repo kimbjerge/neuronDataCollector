@@ -11,6 +11,8 @@ NeuronData::NeuronData()
 {
 	m_generatePulse = true;
 	m_n = 0;
+	m_TimeStampHigh = 0;
+	m_TimeStampLow = 0;
 }
 
 NeuronData::~NeuronData()
@@ -55,5 +57,11 @@ void NeuronData::GenerateSampleRecord(LRECORD *pLxRecord)
 		m_n = 0;
 
 	AddCheckSum(pLxRecord);
+}
+
+void NeuronData::GetTimeStamp(uint32_t *pHigh, uint32_t *pLow)
+{
+	*pHigh = m_TimeStampHigh;
+	*pLow = m_TimeStampLow;
 }
 

@@ -276,6 +276,8 @@ void TemplateMatch::run()
 		// Reset counters and indexes
 		reset();
 		mCount = 0;
+		m_FirstTimeStampHigh = 0;
+		m_FirstTimeStampLow = 0;
 		mCounter = mNumSamples;
 		printf("Acquisition running for %.2f seconds\r\n", (float)mCounter/Fs_RATE);
 
@@ -290,6 +292,7 @@ void TemplateMatch::run()
 				//xil_printf("Acquisition started count %d, c0 %d, c1 %d.. c30 %d, c31 %d\r\n",
 				//		   mCount+1, pSampleData[0], pSampleData[1], pSampleData[30], pSampleData[31]);
 				// LED + Hardware signals for debugging
+				pNeuronData->GetTimeStamp(&m_FirstTimeStampHigh, &m_FirstTimeStampLow);
 				leds.setOn(Leds::LED6 , true);
 				// Read start counter
 				start_tick = xTaskGetTickCount();

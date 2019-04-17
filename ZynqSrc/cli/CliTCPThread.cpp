@@ -78,7 +78,7 @@ void CliTCPThread::process_echo_request(void *p)
 
 		/* break if client closed connection */
 		if (n <= 0) {
-			xil_printf("%s: ERROR responding from client. received = %d.\r\n",
+			xil_printf("%s: Client received = %d.\r\n",
 						__FUNCTION__, n);
 			break;
 		}

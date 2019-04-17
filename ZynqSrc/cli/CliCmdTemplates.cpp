@@ -655,6 +655,14 @@ int CliCommand::getParameter(char *paramStr, char *answer)
 			ok = 1;
 			break;
 
+		case 't': // Get first high and low time stamps of
+			printf("TimeStamp %d,%d\n", m_pTemplateMatch->getFirstTimeStampHigh(),
+					                    m_pTemplateMatch->getFirstTimeStampLow());
+			sprintf(answer, "TimeStamp,%d,%d\n", m_pTemplateMatch->getFirstTimeStampHigh(),
+					                             m_pTemplateMatch->getFirstTimeStampLow());
+			ok = 1;
+			break;
+
 		case 'v': // Read version number
 			printf("Software version number %d.%d\n", majorVer_, minorVer_);
 			sprintf(answer, "Version,%d.%d\n", majorVer_, minorVer_);
@@ -715,14 +723,20 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len, int id)
 				break;
 
 			case 'b': // Start processing neuron samples
-				if (m_executeMode == 0)
+				if (m_executeMode == 0) {
 					m_pDataThread->runThread(Thread::PRIORITY_ABOVE_NORMAL, "DataUDPThread");
-				else {
-					m_pTemplateMatch->updateConfig(m_numSamples);
-					//m_pTemplateMatch->runThread(Thread::PRIORITY_ABOVE_NORMAL, "TemplateMatch");
-					m_pTemplateMatch->runThread(Thread::PRIORITY_NORMAL, "TemplateMatch");
+					length = okAnswer(pAnswer);
+				} else {
+					if (m_pTemplateMatch->isRunning()) {
+						strcpy(pAnswer, "Running\n");
+						length = strlen(pAnswer)+1;
+					} else {
+						m_pTemplateMatch->updateConfig(m_numSamples);
+						//m_pTemplateMatch->runThread(Thread::PRIORITY_ABOVE_NORMAL, "TemplateMatch");
+						m_pTemplateMatch->runThread(Thread::PRIORITY_NORMAL, "TemplateMatch");
+						length = okAnswer(pAnswer);
+					}
 				}
-				length = okAnswer(pAnswer);
 				break;
 
 			case 'e': // Stop processing of neuron samples
@@ -731,6 +745,13 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len, int id)
 				else
 					m_pTemplateMatch->stopRunning();
 				length = okAnswer(pAnswer);
+				break;
+
+			case 'k': // Kill processing of neuron samples
+				if (m_executeMode > 0) {
+					m_pTemplateMatch->stopAndKill(); // Stop and kill thread
+					length = okAnswer(pAnswer);
+				}
 				break;
 
 			case '?':
@@ -759,6 +780,8 @@ int CliCommand::printCommands(void)
 	sprintf(string, "b - begin processing neuron samples\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "e - end processing neuron samples\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "k - kill processing neuron samples (Used when stucked)\r\n");
 	strcat(commandsText, string);
 
 	sprintf(string, "\r\nFile operations SD card:\r\n");
@@ -820,6 +843,8 @@ int CliCommand::printCommands(void)
 	sprintf(string, "g,p - read processing mode: transmit UDP samples(0), real-time neuron trigger(1), trigger from SD card(2)\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "g,s - read switch settings only on ZedBoard\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "g,t - get first high and low time stamps of sample data\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "g,v - read software version\r\n");
 	strcat(commandsText, string);
