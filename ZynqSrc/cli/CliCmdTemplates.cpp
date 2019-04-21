@@ -473,6 +473,7 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 			case 'e': // Set duration of experiment in seconds
 				if (parseCmd1(&value)) {
 					m_numSamples = value*Fs_RATE; // Sample rate = 30 kHz
+					m_pTestDataSDCard->setNumSamplesCollect(m_numSamples);
 					printf("Duration of experiment set to %d sec. processing %d samples\n", value, m_numSamples);
 					ok = 1;
 				}
@@ -569,7 +570,7 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 
 			case 'p': // Set processing mode
 				if (parseCmd1(&value)) {
-					if (0 <= value && value <= 2) {
+					if (0 <= value && value <= 3) {
 						printf("Processing mode %d\n", value);
 						m_executeMode = value;
 						ok = 1;
@@ -723,10 +724,18 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len, int id)
 				break;
 
 			case 'b': // Start processing neuron samples
-				if (m_executeMode == 0) {
+				if (m_executeMode == 0) { // Transmitting UDP samples to PC
 					m_pDataThread->runThread(Thread::PRIORITY_ABOVE_NORMAL, "DataUDPThread");
 					length = okAnswer(pAnswer);
-				} else {
+				} else if (m_executeMode == 3) { // Collecting and writing sample to "HPPDATA.BIN" file
+					if (m_pTestDataSDCard->isRunning()) {
+						strcpy(pAnswer, "Running\n");
+						length = strlen(pAnswer)+1;
+					} else {
+						m_pTestDataSDCard->runThread(Thread::PRIORITY_NORMAL, "DataSDCard");
+						length = okAnswer(pAnswer);
+					}
+				} else { // Performing template matching
 					if (m_pTemplateMatch->isRunning()) {
 						strcpy(pAnswer, "Running\n");
 						length = strlen(pAnswer)+1;
@@ -742,16 +751,23 @@ int CliCommand::execute(char *cmd, char *pAnswer, int len, int id)
 			case 'e': // Stop processing of neuron samples
 				if (m_executeMode == 0)
 					m_pDataThread->setStreaming(false);
+				else if (m_executeMode == 3)
+					m_pTestDataSDCard->stopRunning();
 				else
 					m_pTemplateMatch->stopRunning();
 				length = okAnswer(pAnswer);
 				break;
 
 			case 'k': // Kill processing of neuron samples
-				if (m_executeMode > 0) {
+				if (m_executeMode == 0) {
+					m_pDataThread->setStreaming(false);
+					m_pDataThread->kill();
+				} else if (m_executeMode == 3) {
+					m_pTestDataSDCard->stopAndKill();
+				} else {
 					m_pTemplateMatch->stopAndKill(); // Stop and kill thread
-					length = okAnswer(pAnswer);
 				}
+				length = okAnswer(pAnswer);
 				break;
 
 			case '?':
@@ -827,7 +843,7 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "s,o,<filename>,<samples> - open and load sample data file from SD card\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,p,<mode> - set processing mode: transmit UDP samples(0), real-time neuron trigger(1), trigger from SD card(2)\r\n");
+	sprintf(string, "s,p,<mode> - processing mode: tx UDP samples(0), real-time trigger(1), trigger SD card(2), collect on SD card(3)\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,t,<nr>,<thres> - set threshold for template (1-6) used to trigger neuron activation using NXCOR\r\n"); // Normalized cross correlation
 	strcat(commandsText, string);

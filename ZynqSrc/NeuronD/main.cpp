@@ -45,6 +45,11 @@ TemplateMatch mTemplateMatch(&testDataSDCard); // Task to perform neural templat
 CliCommand    cliCommand(&mTemplateMatch, &dataThread, &testDataSDCard); // Task to handle user command line interface (CLI) over sockets
 CliTCPThread  cliThread; // Task to create and wait for socket connection
 
+static int16_t *GenSamples(void)
+{
+	return testDataSDCard.GenerateSamples();
+}
+
 int main()
 {
 
@@ -58,6 +63,8 @@ int main()
 	printf("Performs 60 taps FIR filtering and NXCOR template matching\r\n");
 	printf("Maximum 60 seconds of samples will be used from DATA.bin\r\n");
 	printf("-------------------------------------------------------------\r\n");
+
+	testDataSDCard.setFuncToGenSamples(&GenSamples); // Add function to get sample data when stored to SD card
 
 	printf("Read template configuration from CONFIG.txt\r\n");
 	config.loadConfig("CONFIG.txt");

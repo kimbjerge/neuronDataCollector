@@ -22,7 +22,7 @@ int main_hpp( void );
 
 TestDataSDCard testDataSDCard;
 HPPDataSDGenerator HPPSDGenerator(&testDataSDCard);
-#if 0 // For fast time measure reading data from SD card as fast as possible
+#if 0 // For fast time measure reading data from SD card as fast as possible, (Leds and TestIO must be disabled)
 TemplateMatch mTemplateMatch(&testDataSDCard); // Read next sample data from SD Card
 #else
 TemplateMatch mTemplateMatch(&HPPSDGenerator); // Wait for new HPP samples before read next sample data from SD Card
@@ -35,6 +35,11 @@ DataUDPThread dataThread(&hppDataGenerator);
 Config 		  config;
 CliTCPThread  cliThread;
 CliCommand    cliCommand(&mTemplateMatch, &dataThread, &testDataSDCard);
+
+static int16_t *GenSamples(void)
+{
+	return HPPSDGenerator.GenerateSamples();
+}
 
 int main()
 {
@@ -59,6 +64,7 @@ int main()
 
 	//HPPSDGenerator.setFromSDCard(true); // Data from SD Card or Digital Lynx SX
 	HPPSDGenerator.addCliCommand(&cliCommand); // Use CLI interface to control processing mode
+	testDataSDCard.setFuncToGenSamples(&GenSamples); // Add function to get sample data when running process mode 3 (Storing HPPDATA.BIN file)
 
 	// Initialize HPP and FreeRTOS CLI using UART with neural spike processing demos
 	main_hpp();

@@ -33,6 +33,7 @@ public:
     int list(char *fileList, int len); // Returns files in directory (max. numFiles)
     int del(char *name); // Delete file
     int rename(char *oldName, char *newName);
+    char *getFileName(void) { return fileName; }
 
 	static bool m_mounted;
 

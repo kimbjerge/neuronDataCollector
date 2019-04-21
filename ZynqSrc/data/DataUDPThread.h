@@ -18,6 +18,7 @@ using namespace AbstractOS;
 
 #define DATA_UDP_PORT 			26090
 #define REMOTE_IP_CFG           IP4_ADDR(&RemoteAddr,  192, 168, 1, 20)
+#define NUM_TX_RECORDS			322 // Number of records in each UPD package  (46*7)*200 = 64400 (MTU 7*200=1400)
 
 class DataUDPThread : public Thread
 {
@@ -41,7 +42,7 @@ private:
 	Switch sw;
 	int counter;
 	bool running;
-	LRECORD lxRecord;
+	LRECORD lxRecord[NUM_TX_RECORDS];
 	NeuronData *pNeuronData;
 };
 

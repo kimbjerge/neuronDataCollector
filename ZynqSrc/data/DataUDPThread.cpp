@@ -108,7 +108,8 @@ void DataUDPThread::run()
 	err_t udpsenderr;
 	int status = 0;
 	u8			Error;
-	bool ledOn = false;
+    int start_tick, end_tick;
+	bool ledOn = true;
 
     print_app_header();
 
@@ -126,6 +127,8 @@ void DataUDPThread::run()
     Error = 0;
     counter = 0;
     running = true;
+	leds.setOn(Leds::LED0, ledOn);
+	start_tick = xTaskGetTickCount();
 
 	/* transmit packets */
 	while (Error==0 && running) {
@@ -133,13 +136,18 @@ void DataUDPThread::run()
 		if (sw.isOn(Switch::SW0)) {
 
 			//printf("%d\r", counter++);
-			ledOn = !ledOn;
-			leds.setOn(Leds::LED0, ledOn);
+			//ledOn = !ledOn;
+			if (ledOn == false) {
+				ledOn = true;
+				leds.setOn(Leds::LED0, ledOn);
+			}
 
 			// Send out the lxRecord over UDP
-			pNeuronData->GenerateSampleRecord(&lxRecord);
+			for (int i = 0; i < NUM_TX_RECORDS; i++)
+				pNeuronData->GenerateSampleRecord(&lxRecord[i]);
+
 			psnd = pbuf_alloc(PBUF_TRANSPORT, sizeof(lxRecord), PBUF_REF);
-			psnd->payload = &lxRecord;
+			psnd->payload = lxRecord;
 			udpsenderr = udp_sendto(&send_pcb, psnd, &RemoteAddr, RemotePort);
 			pbuf_free(psnd);
 			if (udpsenderr != ERR_OK){
@@ -147,20 +155,25 @@ void DataUDPThread::run()
 				Error = 1;
 			}
 			counter++;
+
 		} else {
-			if (ledOn) {
-				ledOn = false;
-				leds.setOn(Leds::LED0, ledOn);
-			}
-			vTaskDelay( pdMS_TO_TICKS( 100 ) );
+			ledOn = !ledOn;
+			leds.setOn(Leds::LED0, ledOn);
+			vTaskDelay( pdMS_TO_TICKS( 200 ) );
 		}
 
-		vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) );
-		//vTaskDelay( pdMS_TO_TICKS( 1 ) );
+#ifdef ZEDBOARD_DEBUG
+		//vTaskDelay( pdMS_TO_TICKS( 0.0333333 ) ); // Sample rate 30 kHz Ts=0.0333 ms
+		vTaskDelay( pdMS_TO_TICKS( 10 ) ); // Max. rate for PC to receive data Ts=10 ms
+#endif
+
 	}
 
 	// Jump point for failure
 ErrorOrDone:
+	end_tick = xTaskGetTickCount();
+
+	printf("Tick start %d and tick end %d, duration = %d ms\r\n", start_tick, end_tick, (1000*(end_tick-start_tick))/configTICK_RATE_HZ);
 	xil_printf("UDP data thread shutting down and exit\n\r");
 
 	while (Error != 0) {

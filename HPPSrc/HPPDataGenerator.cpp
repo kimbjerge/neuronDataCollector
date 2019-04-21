@@ -105,7 +105,7 @@ void HPPDataGenerator::GenerateSampleRecord(LRECORD *pLxRecord)
 	pLxRecord->header.timestampHigh = 0;
 	pLxRecord->header.timestampLow = 0;
 	pLxRecord->header.ttlIO = 0;
-	pLxRecord->header.systemStatus = 1;
+	pLxRecord->header.systemStatus = 0;
 
 	if (m_generatePulse)
 	{
@@ -129,7 +129,7 @@ void HPPDataGenerator::GenerateSampleRecord(LRECORD *pLxRecord)
 					pLxRecord->header.timestampHigh = HPP_Data[cur_index].TimeStamp_High;
 					pLxRecord->header.timestampLow = HPP_Data[cur_index].TimeStamp_Low;
 					pLxRecord->header.ttlIO = HPP_Data[cur_index].TTL_Port_Values;
-					pLxRecord->header.systemStatus = 0;
+					pLxRecord->header.systemStatus = m_n;
 
 					// Collect HPP data channels 0-31 from DDR memory
 					for (int j = 0; j < NUM_BOARDS; j++)
