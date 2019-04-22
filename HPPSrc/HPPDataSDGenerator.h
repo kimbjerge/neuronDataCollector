@@ -23,7 +23,6 @@ public:
 	virtual int16_t *GenerateSamples(void);
 	virtual void reset(void) { m_initialized = false; m_n = 0; m_pTestDataSDCard->reset(); }
 
-	void setFromSDCard (bool fromSDCard) { m_dataFromSDCard = fromSDCard; };
 	void addCliCommand(CliCommand *pCliCommand) { m_pCliCommand = pCliCommand; };
 
 private:
@@ -31,7 +30,6 @@ private:
 	CliCommand *m_pCliCommand;
 	int16_t m_Samples[NUM_CHANNELS];
 	//int32_t m_SamplesInt[NUM_CHANNELS];
-	bool m_dataFromSDCard;
 };
 
 

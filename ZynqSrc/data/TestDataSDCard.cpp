@@ -75,11 +75,11 @@ int16_t *TestDataSDCard::GenerateSamples(void)
 
 void TestDataSDCard::GenerateSampleRecord(LRECORD *pLxRecord)
 {
-	pLxRecord->header.packetId = 1;
+	pLxRecord->header.packetId = m_n;
 	pLxRecord->header.timestampHigh = 1;
 	pLxRecord->header.timestampLow = 2;
 	pLxRecord->header.ttlIO = 0;
-	pLxRecord->header.systemStatus = m_n;
+	pLxRecord->header.systemStatus = 1;
 
 	if (m_generatePulse) {
 
@@ -93,6 +93,7 @@ void TestDataSDCard::GenerateSampleRecord(LRECORD *pLxRecord)
 
 	} else
 		m_n = 0;
+
 	AddCheckSum(pLxRecord);
 }
 

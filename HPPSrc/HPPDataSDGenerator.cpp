@@ -24,7 +24,6 @@ extern SemaphoreHandle_t xHPP_Spike_Detect_Sem;
 HPPDataSDGenerator::HPPDataSDGenerator(TestDataSDCard *pDataSDCard)
 {
 	m_pTestDataSDCard = pDataSDCard;
-	m_dataFromSDCard = true;
 	m_pCliCommand = 0;
 }
 
@@ -37,43 +36,42 @@ int16_t *HPPDataSDGenerator::GenerateSamples(void)
 	u32 cur_index = 0;
 	int16_t* nextSamples = 0;
 
-	if (m_generatePulse)
+	if (xHPP_Spike_Detect_Sem != NULL)
 	{
-		if (xHPP_Spike_Detect_Sem != NULL)
-		{
-			if (!m_initialized) {
-				//printf("Calling InitHPPDataGenerator\r\n");
-				InitHPPDataGenerator(4);
-				xil_printf("Interface to SX motherboard initialized\r\n");
-				m_initialized = true;
-				//SetLEDOn(true); // Turn LED S1 on
-			}
-			if (xSemaphoreTake(xHPP_Spike_Detect_Sem, portMAX_DELAY) == pdTRUE)
-			{
-				if (num_data_buffers_loaded > 31)
-				{
-					cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK; // & is faster than %, so the mask is setup for &
-					if (m_pCliCommand != 0)
-						m_dataFromSDCard = (m_pCliCommand->getMode() == 2); // Mode 2 - used data from SD card
-					if (m_dataFromSDCard) {
-		 				// Data from SD card
-						nextSamples = m_pTestDataSDCard->GenerateSamples(); // Use samples from SD card instead of HPP
-					} else {
-						// Data from Digital Lynx
-						for (int ch = 0; ch < NUM_CHANNELS; ch++) {
-							//m_SamplesInt[ch] = HPP_Data[cur_index].AD[ch]; // Max. values are +/-132.000 (18 bit)
-							//m_Samples[ch] = HPP_Data[cur_index].AD[ch] >> 2; // Truncate and remove 2 bits of precision
-							m_Samples[ch] = (HPP_Data[cur_index].AD[ch]+2) >> 2; // Round and remove 2 bits of precision
-						}
-						m_TimeStampHigh = HPP_Data[cur_index].TimeStamp_High;
-						m_TimeStampLow = HPP_Data[cur_index].TimeStamp_Low;
-						nextSamples = (int16_t *)m_Samples;
-					}
+		if (!m_initialized) {
+			//printf("Calling InitHPPDataGenerator\r\n");
+			InitHPPDataGenerator(4);
+			xil_printf("Interface to SX motherboard initialized\r\n");
+			m_initialized = true;
+			last_cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK;
+			//SetLEDOn(true); // Turn LED S1 on
+		}
 
-					if (cur_index != (num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK)) // & is faster than %, so the mask is setup for &
-					{
-						xil_printf("!!!HPP Algorithm is too slow for real time!!!\n\r");
+		if (last_cur_index != (num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK)) // & is faster than %, so the mask is setup for &
+		{
+			xil_printf("!!!HPP Algorithm is too slow for real time!!!\n\r");
+		}
+
+		if (xSemaphoreTake(xHPP_Spike_Detect_Sem, portMAX_DELAY) == pdTRUE)
+		{
+			if (num_data_buffers_loaded > 31)
+			{
+				cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK; // & is faster than %, so the mask is setup for &
+				last_cur_index = cur_index;
+
+				if (m_pCliCommand->getMode() == 2) { // Mode 2 - used data from SD card
+					// Data from SD card
+					nextSamples = m_pTestDataSDCard->GenerateSamples(); // Use samples from SD card instead of HPP
+				} else {
+					// Data from Digital Lynx
+					for (int ch = 0; ch < NUM_CHANNELS; ch++) {
+						//m_SamplesInt[ch] = HPP_Data[cur_index].AD[ch]; // Max. values are +/-132.000 (18 bit)
+						//m_Samples[ch] = HPP_Data[cur_index].AD[ch] >> 2; // Truncate and remove 2 bits of precision
+						m_Samples[ch] = (HPP_Data[cur_index].AD[ch]+2) >> 2; // Round and remove 2 bits of precision
 					}
+					m_TimeStampHigh = HPP_Data[cur_index].TimeStamp_High;
+					m_TimeStampLow = HPP_Data[cur_index].TimeStamp_Low;
+					nextSamples = (int16_t *)m_Samples;
 				}
 			}
 		}

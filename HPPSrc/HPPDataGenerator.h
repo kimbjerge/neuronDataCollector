@@ -26,6 +26,7 @@ public:
 
 protected:
 	bool m_initialized;
+	u32 last_cur_index;
 };
 
 

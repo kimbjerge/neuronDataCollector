@@ -28,7 +28,7 @@ public:
 protected:
 	void AddCheckSum(LRECORD *pLxRecord);
 	bool m_generatePulse;
-	int m_n;
+	uint32_t m_n;
 	int16_t nextDataSamples[NUM_CHANNELS];
 	uint32_t m_TimeStampHigh;
 	uint32_t m_TimeStampLow;

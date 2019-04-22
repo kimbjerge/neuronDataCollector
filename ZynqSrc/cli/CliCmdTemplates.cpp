@@ -856,7 +856,7 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "g,e - read execution time\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "g,p - read processing mode: transmit UDP samples(0), real-time neuron trigger(1), trigger from SD card(2)\r\n");
+	sprintf(string, "g,p - read processing mode: tx UDP samples(0), real-time trigger(1), trigger SD card(2), collect on SD card(3)\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "g,s - read switch settings only on ZedBoard\r\n");
 	strcat(commandsText, string);

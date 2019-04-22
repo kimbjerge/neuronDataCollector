@@ -101,50 +101,47 @@ void HPPDataGenerator::GenerateSampleRecord(LRECORD *pLxRecord)
 {
 	u32 cur_index = 0;
 
-	pLxRecord->header.packetId = 0;
-	pLxRecord->header.timestampHigh = 0;
-	pLxRecord->header.timestampLow = 0;
-	pLxRecord->header.ttlIO = 0;
-	pLxRecord->header.systemStatus = 0;
-
-	if (m_generatePulse)
+	if (xHPP_Spike_Detect_Sem != NULL)
 	{
-		if (xHPP_Spike_Detect_Sem != NULL)
+		if (!m_initialized) {
+			//xil_printf("Calling InitHPPDataGenerator\r\n");
+			InitHPPDataGenerator(4);
+			xil_printf("Interface to SX motherboard initialized\r\n");
+			m_initialized = true;
+			last_cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK;
+		}
+
+		if (last_cur_index != (num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK)) // & is faster than %, so the mask is setup for &
 		{
-			if (!m_initialized) {
-				//xil_printf("Calling InitHPPDataGenerator\r\n");
-				InitHPPDataGenerator(4);
-				xil_printf("Interface to SX motherboard initialized\r\n");
-				m_initialized = true;
-			}
+			xil_printf("!!!HPP Algorithm is too slow for real time!!!\n\r");
+		}
 
-			if (xSemaphoreTake(xHPP_Spike_Detect_Sem, portMAX_DELAY) == pdTRUE)
+		if (xSemaphoreTake(xHPP_Spike_Detect_Sem, portMAX_DELAY) == pdTRUE)
+		{
+			if (num_data_buffers_loaded > 31)
 			{
-				if (num_data_buffers_loaded > 31)
-				{
-					cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK; // & is faster than %, so the mask is setup for &
+				cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK; // & is faster than %, so the mask is setup for &
+				last_cur_index = cur_index;
 
-					// Set time stamps
-					pLxRecord->header.packetId = m_n;
-					pLxRecord->header.timestampHigh = HPP_Data[cur_index].TimeStamp_High;
-					pLxRecord->header.timestampLow = HPP_Data[cur_index].TimeStamp_Low;
-					pLxRecord->header.ttlIO = HPP_Data[cur_index].TTL_Port_Values;
-					pLxRecord->header.systemStatus = m_n;
+				// Set time stamps
+				pLxRecord->header.packetId = m_n;
+				pLxRecord->header.timestampHigh = HPP_Data[cur_index].TimeStamp_High;
+				pLxRecord->header.timestampLow = HPP_Data[cur_index].TimeStamp_Low;
+				pLxRecord->header.ttlIO = HPP_Data[cur_index].TTL_Port_Values;
+				pLxRecord->header.systemStatus = 1;
 
-					// Collect HPP data channels 0-31 from DDR memory
-					for (int j = 0; j < NUM_BOARDS; j++)
-						for (int ch = 0; ch < NUM_CHANNELS; ch++)
-							pLxRecord->board[j].data[ch] = HPP_Data[cur_index].AD[ch+(j*NUM_CHANNELS)];
+				// Collect HPP data channels 0-31 from DDR memory
+				memcpy(&(pLxRecord->board[0].data[0]), &(HPP_Data[cur_index].AD[0]), NUM_CHANNELS*sizeof(int32_t));
 
-					if (cur_index != (num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK)) // & is faster than %, so the mask is setup for &
-					{
-						xil_printf("!!!HPP Algorithm is too slow for real time!!!\n\r");
-					}
-					m_n++;
-				}
+				//for (int j = 0; j < NUM_BOARDS; j++)
+				//	for (int ch = 0; ch < NUM_CHANNELS; ch++)
+				//		pLxRecord->board[j].data[ch] = HPP_Data[cur_index].AD[ch+(j*NUM_CHANNELS)];
+
+				m_n++;
 			}
 		}
 	}
+
 	AddCheckSum(pLxRecord);
 }
 
