@@ -97,6 +97,25 @@ void HPPDataGenerator::SetLEDOn(bool on)
 	}
 }
 
+void HPPDataGenerator::CopySampleRecord(LRECORD *pLxRecord, u32 cur_index)
+{
+	// Set time stamps
+	pLxRecord->header.packetId = m_n;
+	pLxRecord->header.timestampHigh = HPP_Data[cur_index].TimeStamp_High;
+	pLxRecord->header.timestampLow = HPP_Data[cur_index].TimeStamp_Low;
+	pLxRecord->header.ttlIO = HPP_Data[cur_index].TTL_Port_Values;
+	pLxRecord->header.systemStatus = 1;
+
+	// Collect HPP data channels 0-31 from DDR memory
+	memcpy(&(pLxRecord->board[0].data[0]), &(HPP_Data[cur_index].AD[0]), NUM_CHANNELS*sizeof(int32_t));
+
+	//for (int j = 0; j < NUM_BOARDS; j++)
+	//	for (int ch = 0; ch < NUM_CHANNELS; ch++)
+	//		pLxRecord->board[j].data[ch] = HPP_Data[cur_index].AD[ch+(j*NUM_CHANNELS)];
+
+	m_n++;
+}
+
 void HPPDataGenerator::GenerateSampleRecord(LRECORD *pLxRecord)
 {
 	u32 cur_index = 0;
@@ -107,37 +126,26 @@ void HPPDataGenerator::GenerateSampleRecord(LRECORD *pLxRecord)
 			//xil_printf("Calling InitHPPDataGenerator\r\n");
 			InitHPPDataGenerator(4);
 			xil_printf("Interface to SX motherboard initialized\r\n");
+			m_MissedSamples = 0;
 			m_initialized = true;
-			last_cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK;
+			last_cur_index = num_data_buffers_loaded;
 		}
 
-		if (last_cur_index != (num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK)) // & is faster than %, so the mask is setup for &
-		{
-			xil_printf("!!!HPP Algorithm is too slow for real time!!!\n\r");
-		}
-
-		if (xSemaphoreTake(xHPP_Spike_Detect_Sem, portMAX_DELAY) == pdTRUE)
-		{
-			if (num_data_buffers_loaded > 31)
+		if ((last_cur_index+2) <= num_data_buffers_loaded) // & is faster than %, so the mask is setup for &
+		{ // Data left in sample buffer - read next sample
+			last_cur_index++;
+			CopySampleRecord(pLxRecord, last_cur_index & AVAILABLE_BUFFERS_MASK);
+			m_MissedSamples++;
+			//xil_printf("!!Missed %d/%d!!\n\r", last_cur_index, num_data_buffers_loaded);
+		} else { // Wait for new sample
+			if (xSemaphoreTake(xHPP_Spike_Detect_Sem, portMAX_DELAY) == pdTRUE)
 			{
-				cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK; // & is faster than %, so the mask is setup for &
-				last_cur_index = cur_index;
-
-				// Set time stamps
-				pLxRecord->header.packetId = m_n;
-				pLxRecord->header.timestampHigh = HPP_Data[cur_index].TimeStamp_High;
-				pLxRecord->header.timestampLow = HPP_Data[cur_index].TimeStamp_Low;
-				pLxRecord->header.ttlIO = HPP_Data[cur_index].TTL_Port_Values;
-				pLxRecord->header.systemStatus = 1;
-
-				// Collect HPP data channels 0-31 from DDR memory
-				memcpy(&(pLxRecord->board[0].data[0]), &(HPP_Data[cur_index].AD[0]), NUM_CHANNELS*sizeof(int32_t));
-
-				//for (int j = 0; j < NUM_BOARDS; j++)
-				//	for (int ch = 0; ch < NUM_CHANNELS; ch++)
-				//		pLxRecord->board[j].data[ch] = HPP_Data[cur_index].AD[ch+(j*NUM_CHANNELS)];
-
-				m_n++;
+				if (num_data_buffers_loaded > 31)
+				{
+					cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK; // & is faster than %, so the mask is setup for &
+					last_cur_index = num_data_buffers_loaded;
+					CopySampleRecord(pLxRecord, cur_index);
+				}
 			}
 		}
 	}

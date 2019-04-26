@@ -13,6 +13,7 @@ NeuronData::NeuronData()
 	m_n = 0;
 	m_TimeStampHigh = 0;
 	m_TimeStampLow = 0;
+	m_MissedSamples = 0;
 }
 
 NeuronData::~NeuronData()

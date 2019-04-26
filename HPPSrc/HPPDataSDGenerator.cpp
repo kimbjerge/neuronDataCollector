@@ -43,13 +43,16 @@ int16_t *HPPDataSDGenerator::GenerateSamples(void)
 			InitHPPDataGenerator(4);
 			xil_printf("Interface to SX motherboard initialized\r\n");
 			m_initialized = true;
-			last_cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK;
+			m_MissedSamples = 0;
+			last_cur_index = num_data_buffers_loaded;
 			//SetLEDOn(true); // Turn LED S1 on
 		}
 
-		if (last_cur_index != (num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK)) // & is faster than %, so the mask is setup for &
+		if ((last_cur_index+2) <= num_data_buffers_loaded) // & is faster than %, so the mask is setup for &
 		{
-			xil_printf("!!!HPP Algorithm is too slow for real time!!!\n\r");
+			m_MissedSamples++;
+			xil_printf("!!Missed %d/%d!!\n\r", last_cur_index, num_data_buffers_loaded);
+			//xil_printf("!!Missed sample!!\n\r");
 		}
 
 		if (xSemaphoreTake(xHPP_Spike_Detect_Sem, portMAX_DELAY) == pdTRUE)
@@ -57,7 +60,7 @@ int16_t *HPPDataSDGenerator::GenerateSamples(void)
 			if (num_data_buffers_loaded > 31)
 			{
 				cur_index = num_data_buffers_loaded & AVAILABLE_BUFFERS_MASK; // & is faster than %, so the mask is setup for &
-				last_cur_index = cur_index;
+				last_cur_index = num_data_buffers_loaded;
 
 				if (m_pCliCommand->getMode() == 2) { // Mode 2 - used data from SD card
 					// Data from SD card

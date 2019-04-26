@@ -471,7 +471,8 @@ void vHPP_DataInterruptHandler(void *pvNotUsed)
 	{
 		//For ILA debug purposes
 		//SetPSReady(0);
-		xil_printf("Mismatch buffers %d interrupts %d\r", num_data_buffers_loaded, num_data_interrupts[0]);
+		//xil_printf("!!Missed data %d/%d!!\r", num_data_buffers_loaded, num_data_interrupts[0]);
+		//xil_printf("!!Missed data!!\r");
 		if(num_data_buffers_loaded < num_data_interrupts[0])
 		{
 			num_data_buffers_loaded = num_data_interrupts[0];

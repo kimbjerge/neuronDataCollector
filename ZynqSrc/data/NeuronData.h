@@ -20,10 +20,11 @@ public:
 		m_generatePulse = generate;
 	}
 
-	virtual void reset(void) { m_n = 0; }
+	virtual void reset(void) { m_n = 0;  m_MissedSamples = 0;}
 	virtual void GenerateSampleRecord(LRECORD *pLxRecord);
 	virtual int16_t *GenerateSamples(void);
 	virtual void GetTimeStamp(uint32_t *pHigh, uint32_t *pLow);
+	uint32_t GetMissedSamples(void) { return m_MissedSamples; };
 
 protected:
 	void AddCheckSum(LRECORD *pLxRecord);
@@ -32,6 +33,7 @@ protected:
 	int16_t nextDataSamples[NUM_CHANNELS];
 	uint32_t m_TimeStampHigh;
 	uint32_t m_TimeStampLow;
+	uint32_t m_MissedSamples;
 };
 
 #endif // !defined(NEURON_DATA_INCLUDED_)

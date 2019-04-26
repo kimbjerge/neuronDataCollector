@@ -19,12 +19,13 @@ public:
 	virtual ~HPPDataGenerator();
 
 	virtual void GenerateSampleRecord(LRECORD *pLxRecord);
-	virtual void reset(void) { m_initialized = false; m_n = 0; }
+	virtual void reset(void) { m_initialized = false; m_n = 0; m_MissedSamples = 0; }
 
 	int InitHPPDataGenerator(int ttl_output_bitnum);
 	void SetLEDOn(bool on);
 
 protected:
+	void CopySampleRecord(LRECORD *pLxRecord, u32 idx);
 	bool m_initialized;
 	u32 last_cur_index;
 };

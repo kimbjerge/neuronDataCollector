@@ -14,7 +14,7 @@
 #include "TestDataSDCard.h"
 
 #define VERSION_HI		2
-#define VERSION_LO		3
+#define VERSION_LO		4
 #define CMD_BUF_SIZE    8192
 #define DOWN_BLOCK_SIZE 4096 // File block size for downloading files from SD-card
 #define UPLD_BLOCK_SIZE 1024 // File block size for uploading files to SD-card

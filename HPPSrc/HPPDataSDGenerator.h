@@ -21,7 +21,7 @@ public:
 	virtual ~HPPDataSDGenerator();
 
 	virtual int16_t *GenerateSamples(void);
-	virtual void reset(void) { m_initialized = false; m_n = 0; m_pTestDataSDCard->reset(); }
+	virtual void reset(void) { m_initialized = false; m_n = 0; m_pTestDataSDCard->reset(); m_MissedSamples = 0; }
 
 	void addCliCommand(CliCommand *pCliCommand) { m_pCliCommand = pCliCommand; };
 
