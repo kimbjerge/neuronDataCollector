@@ -37,6 +37,7 @@ public:
 private:
 	int create_bind_socket(unsigned port);
 	void print_app_header();
+	void PrintRecords(int cnt);
 
 	Leds leds;
 	Switch sw;

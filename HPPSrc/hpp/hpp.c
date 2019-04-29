@@ -471,7 +471,7 @@ void vHPP_DataInterruptHandler(void *pvNotUsed)
 	{
 		//For ILA debug purposes
 		//SetPSReady(0);
-		//xil_printf("!!Missed data %d/%d!!\r", num_data_buffers_loaded, num_data_interrupts[0]);
+		xil_printf("!!Missed IRQ %d/%d!!\r", num_data_buffers_loaded, num_data_interrupts[0]);
 		//xil_printf("!!Missed data!!\r");
 		if(num_data_buffers_loaded < num_data_interrupts[0])
 		{
@@ -484,11 +484,13 @@ void vHPP_DataInterruptHandler(void *pvNotUsed)
     xHigherPriorityTaskWoken = pdFALSE;
 
     //FastToggleDigIO(0);
-
 	xSemaphoreGiveFromISR(xHPP_Data_Sem, &xHigherPriorityTaskWoken);
+
+#ifndef STOP_HPP_TASKS
 	//xSemaphoreGiveFromISR(xHPP_Burst_Analysis_Sem, &xHigherPriorityTaskWoken);
 	//xSemaphoreGiveFromISR(xHPP_Neural_Ensemble_Sem, &xHigherPriorityTaskWoken);
 	xSemaphoreGiveFromISR(xHPP_Spike_Detect_Sem, &xHigherPriorityTaskWoken);
+#endif
 
 
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);

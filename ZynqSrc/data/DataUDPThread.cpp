@@ -97,6 +97,20 @@ int  DataUDPThread::create_bind_socket(unsigned port)
 	return 0;
 }
 
+void DataUDPThread::PrintRecords(int cnt)
+{
+	for (int i = 0; i < cnt; i++)
+		xil_printf("LX[%02d]%8u,%11u,%7d,%7d,%7d,%7d\r\n",
+				i,
+				lxRecord[i].header.packetId,
+				lxRecord[i].header.timestampLow,
+				lxRecord[i].board[0].data[0],
+				lxRecord[i].board[0].data[9],
+				lxRecord[i].board[0].data[19],
+				lxRecord[i].board[0].data[31]
+				);
+}
+
 // Global Variables for Ethernet handling
 static u16_t    			RemotePort = DATA_UDP_PORT;
 static ip_addr_t  			RemoteAddr;
@@ -120,7 +134,7 @@ void DataUDPThread::run()
 	/* start the receiving application server */
 	//status = create_bind_socket(RemotePort); // Do not receive UDP data yet!
 	if (status != 0){
-		xil_printf("Error in creating and binding UDP receive socket with code: %d\n\r", status);
+		printf("Error in creating and binding UDP receive socket with code: %d\n\r", status);
 		goto ErrorOrDone;
 	}
 
@@ -151,10 +165,14 @@ void DataUDPThread::run()
 			udpsenderr = udp_sendto(&send_pcb, psnd, &RemoteAddr, RemotePort);
 			pbuf_free(psnd);
 			if (udpsenderr != ERR_OK){
-				xil_printf("UDP Send failed with Error %d\n\r", udpsenderr);
+				printf("UDP Send failed with Error %d\n\r", udpsenderr);
 				Error = 1;
 			}
 			counter++;
+
+			// For debugging
+			if (counter%100 == 0) // Print every ~1 seconds
+				PrintRecords(10);
 
 		} else {
 			ledOn = !ledOn;
@@ -172,18 +190,18 @@ void DataUDPThread::run()
 	// Jump point for failure
 ErrorOrDone:
 	end_tick = xTaskGetTickCount();
-
 	printf("Tick start %d and tick end %d, duration = %d ms\r\n", start_tick, end_tick, (1000*(end_tick-start_tick))/configTICK_RATE_HZ);
-	xil_printf("UDP data thread shutting down and exit\n\r");
 
-	while (Error != 0) {
+	while (Error != 0 && running) {
 		// Blinking with led when error
 		ledOn = !ledOn;
 		leds.setOn(Leds::LED0, ledOn);
 		vTaskDelay( pdMS_TO_TICKS( 200 ) );
+		printf(".");
 	}
 
 	leds.setOn(Leds::LED0, false);
+	printf("UDP data thread shutting down and exit\n\r");
     vTaskDelete(NULL);
 }
 
