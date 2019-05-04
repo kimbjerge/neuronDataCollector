@@ -8,10 +8,12 @@ x = eq_impulse(:,2);
 plot(x);
 hold on
 plot(h);
+title('Input signal (blue) and filtered (red)');
 figure,
 freqz(h);
+title('Frequency response of filtered signal');
 
-%%
+%% Butterworth filter
 fs = 30000;
 
 % % Notch filter
@@ -39,40 +41,33 @@ fs = 30000;
 fc1 = 300;
 fc2 = 6000;
 order = 6;
-[b,a] = butter(order,[fc1/(fs/2) fc2/(fs/2)]);
-
+[b,a] = butter(order,[2*fc1/(fs/2) 2*fc2/(fs/2)]);
+figure
 freqz(b,a)
-y1 = filter(b, a, x);
-% figure
-% subplot(2,1,1);
-% plot(20*log10(abs(fft(y1))))
-% 
-y2 = IIRfilter(b, a, x, 31);
-% subplot(2,1,2);
-% plot(20*log10(abs(fft(y2))))
-
-%figure, plot(y2-y1);
+y1 = filter(b, a, x); % MATLAB double version
+y2 = IIRfilter(b, a, x, 24); % MATLAB fixed point version
 
 %% SOS sections
-[z,p,k] = butter(order, [fc1/(fs/2) fc2/(fs/2)]);
+sos = tf2sos(b,a);
+%[sos,g] = tf2sos(b,a)
+%[z,p,k] = butter(order, [2*fc1/(fs/2) 2*fc2/(fs/2)]);
 %[sos, g] = zp2sos(z,p,k);
-sos = zp2sos(z,p,k);
+%gmean = nthroot(g,size(sos,1))
+%sos = zp2sos(z,p,k);
 %fvtool(sos,'Analysis','freq')
+sos = flipud(sos); % Reverse order of SOS sections with gain compensation as last SOS section
 
 xin = x;
-%gmean = nthroot(g,size(sos,1))
-lenSos = size(sos,1)
-for i=0:lenSos-1
-    yout = IIRfilter(sos(lenSos-i, 1:3), sos(lenSos-i, 4:6), xin, 17); %20 bits
+for i=1:size(sos,1)
+    yout = IIRfilter(sos(i, 1:3), sos(i, 4:6), xin, 17); %20 bits
     xin = round(yout); 
 end
+
 figure
 subplot(3,1,1);
-%plot(xin);
 plot(20*log10(abs(fft(y1))))
 title('MATLAB frequency response (double)');
 subplot(3,1,2);
-%plot(xin);
 plot(20*log10(abs(fft(y2))))
 title('MATLAB frequency response (fixed)');
 subplot(3,1,3);
@@ -80,28 +75,29 @@ plot(20*log10(abs(fft(xin))))
 title('MATLAB frequency response (fixed-SOS)');
 
 figure, 
-plot(y1);
+plot(y2);
 hold on;
 plot(xin);
-plot(y1-xin);
+plot(xin-y1);
 title('MATLAB double (blue) vs. MATLAB fixed-SOS');
-rms(y1-xin)
+rms(xin-y1)
 
 %% Results
 figure
 subplot(2,1,1);
 plot(20*log10(abs(fft(x))))
+title('HLS frequency response before SOS HLS IIR filter');
 subplot(2,1,2);
 plot(20*log10(abs(fft(h))))
-title('HLS frequency response before and after filter');
+title('HLS frequency response after SOS HLS IIR filter');
 
 figure, 
 plot(h);
 hold on;
 plot(xin);
 plot(xin-h);
-rms(xin-h)
 title('HSL fixed (blue) vs. MATLAB fixed-SOS');
+rms(xin-h)
 
 figure, 
 plot(h);

@@ -10,10 +10,10 @@
 #include "stdint.h"
 
 #define 				DATA_CHANNELS 						8
-#define					NUM_TAPS							3 // Number of b or a coefficients
-#define                 NUM_SOS								6 // Number of second order sections (IIR)
+#define					NUM_TAPS							3 // 13 Number of b or a coefficients
+#define                 NUM_SOS								6 // 1 Number of second order sections (IIR)
 #define                 INIT_VALUE                          0x00000000
-#define 				ALGO_BITS							17  // 23 bits resolution of coefficients
+#define 				ALGO_BITS							17  // 24 bits resolution of coefficients
 #define                 sigType                             int32_t
 //#define                 sigType                             int16_t
 

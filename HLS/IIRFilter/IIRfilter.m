@@ -1,7 +1,6 @@
 function [y] = IIRfilter(b,a,x,bits)
 % IIR filter implementaion like done in HLS
 
-%YBITS = 0;
 tabs = length(b);
 xin = zeros(size(b));
 yout = zeros(size(a));
@@ -28,13 +27,11 @@ for i=1:length(x)
    for j=1:tabs
        ysum = ysum + floor(bn(j)*xin(j));
        prod = an(j)*yout(j);
-       %ysum = ysum - floor(prod/2^YBITS);
        ysum = ysum - round(prod);
    end
    
    result = ysum/2^bits;
    yout(1) = result;
         
-   %y(i) = floor(ysum/2^(bits-YBITS));
    y(i) = round(result);
 end

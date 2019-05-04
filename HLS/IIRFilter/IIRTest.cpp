@@ -6,6 +6,9 @@
 
 #define SAMPLES   	100  // Impulse response test
 #define NUM_SAMPLES 30000 // Filter test on real neuron signals
+#define FS          30000.0 // 30 kHz
+#define FREQ        500.0  // 1 Hz test sine signal
+#define GAIN        pow(2,11) // GAIN 12-16 bits overflow?
 
 float m_data[NUM_SAMPLES][32];
 int m_idx;
@@ -42,11 +45,22 @@ void getNextSample(sigType *signal)
 {
 	int ch;
 	for (ch = 0; ch < DATA_CHANNELS; ch++) {
-		signal[ch] = m_data[m_idx][ch];
+		signal[ch] = m_data[m_idx][ch]*2; // Error with *4
 	}
 	m_idx++;
 }
 
+void getNextSine(sigType *signal)
+{
+	int ch;
+	int idx = m_idx%15000;
+	double freq = idx; // Chirp 0-15 kHz
+	int value = round(GAIN*sin(2*M_PI*(double)(freq/FS)*idx));
+	for (ch = 0; ch < DATA_CHANNELS; ch++) {
+		signal[ch] = value;
+	}
+	m_idx++;
+}
 void setValue(sigType *signal, int32_t value)
 {
 	int ch;
@@ -81,7 +95,8 @@ int main ()
   readDataSamples();
   for (i=0; i<NUM_SAMPLES; i++) {
 
-	  getNextSample(samples);
+	  //getNextSample(samples);
+	  getNextSine(samples);
 
 #endif
 
