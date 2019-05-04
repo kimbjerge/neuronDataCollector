@@ -18,7 +18,7 @@ void setCoeff(int32_t *coeff)
 
 	for (i = 0; i < NUM_TAPS*2*NUM_SOS; i++) {
 		//coeff[i] = (i*1000) << (ALGO_BITS-15); // Samples is 1.15 format
-		coeff[i] = (int32_t)round(IIR_coeffs[i] * IIR_gain6 * pow(2, ALGO_BITS));
+		coeff[i] = (int32_t)round(IIR_coeffs[i] * pow(2, ALGO_BITS));
 		//coeff[i] = -8388608+i-NUM_TAPS;
 	}
 

@@ -55,30 +55,36 @@ y2 = IIRfilter(b, a, x, 31);
 
 %% SOS sections
 [z,p,k] = butter(order, [fc1/(fs/2) fc2/(fs/2)]);
-[sos, g] = zp2sos(z,p,k);
-%sos = zp2sos(z,p,k);
+%[sos, g] = zp2sos(z,p,k);
+sos = zp2sos(z,p,k);
 %fvtool(sos,'Analysis','freq')
 
-xin = x*g;
-for i=1:size(sos,1)
-    yout = IIRfilter(sos(i, 1:3), sos(i, 4:6), xin, 17); %20 bits
+xin = x;
+%gmean = nthroot(g,size(sos,1))
+lenSos = size(sos,1)
+for i=0:lenSos-1
+    yout = IIRfilter(sos(lenSos-i, 1:3), sos(lenSos-i, 4:6), xin, 17); %20 bits
     xin = round(yout); 
 end
 figure
 subplot(3,1,1);
 %plot(xin);
 plot(20*log10(abs(fft(y1))))
+title('MATLAB frequency response (double)');
 subplot(3,1,2);
 %plot(xin);
 plot(20*log10(abs(fft(y2))))
+title('MATLAB frequency response (fixed)');
 subplot(3,1,3);
 plot(20*log10(abs(fft(xin))))
+title('MATLAB frequency response (fixed-SOS)');
 
 figure, 
 plot(y1);
 hold on;
 plot(xin);
 plot(y1-xin);
+title('MATLAB double (blue) vs. MATLAB fixed-SOS');
 rms(y1-xin)
 
 %% Results
@@ -87,10 +93,22 @@ subplot(2,1,1);
 plot(20*log10(abs(fft(x))))
 subplot(2,1,2);
 plot(20*log10(abs(fft(h))))
+title('HLS frequency response before and after filter');
 
 figure, 
 plot(h);
 hold on;
 plot(xin);
+plot(xin-h);
+rms(xin-h)
+title('HSL fixed (blue) vs. MATLAB fixed-SOS');
+
+figure, 
+plot(h);
+hold on;
+plot(y1);
+plot(y1-h);
+title('HLS fixed (blue) vs. MATLAB float');
+rms(y1-h)
 
 
