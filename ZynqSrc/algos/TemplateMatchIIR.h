@@ -1,0 +1,100 @@
+/*
+ * TemplateMatch.h
+ *
+ *  Created on: 25. dec. 2018
+ *      Author: Kim Bjerge
+ */
+
+#ifndef SRC_TEMPLATE_MATCH_H_
+#define SRC_TEMPLATE_MATCH_H_
+
+#include "Gpio.h"
+#include "TestIO.h"
+#include "Leds.h"
+#include "Switch.h"
+#include "Thread.h"
+using namespace AbstractOS;
+
+#include "IIRFilter_HLS.h"
+#include "NXCOR_HLS.h"
+#include "NeuronData.h"
+#include "Template.h"
+#include "ResultFile.h"
+#include "Config.h"
+
+#define IIR_FORMAT      23  // Number of bits used for fixed point coefficients
+#define IIR_TAPS   		36  // Number of IIR taps 2x3x6 abxtapsxsos
+#define IIR_SIZE		8   // Number of IIR filters in each IIRFilter HLS class
+#define IIR_NUM         (NUM_CHANNELS/IIR_SIZE)  // Number of IIRFilter classes
+#define TEMP_NUM		6   // Number of templates
+
+#define Fs_RATE         30000 // Sample rate
+#define SAMPLES_SAVED   60*Fs_RATE // Maximum number of samples to save in files for debugging
+
+class TemplateMatch : public Thread
+{
+public:
+
+	TemplateMatch(NeuronData *pData) :  mNumSamples(0), pNeuronData(pData)
+                    { mNumCfgTemplates = TEMP_NUM; mPrintDebug = true; mSaveRawData = false; }
+	TemplateMatch(ThreadPriority pri, string name, NeuronData *pData) :
+					Thread(pri, name), mNumSamples(0), pNeuronData(pData)
+	                { mNumCfgTemplates = TEMP_NUM; mPrintDebug = true; mSaveRawData = false;  }
+	~TemplateMatch();
+
+	int Init(Config *pConfig, int numSamples, IRQ* pIrq = 0);
+	void updateConfig(int numSamples);
+	void stopRunning(void) { mCounter = 1; };
+	void stopAndKill(void) { stopRunning(); mRunning = false; kill(); };
+	bool isRunning(void) { return mRunning; };
+	void printSettings(char *buf = 0);
+	void updateTemplateData(int id, float *data, int length, int width);
+	Config *getConfig(void) { return mpConfig; }
+	void setPrintDebug(bool on) { mPrintDebug = on; };
+	void setSaveRawData(bool on) { mSaveRawData = on; };
+	int getSaveRawData(void) { return mSaveRawData; };
+	unsigned int getFirstTimeStampHigh(void) { return m_FirstTimeStampHigh; }
+	unsigned int getFirstTimeStampLow(void) { return m_FirstTimeStampLow; }
+
+	virtual void run();
+
+private:
+	void updateCoefficients();
+	void updateTemplates();
+	void clearIPCoresMemory();
+	void reset(void);
+	inline void processResults(void);
+	inline void triggerTemplate12(void);
+
+    int mNumCfgTemplates;
+	int mNumSamples;
+	int mCount;
+	int mCounter;
+	NeuronData *pNeuronData;
+	IIRFilter *pIIRFilter[IIR_NUM];
+    NXCOR *pNXCOR[TEMP_NUM];
+    Template *pTemplate[TEMP_NUM];
+	float *pCoeffFloat;
+    int mCoeff[IIR_TAPS];
+    STYPE mFiltered[NUM_CHANNELS];
+    ResultFile<float> *pResultNXCOR[TEMP_NUM];
+    ResultFile<STYPE> *pResultIIR;
+    Leds leds;
+    TestIO testOut;
+    Switch sw;
+    Config *mpConfig;
+
+    // Trigger used to control digital TestIO::JB9
+    // Digital output will be high if neuron template 1 and 2 are activated
+    // Within mTemplate12NumCounts updated from counter in configuration from template 1
+    int mTemplate12Counter;
+    int mTemplate12Trigger;
+    int mTemplate12TriggerIdx;
+    bool mRunning;
+    bool mPrintDebug;
+	bool mSaveRawData;
+	uint32_t m_FirstTimeStampHigh;
+	uint32_t m_FirstTimeStampLow;
+};
+
+#endif /* SRC_TEMPLATE_MATCH_H_ */
