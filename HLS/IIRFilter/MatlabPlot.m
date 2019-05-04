@@ -59,7 +59,7 @@ sos = flipud(sos); % Reverse order of SOS sections with gain compensation as las
 
 xin = x;
 for i=1:size(sos,1)
-    yout = IIRfilter(sos(i, 1:3), sos(i, 4:6), xin, 17); %20 bits
+    yout = IIRfilter(sos(i, 1:3), sos(i, 4:6), xin, 23); 
     xin = round(yout); 
 end
 

@@ -13,7 +13,7 @@
 #define					NUM_TAPS							3 // 13 Number of b or a coefficients
 #define                 NUM_SOS								6 // 1 Number of second order sections (IIR)
 #define                 INIT_VALUE                          0x00000000
-#define 				ALGO_BITS							17  // 24 bits resolution of coefficients
+#define 				ALGO_BITS							23  // 24 bits resolution of coefficients with max. 22 bits input
 #define                 sigType                             int32_t
 //#define                 sigType                             int16_t
 

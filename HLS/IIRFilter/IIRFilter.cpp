@@ -30,12 +30,11 @@ void initIIR(void) {
 */
 int32_t IIR(int32_t sample, int8_t sos, int8_t channel)
 {
-	//sc_int<48> ysum;
-	int64_t ysum;
-	int32_t y;
-	int32_t x;
-	int32_t b;
-	int32_t a;
+	sc_int<48> ysum;
+	sc_int<48>  y;
+	sc_int<48>  x;
+	sc_int<48>  b;
+	sc_int<48>  a;
 	int32_t result;
 	int8_t i;
 

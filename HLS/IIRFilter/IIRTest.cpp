@@ -4,11 +4,11 @@
 #define IIR_TAPS NUM_TAPS
 #include "IIRFilter_coeffs.h"
 
-#define SAMPLES   	100  // Impulse response test
-#define NUM_SAMPLES 30000 // Filter test on real neuron signals
-#define FS          30000.0 // 30 kHz
-#define FREQ        500.0  // 1 Hz test sine signal
-#define GAIN        pow(2,11) // GAIN 12-16 bits overflow?
+#define SAMPLES   	100  		// Impulse response test
+#define NUM_SAMPLES 30000 		// Filter test on real neuron signals
+#define FS          30000.0 	// 30 kHz
+#define GAIN        pow(2,21)   // Max. 22 bits inputs
+#define SCALEBITS   4		    // Scale input to improve precision
 
 float m_data[NUM_SAMPLES][32];
 int m_idx;
@@ -45,7 +45,7 @@ void getNextSample(sigType *signal)
 {
 	int ch;
 	for (ch = 0; ch < DATA_CHANNELS; ch++) {
-		signal[ch] = m_data[m_idx][ch]*2; // Error with *4
+		signal[ch] = m_data[m_idx][ch];
 	}
 	m_idx++;
 }
@@ -74,6 +74,8 @@ int main ()
 {
   FILE   *fp;
   sigType samples[DATA_CHANNELS];
+  sigType inSamples[DATA_CHANNELS];
+  sigType outSamples[DATA_CHANNELS];
   sigType output[DATA_CHANNELS];
   int32_t coefficients[NUM_TAPS*2*NUM_SOS];
 
@@ -81,7 +83,7 @@ int main ()
 
   fp=fopen("eq_impulse.dat","w");
 
-  int i;
+  int i, j;
 
 #if 0
   /* Impulse response test */
@@ -95,12 +97,18 @@ int main ()
   readDataSamples();
   for (i=0; i<NUM_SAMPLES; i++) {
 
-	  //getNextSample(samples);
-	  getNextSine(samples);
+	  getNextSample(samples);
+	  //getNextSine(samples);
 
 #endif
 
-	  IIRFilter(output, samples, NULL, DATA_CHANNELS);
+	  for (j=0; j<DATA_CHANNELS; j++)
+		  inSamples[j] = samples[j] << SCALEBITS;
+
+	  IIRFilter(outSamples, inSamples, NULL, DATA_CHANNELS);
+
+	  for (j=0; j<DATA_CHANNELS; j++)
+		  output[j] = (outSamples[j]+(1<<SCALEBITS-1)) >> SCALEBITS;
 	  
 	  for (int ch = 0; ch < DATA_CHANNELS; ch++)
 		  printf("%i %d %d\n", i, samples[ch], output[ch]);
