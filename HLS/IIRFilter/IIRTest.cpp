@@ -7,8 +7,8 @@
 #define SAMPLES   	100  		// Impulse response test
 #define NUM_SAMPLES 30000 		// Filter test on real neuron signals
 #define FS          30000.0 	// 30 kHz
-#define GAIN        pow(2,21)   // Max. 22 bits inputs
-#define SCALEBITS   4		    // Scale input to improve precision
+#define GAIN        (pow(2,15)*0.86)   // Max. 22 bits inputs where 4 bits used to accuracy, scale input due to filter output > short
+#define SCALEBITS   0		    // Scale input to improve precision
 
 float m_data[NUM_SAMPLES][32];
 int m_idx;
@@ -97,19 +97,29 @@ int main ()
   readDataSamples();
   for (i=0; i<NUM_SAMPLES; i++) {
 
-	  getNextSample(samples);
-	  //getNextSine(samples);
+	  //getNextSample(samples);
+	  getNextSine(samples);
 
 #endif
 
+#if SCALEBITS > 0
 	  for (j=0; j<DATA_CHANNELS; j++)
 		  inSamples[j] = samples[j] << SCALEBITS;
+#else
+	  for (j=0; j<DATA_CHANNELS; j++)
+		  inSamples[j] = samples[j];
+#endif
 
 	  IIRFilter(outSamples, inSamples, NULL, DATA_CHANNELS);
 
+#if SCALEBITS > 0
 	  for (j=0; j<DATA_CHANNELS; j++)
 		  output[j] = (outSamples[j]+(1<<SCALEBITS-1)) >> SCALEBITS;
-	  
+#else
+	  for (j=0; j<DATA_CHANNELS; j++)
+		  output[j] = outSamples[j];
+#endif
+
 	  for (int ch = 0; ch < DATA_CHANNELS; ch++)
 		  printf("%i %d %d\n", i, samples[ch], output[ch]);
    	  fprintf(fp,"%03i %05d %05d\r\n", i, samples[0], output[0]);

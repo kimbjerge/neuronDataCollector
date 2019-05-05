@@ -84,6 +84,7 @@ int32_t IIR(int32_t sample, int8_t sos, int8_t channel)
 *
 * @retval void : none
 */
+
 void IIRFilter (sigType results[DATA_CHANNELS],
 				sigType samples[DATA_CHANNELS],
 				int32_t coeff[NUM_TAPS*2*NUM_SOS],
@@ -102,13 +103,13 @@ void IIRFilter (sigType results[DATA_CHANNELS],
     else
     {  // Processing SOS IIR filters
     	int32_t inSample, outSample;
-		for (int8_t ch = 0; ch < DATA_CHANNELS; ch++) {
-			inSample = samples[ch];
+    	for (int8_t ch = 0; ch < DATA_CHANNELS; ch++) {
+    		inSample = ((int32_t)samples[ch]) << SHIFT_BITS; // Shift input to improve accuracy
 			for (int8_t sos = 0; sos < NUM_SOS; sos++) {
 				outSample = IIR(inSample, sos, ch);
 				inSample = outSample;
 			}
-			results[ch] = outSample;
+			results[ch] = ((outSample + (1 << (SHIFT_BITS-1))) >> SHIFT_BITS); // Shift output back to improve accuracy
 		}
-    }
+     }
 }
