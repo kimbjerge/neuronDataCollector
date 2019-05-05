@@ -21,20 +21,29 @@ void IIRFilter::startFilter(STYPE *samples)
 {
 	// Clear done flags
 	mResultAvailHlsIIR = 0;
+
+	for (int i=0; i<mNumChannels; i++) // Convert samples from short to int
+		mSamples[i] = ((int)samples[i]) << SHIFT_BITS; // Shift bits to improve accuracy
+
 	// send samples after shifting least significant 8 bits as the filter
 	// requires 16 bit input sample
 	while (XIirfilter_IsReady(&mIIRfilter) == 0); // Polling ready register
-	XIirfilter_Write_samples_Words(&mIIRfilter, 0, (int *)samples, mNumChannels/SNUM);
+	XIirfilter_Write_samples_Words(&mIIRfilter, 0, mSamples, mNumChannels);
 	XIirfilter_Start(&mIIRfilter);
 }
 
 unsigned long IIRFilter::readFiltered(STYPE *results)
 {
+	unsigned long counts;
 	//if (mpIrq != 0)	// Busy wait for fir irq
 	//	while(!mResultAvailHlsFir);
 	//else
 	while (XIirfilter_IsDone(&mIIRfilter) == 0); // Polling done register
-	return XIirfilter_Read_results_Words(&mIIRfilter, 0, (int *)results, mNumChannels/SNUM);
+	counts =  XIirfilter_Read_results_Words(&mIIRfilter, 0, mSamples, mNumChannels);
+
+	for (int i=0; i<mNumChannels; i++) // Convert samples from int to short
+		results[i] = (mSamples[i] + (1<<(SHIFT_BITS-1))) >> SHIFT_BITS; // Round and shift bits back
+	return counts;
 }
 
 void IIRFilter::executeFilter(STYPE *samples)

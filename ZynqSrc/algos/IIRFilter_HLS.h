@@ -11,8 +11,9 @@
 #include "xiirfilter.h"
 #include "IRQ.h"
 
-#define STYPE      	  int16_t // Sample type used by HLS IP Core - Version 1.0 uses int32_t
-#define SNUM          2       // Number of samples in int32_t
+#define STYPE      	  int16_t // Sample type used, but HLS IIR core uses int32_t
+#define NUM_IIR_CH    8       // Number of IIR filter channels in HLS IIR core
+#define SHIFT_BITS    4		  // Number of bits to shift sample in conversion from 16 to 32 bits improves accuracy
 
 class IIRFilter
 {
@@ -37,6 +38,7 @@ private:
 	int mDeviceId;
 	int mNumChannels;
 	int mNumTaps;
+	int mSamples[NUM_IIR_CH];
 	volatile int mResultAvailHlsIIR;
 
 	// HLS IIR HW instance

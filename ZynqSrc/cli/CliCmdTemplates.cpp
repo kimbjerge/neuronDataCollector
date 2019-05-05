@@ -849,7 +849,7 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "s,u,<size> - upload sample data (32 channels) of size in bytes - binary floats to be send after command\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,w,<0|1> - set saving raw RAWDATA.BIN (1) or filtered FIRFILT.BIN (0) sample data\r\n");
+	sprintf(string, "s,w,<0|1> - set saving raw RAWDATA.BIN (1) or filtered IIRFILT.BIN/FIRFILT.BIN (0) sample data\r\n");
 	strcat(commandsText, string);
 
 	sprintf(string, "g,c - read configuration for template matching using NXCOR\r\n");
