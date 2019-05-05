@@ -12,7 +12,13 @@
 
 #define MAX_CONFIG_SIZE 	5000
 #define MAX_CFG_TEMPLATES 	10
-#define MAX_TAPS			60
+
+#ifdef USE_IIR
+#define MAX_TAPS			36  // 36 Coefficients when 6xIIR SOS filter used
+#else
+#define MAX_TAPS			60  // 60 Coefficients when FIR filter used
+#endif
+
 #define MAX_CHANNELS        32
 
 typedef struct TemplateCfg {

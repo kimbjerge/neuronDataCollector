@@ -8,13 +8,19 @@
 #ifndef CLICOMMAND_H_
 #define CLICOMMAND_H_
 
-#include "TemplateMatch.h"
+#define VERSION_HI		3	  // 2.5 Last version with FIR filter
+#define VERSION_LO		0     //
+
+#if VERSION_HI == 2
+#include "TemplateMatch.h"// "TemplateMatch.h" version 2.5
+#else
+#include "TemplateMatchIIR.h"// version 3.x
+#endif
+
 #include "DataUDPThread.h"
 #include "FileSDCard.h"
 #include "TestDataSDCard.h"
 
-#define VERSION_HI		2
-#define VERSION_LO		5
 #define CMD_BUF_SIZE    8192
 #define DOWN_BLOCK_SIZE 4096 // File block size for downloading files from SD-card
 #define UPLD_BLOCK_SIZE 1024 // File block size for uploading files to SD-card

@@ -64,9 +64,14 @@ int16_t *HPPDataSDGenerator::GenerateSamples(void)
 		} else {
 			// Data from Digital Lynx
 			for (int ch = 0; ch < NUM_CHANNELS; ch++) {
-				//m_SamplesInt[ch] = HPP_Data[cur_index].AD[ch]; // Max. values are +/-132.000 (18 bit)
+
+#if VERSION_LO == 0
 				//m_Samples[ch] = HPP_Data[cur_index].AD[ch] >> 2; // Truncate and remove 2 bits of precision
-				m_Samples[ch] = (HPP_Data[cur_index].AD[ch]+2) >> 2; // Round and remove 2 bits of precision
+				m_Samples[ch] = (HPP_Data[cur_index].AD[ch]+2) >> 2; // Round and remove 2 bits of precision V.3.0 Max. values are +/-132.000 (18 bit)
+#else
+				m_SamplesInt[ch] = HPP_Data[cur_index].AD[ch]; //  Above version 3.0 - don't scale input
+#endif
+
 			}
 			m_TimeStampHigh = HPP_Data[cur_index].TimeStamp_High;
 			m_TimeStampLow = HPP_Data[cur_index].TimeStamp_Low;
