@@ -14,7 +14,7 @@
 #define                 NUM_SOS								6 // 1 Number of second order sections (IIR)
 #define                 INIT_VALUE                          0x00000000
 #define 				ALGO_BITS							23  // 24 bits resolution of coefficients with max. 22 bits input
-#define                 SHIFT_BITS                          4   // Number of bits to shift samples to improve accuracy, input max. 18 bits
+#define                 SHIFT_BITS                          5   // Number of bits to shift samples to improve accuracy, input max. 18 bits
 //#define                 sigType                             int32_t
 #define                 sigType                             int16_t
 
