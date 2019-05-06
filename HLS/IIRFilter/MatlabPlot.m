@@ -45,7 +45,7 @@ order = 6;
 figure
 freqz(b,a)
 y1 = filter(b, a, x); % MATLAB double version
-y2 = IIRfilter(b, a, x, 24); % MATLAB fixed point version
+y2 = IIRfilter(b, a, x, 23); % MATLAB fixed point version
 
 %% SOS sections
 sos = tf2sos(b,a);
@@ -75,12 +75,13 @@ plot(20*log10(abs(fft(xin))))
 title('MATLAB frequency response (fixed-SOS)');
 
 figure, 
-plot(y2);
+plot(xin);
 hold on;
 plot(xin);
 plot(xin-y1);
 title('MATLAB double (blue) vs. MATLAB fixed-SOS');
-rms(xin-y1)
+ErrorDoubleVsFixed = rms(y2-y1)
+ErrorDoubleVsFixedSOS = rms(xin-y1)
 
 %% Results
 figure
@@ -97,14 +98,14 @@ hold on;
 plot(xin);
 plot(xin-h);
 title('HSL fixed (blue) vs. MATLAB fixed-SOS');
-rms(xin-h)
+ErrorHLSvsFixedSOS = rms(xin-h)
 
 figure, 
 plot(h);
 hold on;
 plot(y1);
 plot(y1-h);
-title('HLS fixed (blue) vs. MATLAB float');
-rms(y1-h)
+title('HLS fixed (blue) vs. MATLAB double');
+ErrorHLSvsDouble = rms(y1-h)
 
 

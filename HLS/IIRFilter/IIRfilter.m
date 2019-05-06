@@ -20,7 +20,7 @@ for i=1:length(x)
         yout(j) = yout(j-1);
     end
     
-   xin(1) = x(i);
+   xin(1) = x(i)*2^5;
    yout(1) = 0;
    
    ysum = 0;
@@ -30,8 +30,9 @@ for i=1:length(x)
        ysum = ysum - round(prod);
    end
    
-   result = ysum/2^bits;
+   result = round(ysum/2^bits);
    yout(1) = result;
         
-   y(i) = round(result);
+   y(i) = round(result/2^5);
 end
+

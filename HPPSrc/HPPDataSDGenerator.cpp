@@ -69,7 +69,7 @@ int16_t *HPPDataSDGenerator::GenerateSamples(void)
 				//m_Samples[ch] = HPP_Data[cur_index].AD[ch] >> 2; // Truncate and remove 2 bits of precision
 				m_Samples[ch] = (HPP_Data[cur_index].AD[ch]+2) >> 2; // Round and remove 2 bits of precision V.3.0 Max. values are +/-132.000 (18 bit)
 #else
-				m_Samples[ch] = HPP_Data[cur_index].AD[ch]; //  Version 3.1 and above - don't scale input
+				m_Samples[ch] = (HPP_Data[cur_index].AD[ch]+8) >> 8; //  Version 3.1 scale input from 24 to 16 bits
 #endif
 
 			}
