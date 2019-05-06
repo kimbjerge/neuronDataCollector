@@ -2,10 +2,10 @@ clear
 %close all
 
 fs = 30000;
-fc1 = 300;
-fc2 = 6000;
+fc1 = 100;
+fc2 = 12000;
 order = 6;
-[b,a] = butter(order,[2*fc1/(fs/2) 2*fc2/(fs/2)]);
+[b,a] = butter(order,[fc1/(fs/2) fc2/(fs/2)]);
 freqz(b,a)
 %y1 = filter(b, a, x); % MATLAB double version
 %y2 = IIRfilter(b, a, x, 24); % MATLAB fixed point version
@@ -50,7 +50,7 @@ for i=1:size(sos,1)
     sosArray = [sosArray sos(i,:)];
 end
 
-name = 'IIR';
+name = 'IIR12';
 SaveFilterHeaderFile(sosArray, 'IIRFilter_coeffs.h');
 SaveFilterTxtFile(sosArray, [name '.txt']);
 SaveFilterBinFile(32, sosArray, [name '.bin']);

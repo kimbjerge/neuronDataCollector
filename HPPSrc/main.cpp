@@ -52,8 +52,8 @@ int main()
 	printf("--------------------------------------------------------------------\r\n");
 	printf("Loads test data from SD card of 32 channels and max. 6 templates\r\n");
 	printf("Template max. size of width 9 channels and 17 in length\r\n");
-	printf("Performs 60 taps FIR filtering and NXCOR template matching\r\n");
-	printf("Loads samples DATA.bin, configuration CONFIG.txt, filter FIR.txt\r\n");
+	printf("Performs 6xIIR SOS filtering and NXCOR template matching\r\n");
+	printf("Loads samples DATA.bin, configuration CONFIG.txt, filter IIR.txt\r\n");
 	printf("Maximum 60 seconds of samples and NXCOR will be logged for debugging\r\n");
 	printf("--------------------------------------------------------------------\r\n");
 	printf("Control operation remotely on Ethernet 198.168.1.10 port 7 using telnet\r\n");
@@ -73,9 +73,9 @@ int main()
 	config.loadConfig("CONFIG.txt");
 	config.loadTemplateConfig();
 
-	printf("Read FIR coefficients from FIR.txt or FIR.bin\r\n");
-	config.loadCoeff("FIR.txt");
-	config.loadCoeffBin("FIR.bin");
+	printf("Read IIR coefficients from IIR.txt or IIR.bin\r\n");
+	config.loadCoeff("IIR.txt");
+	config.loadCoeffBin("IIR.bin");
 
 	printf("Reading test data samples from DATA.bin\r\n");
 	testDataSDCard.readFile((char *)"DATA.bin");
