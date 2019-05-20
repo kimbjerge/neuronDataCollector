@@ -17,6 +17,8 @@
 #define                 SHIFT_BITS                          5   // Number of bits to shift samples to improve accuracy, input max. 18 bits
 //#define                 sigType                             int32_t
 #define                 sigType                             int16_t
+#define                 MAX_VALUE                           32767   // Max. positive 16 bits value
+#define                 MIN_VALUE                           -32768  // Min. negative 16 bits value
 
 void initIIR(void);
 

@@ -9,7 +9,7 @@
 #define CLICOMMAND_H_
 
 #define VERSION_HI		3	  // 2.5 Last version with FIR filter
-#define VERSION_LO		1     // 3.0 scale input 2 bits others don't
+#define VERSION_LO		3     // 3.0 scale input 2 bits others don't
 
 #if VERSION_HI == 2
 #include "TemplateMatch.h"// "TemplateMatch.h" version 2.5

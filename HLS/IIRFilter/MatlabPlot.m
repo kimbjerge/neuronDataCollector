@@ -38,17 +38,33 @@ fs = 30000;
 % a2 = rp^2;
 % a = [a0 a1 a2];
 
-fc1 = 300;
-fc2 = 6000;
+%fc1 = 600;
+%fc2 = 12000;
+fc1 = 100;
+fc2 = 5000;
 order = 6;
-[b,a] = butter(order,[2*fc1/(fs/2) 2*fc2/(fs/2)]);
+[b,a] = butter(order,[fc1/(fs/2) fc2/(fs/2)]);
+dband = designfilt('bandpassiir','FilterOrder',order*2, ...
+        'HalfPowerFrequency1',fc1,'HalfPowerFrequency2',fc2, ...
+        'SampleRate',fs);
 figure
 freqz(b,a)
 y1 = filter(b, a, x); % MATLAB double version
-y2 = IIRfilter(b, a, x, 23); % MATLAB fixed point version
+y2 = IIRfilter(b, a, x, 31); % MATLAB fixed point version
 
 %% SOS sections
+[sos,g] = tf2sos(b,a)
 sos = tf2sos(b,a);
+sos = dband.Coefficients;
+
+Bs = sos(:,1:3); % Section numerator polynomials
+As = sos(:,4:6); % Section denominator polynomials
+y1 = x;
+for i=1:size(sos,1)
+  y1 = filter(Bs(i,:),As(i,:),y1); % Series sections
+end
+
+
 %[sos,g] = tf2sos(b,a)
 %[z,p,k] = butter(order, [2*fc1/(fs/2) 2*fc2/(fs/2)]);
 %[sos, g] = zp2sos(z,p,k);
@@ -100,12 +116,11 @@ plot(xin-h);
 title('HSL fixed (blue) vs. MATLAB fixed-SOS');
 ErrorHLSvsFixedSOS = rms(xin-h)
 
+offset = 1;
 figure, 
-plot(h);
+plot(h(offset:end));
 hold on;
-plot(y1);
-plot(y1-h);
+plot(y1(offset:end));
+plot(y1(offset:end)-h(offset:end));
 title('HLS fixed (blue) vs. MATLAB double');
-ErrorHLSvsDouble = rms(y1-h)
-
-
+ErrorHLSvsDouble = rms(y1(offset:end)-h(offset:end))

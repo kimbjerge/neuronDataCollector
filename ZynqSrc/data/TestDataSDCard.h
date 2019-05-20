@@ -79,6 +79,7 @@ protected:
     FileSDCard m_file;
     // Sample buffer read from file
     int mNumDataSamples;
+    short mScaleBits;
     float *m_pWriteData;
     //float m_testData[NUM_CHANNELS];
 	float m_data[MAX_NUM_SAMPLES][NUM_CHANNELS];

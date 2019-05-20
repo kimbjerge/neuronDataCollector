@@ -102,14 +102,20 @@ void IIRFilter (sigType results[DATA_CHANNELS],
     }
     else
     {  // Processing SOS IIR filters
-    	int32_t inSample, outSample;
+    	int32_t inSample, outSample, result;
     	for (int8_t ch = 0; ch < DATA_CHANNELS; ch++) {
     		inSample = ((int32_t)samples[ch]) << SHIFT_BITS; // Shift input to improve accuracy
 			for (int8_t sos = 0; sos < NUM_SOS; sos++) {
 				outSample = IIR(inSample, sos, ch);
 				inSample = outSample;
 			}
-			results[ch] = ((outSample + (1 << (SHIFT_BITS-1))) >> SHIFT_BITS); // Shift output back to improve accuracy
+			result = ((outSample + (1 << (SHIFT_BITS-1))) >> SHIFT_BITS); // Shift output back to improve accuracy
+			if (result > MAX_VALUE) // Overflow
+				results[ch] = MAX_VALUE; // Saturate
+			else if (result < MIN_VALUE) // Underflow
+				results[ch] = MIN_VALUE; // Saturate
+			else
+				results[ch] = result; // Convert result to 16 bits
 		}
      }
 }

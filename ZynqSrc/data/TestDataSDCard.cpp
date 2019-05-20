@@ -17,6 +17,7 @@ TestDataSDCard::TestDataSDCard() :
 {
 	mNumSamplesCollect = MAX_NUM_SAMPLES;
 	mFuncGenSamples = 0;
+	mScaleBits = 0;
 }
 
 TestDataSDCard::~TestDataSDCard()
@@ -63,8 +64,13 @@ void TestDataSDCard::appendDataSamples(float *pData, int length)
 
 int16_t *TestDataSDCard::GenerateSamples(void)
 {
+	//if (mScaleBits > 0) {
+	//	for (int i = 0; i < NUM_CHANNELS; i++)
+	//		nextDataSamples[i] = ( ( ((int32_t)m_data[m_n][i]) + (1<<(mScaleBits-1)) ) >> mScaleBits );
+	//} else {
 	for (int i = 0; i < NUM_CHANNELS; i++)
 		nextDataSamples[i] = (int16_t)m_data[m_n][i];
+	//}
 
 	if (++m_n >= mNumDataSamples) // Turn around sample buffer
 		m_n = 0;

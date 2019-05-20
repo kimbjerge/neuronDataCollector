@@ -7,7 +7,7 @@
 #define SAMPLES   	100  		// Impulse response test
 #define NUM_SAMPLES 30000 		// Filter test on real neuron signals
 #define FS          30000.0 	// 30 kHz
-#define GAIN        (pow(2,15)*0.86)   // Max. 22 bits inputs where 4 bits used to accuracy, scale input due to filter output > short
+#define GAIN        (pow(2,15)*0.99)   // Max. 22 bits inputs where 4 bits used to accuracy, scale input due to filter output > short
 #define SCALEBITS   0		    // Scale input to improve precision
 
 float m_data[NUM_SAMPLES][32];
@@ -97,8 +97,8 @@ int main ()
   readDataSamples();
   for (i=0; i<NUM_SAMPLES; i++) {
 
-	  //getNextSample(samples);
-	  getNextSine(samples);
+	  getNextSample(samples);
+	  //getNextSine(samples);
 
 #endif
 
