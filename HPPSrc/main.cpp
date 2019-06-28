@@ -51,7 +51,7 @@ int main()
 	printf("Real Time Neuron Template Matching Algorithm Version %d.%d\r\n", VERSION_HI, VERSION_LO);
 	printf("--------------------------------------------------------------------\r\n");
 	printf("Loads test data from SD card of 32 channels and max. 6 templates\r\n");
-	printf("Template max. size of width 9 channels and 17 in length\r\n");
+	printf("Template max. size of width 5 channels and 25 in length\r\n");
 	printf("Performs 6xIIR SOS filtering and NXCOR template matching\r\n");
 	printf("Loads samples DATA.bin, configuration CONFIG.txt, filter IIR.txt\r\n");
 	printf("Maximum 60 seconds of samples and NXCOR will be logged for debugging\r\n");

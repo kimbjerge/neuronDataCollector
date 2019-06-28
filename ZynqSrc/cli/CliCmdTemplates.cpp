@@ -137,6 +137,22 @@ int CliCommand::parseStrCmd1(char *name)
 	return ok;
 }
 
+int CliCommand::parseCmd3(int *id, int *value1, int *value2)
+{
+	int ok = 0;
+	char *idStr, *valueStr1, *valueStr2;
+	idStr = strtok(NULL, CMD_DELIMITER);
+	valueStr1 = strtok(NULL, CMD_DELIMITER);
+	valueStr2 = strtok(NULL, CMD_DELIMITER);
+	if ((idStr != 0) && (valueStr1 != 0) && (valueStr2 != 0)) {
+		*id = atoi(idStr);
+		*value1 = atoi(valueStr1);
+		*value2 = atoi(valueStr2);
+		ok = 1;
+	}
+	return ok;
+}
+
 int CliCommand::parseCmd2(int *id, int *value)
 {
 	int ok = 0;
@@ -443,7 +459,7 @@ int CliCommand::fileOperation(char *paramStr, char *answer)
 
 int CliCommand::setParameter(char *paramStr, char *answer)
 {
-	int value,nr,W,L;
+	int value,nr,W,L,tmp;
 	float floatValue;
 	char *param = strtok(paramStr, CMD_DELIMITER);
 	int ok = 0;
@@ -451,6 +467,28 @@ int CliCommand::setParameter(char *paramStr, char *answer)
 	if (param != NULL) {
 
 		switch (param[0]) {
+
+			case 'a': // Set min/max difference above limits
+				if (parseShortArray(&nr)) {
+					if (checkNr(nr)) {
+						m_pTemplateMatch->getConfig()->setPeakMinMaxLimits(nr-1, mShortArray);
+						printf("Template %d min/max difference limits updated [%d, %d, %d, %d..]\n",
+								nr, mShortArray[0], mShortArray[1], mShortArray[2], mShortArray[3]);
+						ok = 1;
+					}
+				}
+				break;
+
+			case 'b': // Set max. limit for coherency
+				if (parseCmd3(&nr, &value, &tmp)) {
+					if (checkNr(nr)) {
+						m_pTemplateMatch->getConfig()->setMinCoherncy(nr-1, value);
+						m_pTemplateMatch->getConfig()->setMaxCoherncy(nr-1, tmp);
+						printf("Template %d coherency limits set to min. %d and max. %d\n", nr, value, tmp);
+						ok = 1;
+					}
+				}
+				break;
 
 			case 'c': // Set trigger output when template 1 and 2 seen within samples
 				if (parseCmd1(&value)) {
@@ -821,6 +859,10 @@ int CliCommand::printCommands(void)
 	sprintf(string, "-------------------------\r\n");
 	strcat(commandsText, string);
 
+	sprintf(string, "s,a,<nr>,<l0>,<l1>,<l2>..<l4> - set template (1-6) min/max difference above limits for mapped channels (l0-l4)\r\n");
+	strcat(commandsText, string);
+	sprintf(string, "s,b,<nr>,<min>,<max> - set coherency min/max limits for template (1-6) to be valid\r\n");
+	strcat(commandsText, string);
 	sprintf(string, "s,d,<nr>,<W>,<L>,<d1>,<d2>..<dN> - update template (1-6) of size N=W*L with flattered data d1..dN of floats\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,c,<counter> - set trigger output when template 1 and 2 seen within samples\r\n");
@@ -829,15 +871,16 @@ int CliCommand::printCommands(void)
 	strcat(commandsText, string);
 	sprintf(string, "s,f,<filename> - open and load filter coefficients from SD card (only *.bin format)\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,g,<nr>,<grad> - set gradient for template (1-6) where min. peak and peak(n-6) must be greater than <grad>\r\n"); // For all channels
+	// Removed in version 4.x
+	//sprintf(string, "s,g,<nr>,<grad> - set gradient for template (1-6) where min. peak and peak(n-6) must be greater than <grad>\r\n"); // For all channels
+	//strcat(commandsText, string);
+	sprintf(string, "s,h,<nr>,<h0>,<h1>,<h2>..<h4> - set template (1-6) peak high limits for mapped channels (h0-h4)\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,h,<nr>,<h0>,<h1>,<h2>..<h8> - set template (1-6) peak high limits for mapped channels (h0-h8)\r\n");
-	strcat(commandsText, string);
-	sprintf(string, "s,l,<nr>,<l0>,<l1>,<l2>..<l8> - set template (1-6) peak low limits for mapped channels (l0-l8)\r\n");
+	sprintf(string, "s,l,<nr>,<l0>,<l1>,<l2>..<l4> - set template (1-6) peak low limits for mapped channels (l0-l4)\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,k,<0|1> - set enable (1) printing counters during template matching\r\n");
 	strcat(commandsText, string);
-	sprintf(string, "s,m,<nr>,<c0>,<c1>,<c2>..<c8> - set template (1-6) channel mapping to neuron channels (cX = 0-31)\r\n");
+	sprintf(string, "s,m,<nr>,<c0>,<c1>,<c2>..<c4> - set template (1-6) channel mapping to neuron channels (cX = 0-31)\r\n");
 	strcat(commandsText, string);
 	sprintf(string, "s,n,<num> - set number (1-6) of templates to be used\r\n");
 	strcat(commandsText, string);

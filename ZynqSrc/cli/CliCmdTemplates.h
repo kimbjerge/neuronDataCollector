@@ -8,13 +8,13 @@
 #ifndef CLICOMMAND_H_
 #define CLICOMMAND_H_
 
-#define VERSION_HI		3	  // 2.5 Last version with FIR filter
-#define VERSION_LO		3     // 3.0 scale input 2 bits others don't
+#define VERSION_HI		4	  // 2.5 Last version with FIR filter - version 4.x template 25x5
+#define VERSION_LO		0     // 3.0 scale input 2 bits others don't
 
 #if VERSION_HI == 2
 #include "TemplateMatch.h"// "TemplateMatch.h" version 2.5
 #else
-#include "TemplateMatchIIR.h"// version 3.x
+#include "TemplateMatchIIR.h"// version 3.x and 4.x
 #endif
 
 #include "DataUDPThread.h"
@@ -41,6 +41,7 @@ private:
 	int parseStrCmd2(char *name, int *value);
 	int parseStrCmd2(char *name1, char *name2);
 	int parseStrCmd1(char *name);
+	int parseCmd3(int *id, int *value1, int *value2);
 	int parseCmd2(int *id, int *value);
 	int parseCmd2(int *id, float *value);
 	int parseCmd1(int *value);

@@ -17,17 +17,25 @@ void NXCOR::printSettings(char *buf)
 		// Print to USB-UART output
 		printf("---------------------------------------------------------------------\r\n");
 		printf("NXCOR template %2d settings:\r\n", mDeviceId+1);
-		printf("  Length      : %d\r\n", mLength);
-		printf("  Width       : %d\r\n", mWidth);
-		printf("  Threshold   : %f\r\n", mNXCORThreshold);
-		printf("  Gradient min: %d\r\n", mPeakMinGradient);
-		printf("  Peak max.   : ");
+		printf("  Length       : %d\r\n", mLength);
+		printf("  Width        : %d\r\n", mWidth);
+		printf("  Threshold    : %f\r\n", mNXCORThreshold);
+		//printf("  Gradient min : %d\r\n", mPeakMinGradient); // Ver. 3.x
+		printf("  Coherency min: %d\r\n", mCoherencyMinLimit);
+		printf("  Coherency max: %d\r\n", mCoherencyMaxLimit);
+		printf("  Peak idx min : %d\r\n", mIndexTMin);
+		printf("  Peak idx max : %d\r\n", mIndexTMax);
+		printf("  Peak max.    : ");
 		for (int ch = 0; ch < TEMP_WIDTH; ch++)
 			printf("%5d ", mPeakMaxLimits[ch]);
 		printf("\r\n");
 		printf("  Peak min.   : ");
 		for (int ch = 0; ch < TEMP_WIDTH; ch++)
 			printf("%5d ", mPeakMinLimits[ch]);
+		printf("\r\n");
+		printf("  Peak diff.  : ");
+		for (int ch = 0; ch < TEMP_WIDTH; ch++)
+			printf("%5d ", mPeakMinMaxLimits[ch]);
 		printf("\r\n");
 		printf("  Channel map : ");
 		for (int ch = 0; ch < TEMP_WIDTH; ch++)
@@ -39,15 +47,23 @@ void NXCOR::printSettings(char *buf)
 		strcat(buf, text);
 		sprintf(text, "NXCOR template %2d settings:\r\n", mDeviceId+1);
 		strcat(buf, text);
-		sprintf(text, "  Length      : %d\r\n", mLength);
+		sprintf(text, "  Length       : %d\r\n", mLength);
 		strcat(buf, text);
-		sprintf(text, "  Width       : %d\r\n", mWidth);
+		sprintf(text, "  Width        : %d\r\n", mWidth);
 		strcat(buf, text);
-		sprintf(text, "  Threshold   : %f\r\n", mNXCORThreshold);
+		sprintf(text, "  Threshold    : %f\r\n", mNXCORThreshold);
 		strcat(buf, text);
-		sprintf(text, "  Gradient min: %d\r\n", mPeakMinGradient);
+		//sprintf(text, "  Gradient min : %d\r\n", mPeakMinGradient);
+		//strcat(buf, text);
+		sprintf(text, "  Coherency min: %d\r\n", mCoherencyMinLimit);
 		strcat(buf, text);
-		sprintf(text, "  Peak max.   : ");
+		sprintf(text, "  Coherency max: %d\r\n", mCoherencyMaxLimit);
+		strcat(buf, text);
+		sprintf(text, "  Peak idx min : %d\r\n", mIndexTMin);
+		strcat(buf, text);
+		sprintf(text, "  Peak idx max : %d\r\n", mIndexTMax);
+		strcat(buf, text);
+		sprintf(text, "  Peak max.    : ");
 		strcat(buf, text);
 		for (int ch = 0; ch < TEMP_WIDTH; ch++) {
 			sprintf(text, "%5d ", mPeakMaxLimits[ch]);
@@ -59,6 +75,14 @@ void NXCOR::printSettings(char *buf)
 		strcat(buf, text);
 		for (int ch = 0; ch < TEMP_WIDTH; ch++) {
 			sprintf(text, "%5d ", mPeakMinLimits[ch]);
+			strcat(buf, text);
+		}
+		sprintf(text, "\r\n");
+		strcat(buf, text);
+		sprintf(text, "  Peak diff.  : ");
+		strcat(buf, text);
+		for (int ch = 0; ch < TEMP_WIDTH; ch++) {
+			sprintf(text, "%5d ", mPeakMinMaxLimits[ch]);
 			strcat(buf, text);
 		}
 		sprintf(text, "\r\n");
@@ -118,7 +142,7 @@ void NXCOR::startNXCOR(TTYPE *samples)
 	//XNxcor_Write_signalData_Bytes(&mNXCOR, 0, (char *)samplesType, mWidth*sizeof(TTYPE));
 	XNxcor_Start(&mNXCOR);
 
-	updateLastSamples(samplesMoved);
+	updateLastSamples(samplesMoved, samples);
 	//updatePeakSamples(samples); // NOT USED - Ver. 1.0
 }
 
@@ -193,9 +217,10 @@ void NXCOR::setChannelMap(short *map)
 		mChannelMap[ch] = map[ch];
 }
 
-void NXCOR::updateLastSamples(TTYPE *samples)
+void NXCOR::updateLastSamples(TTYPE *pSamples, TTYPE *pAllSamples)
 {
-	memcpy(mLastSamples[mLastIdx], samples, sizeof(TTYPE)*TEMP_WIDTH);
+	memcpy(mLastSamples[mLastIdx], pSamples, sizeof(TTYPE)*TEMP_WIDTH);
+	memcpy(mAllLastSamples[mLastIdx], pAllSamples, sizeof(TTYPE)*NUM_CHANNELS);
 	mLastIdx = (mLastIdx+1)%mLength;
 }
 
@@ -203,7 +228,7 @@ bool NXCOR::checkPeakGradient(int ch)
 {
 	int offset, gradient;
 
-	offset = mPeakIdx[ch] - mPeakMinOffset; // Find offset value from mimimum peak
+	offset = mPeakMinIdx[ch] - mPeakMinOffset; // Find offset value from mimimum peak
 	if (offset < 0) // Handle index wrap around
 		offset = mLength - offset;
 
@@ -216,20 +241,127 @@ bool NXCOR::checkPeakGradient(int ch)
 		return true;
 }
 
-bool NXCOR::checkWithinChannelPeakLimits(void)
+bool NXCOR::checkMinMaxDiffPeakLimits(int ch)
 {
-	// Set minimum values to first sample in last sample buffer
-	for (int ch = 0; ch < mWidth; ch++) {
-		mPeakMin[ch] = mLastSamples[0][ch];
-		mPeakIdx[ch] = 0;
+	TTYPE diffMinMax = mPeakMax[ch] - mPeakMin[ch];
+
+	if (diffMinMax < mPeakMinMaxLimits[ch])
+		return false;
+	else
+		return true;
+}
+
+// Check channels coherency using template max/min index
+bool NXCOR::checkCoherencyTemplate(void)
+{
+	// Sum of all channel values at peak max and min in template
+	int sumPeakMin = 0;
+	int sumPeakMax = 0;
+
+	// Index for min and max peaks relative to position in template
+	int peakIdxMin = (mLastIdx+mIndexTMin)%mLength;
+	int peakIdxMax = (mLastIdx+mIndexTMax)%mLength;
+
+	//printf("Coherency: peakIdxMin %d, peakIdxMax %d\r\n", peakIdxMin, peakIdxMax);
+
+	// Sum of all channels at index
+	for (int ch = 0; ch < NUM_CHANNELS; ch++)
+	{
+		sumPeakMin += (int)mAllLastSamples[peakIdxMin][ch]; // Buffer with last samples for all channels equal to length of template
+		sumPeakMax += (int)mAllLastSamples[peakIdxMax][ch];
+	}
+	// Subtracting samples from template channels at index
+	for (int ch = 0; ch < mWidth; ch++)
+	{
+		sumPeakMin -= (int)mLastSamples[peakIdxMin][ch]; // Buffer with last samples where template match found
+		sumPeakMax -= (int)mLastSamples[peakIdxMax][ch];
 	}
 
-	// Search for minimum sample value for each channel in sample buffer
+	//printf("Coherency: sumPeakMin %d, sumPeakMax %d, mWidth %d\r\n", sumPeakMin, sumPeakMax, mWidth);
+
+	// Calculate mean at min/max template peaks
+    int meanHolderMin = round((float)sumPeakMin/(NUM_CHANNELS-mWidth));
+    int meanHolderMax = round((float)sumPeakMax/(NUM_CHANNELS-mWidth));
+
+    //printf("Coherency: meanHolderMin %d, meanHolderMax %d\r\n", meanHolderMin, meanHolderMax);
+
+	if (meanHolderMin < mCoherencyMinLimit) return false;
+    if (meanHolderMax > mCoherencyMaxLimit) return false;
+
+    return true;
+}
+
+bool NXCOR::checkCoherency(void)
+{
+	// Start with mapped channel 0
+	int peakChMin = 0;
+	int peakChMax = 0;
+	// Peaks for every channel
+	TTYPE peakMin = mPeakMin[0];
+	TTYPE peakMax = mPeakMax[0];
+
+	// Search for channels with min/max peaks
+	for (int ch = 1; ch < mWidth; ch++) {
+		if (peakMin > mPeakMin[ch]) {
+			peakMin = mPeakMin[ch];
+			peakChMin = ch;
+		}
+		if (peakMax < mPeakMax[ch]) {
+			peakMax = mPeakMax[ch];
+			peakChMax = ch;
+		}
+	}
+
+	// Sum of all channel values at peak max and min
+	int sumPeakMin = 0;
+	int sumPeakMax = 0;
+	// Index for min and max peaks
+	int peakIdxMin = mPeakMinIdx[peakChMin];
+	int peakIdxMax = mPeakMaxIdx[peakChMax];
+
+	// Sum of all channels at index
+	for (int ch = 0; ch < NUM_CHANNELS; ch++)
+	{
+		sumPeakMin += (int)mAllLastSamples[peakIdxMin][ch]; // Buffer with last samples for all channels equal to length of template
+		sumPeakMax += (int)mAllLastSamples[peakIdxMax][ch];
+	}
+	// Subtracting samples from template channels at index
+	for (int ch = 0; ch < mWidth; ch++)
+	{
+		sumPeakMin -= (int)mLastSamples[peakIdxMin][ch]; // Buffer with last samples where template match found
+		sumPeakMax -= (int)mLastSamples[peakIdxMax][ch];
+	}
+
+    // Calculate mean at min/max template peaks
+    int meanHolderMin = round((float)sumPeakMin/(NUM_CHANNELS-mWidth));
+    int meanHolderMax = round((float)sumPeakMax/(NUM_CHANNELS-mWidth));
+    if (meanHolderMin < mCoherencyMinLimit) return false;
+    if (meanHolderMax > mCoherencyMaxLimit) return false;
+
+    return true;
+}
+
+
+bool NXCOR::checkWithinChannelPeakLimits(void)
+{
+	// Set min/max values to first sample in last sample buffer
+	for (int ch = 0; ch < mWidth; ch++) {
+		mPeakMin[ch] = mLastSamples[0][ch];
+		mPeakMax[ch] = mLastSamples[0][ch];
+		mPeakMinIdx[ch] = 0;
+		mPeakMaxIdx[ch] = 0;
+	}
+
+	// Search for min/max sample value for each channel in sample buffer
 	for (int i = 1; i < mLength; i++) {
 		for (int ch = 0; ch < mWidth; ch++) {
 			if (mPeakMin[ch] > mLastSamples[i][ch]) {
 				mPeakMin[ch] = mLastSamples[i][ch];
-				mPeakIdx[ch] = i;
+				mPeakMinIdx[ch] = i;
+			}
+			if (mPeakMax[ch] < mLastSamples[i][ch]) {
+				mPeakMax[ch] = mLastSamples[i][ch];
+				mPeakMaxIdx[ch] = i;
 			}
 		}
 	}
@@ -241,11 +373,18 @@ bool NXCOR::checkWithinChannelPeakLimits(void)
 			//printf("Peak %d out limits ch %d\r\n", mPeakMin[ch], ch);
 			return false; // Peak not within limits
 		}
+#if 0 // Version 3.x
 		if (!checkPeakGradient(ch))
 			return false; // Gradient not within limits
+#else // Version 4.x
+		if (!checkMinMaxDiffPeakLimits(ch))
+			return false; // Check difference between min. and max. peak is above limits
+#endif
 	}
 
-	return true;
+	// Version 4.x
+	return checkCoherency();
+	//return checkCoherencyTemplate();
 }
 
 void NXCOR::setMaxPeakLimits(TTYPE *max)
@@ -260,6 +399,13 @@ void NXCOR::setMinPeakLimits(TTYPE *min)
 	// Set min peak limits for each channel
 	for (int i = 0; i < TEMP_WIDTH; i++)
 		mPeakMinLimits[i] = min[i];
+}
+
+void NXCOR::setMinMaxPeakLimits(TTYPE *limits)
+{
+	// Set peak limits for difference of min/max for each channel
+	for (int i = 0; i < TEMP_WIDTH; i++)
+		mPeakMinMaxLimits[i] = limits[i];
 }
 
 int NXCOR::verifyActivation(void)

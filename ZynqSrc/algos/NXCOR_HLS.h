@@ -12,6 +12,9 @@
 #include "IRQ.h"
 #include "Template.h"
 
+// Maximum number of neuron probe channels
+#define NUM_CHANNELS 	32
+
 class NXCOR
 {
 public:
@@ -23,7 +26,8 @@ public:
 		mResultAvailHlsNXCOR(0), mVarianceTemplate(1),
 		mIdxPeak(0), mPeakSample(0), mActivationCounts(0),
 		mCounts(0), mActiveState(0), mLastIdx(0),
-		mPeakMinOffset(6), mPeakMinGradient(0)
+		mPeakMinOffset(6), mPeakMinGradient(0),
+		mCoherencyMaxLimit(32760), mCoherencyMinLimit(-32760)
 	{ mPeakSamples = new int(length); }
 
 	~NXCOR() { delete mPeakSamples; }
@@ -39,10 +43,15 @@ public:
 	void setNXCORThreshold(float threshold) { mNXCORThreshold = threshold; }
 	void setMaxPeakLimits(TTYPE *max); // Set max peak limits for each channel
 	void setMinPeakLimits(TTYPE *min); // Set min peak limits for each channel
+	void setMinMaxPeakLimits(TTYPE *limits); // Set peak limits for difference of min/max for each channel
 	void setChannelMap(short *map); // Set channel map of index to neuron channels where template is located
 	void setPeakThreshold(int min, int max) { mMinPeakThreshold = min; mMaxPeakThreshold = max; }
 	void setMaxActivationCount(int max) { mMaxActivationCount = max; }
 	void setMinGradient(int min) { mPeakMinGradient = min; }
+	void setMaxCoherency(int max) { mCoherencyMaxLimit = max; }
+	void setMinCoherency(int min) { mCoherencyMinLimit = min; }
+	void setMaxPeakIndex(int max) { mIndexTMax = max; }
+	void setMinPeakIndex(int min) { mIndexTMin = min; }
 	float getNXCORResult(void) { return mResultNXCOR; }
 	int getNumActivations(void) { return mCounts; }
 	int getMaxPeak(void) { return mPeakSample; }
@@ -80,6 +89,7 @@ private:
 	// Variable to hold channel map
 	short mChannelMap[TEMP_WIDTH]; // Contains index to neuron channel used by NXCOR
 
+	bool checkMinMaxDiffPeakLimits(int ch); // Check if difference between min. and max. peak values is above mPeakMinMaxLimits
 	bool checkWithinPeakLimits(void);
 	void updatePeakSamples(TTYPE *pSamples);
 	// Holds index to array of peak samples
@@ -96,17 +106,33 @@ private:
 
 	bool checkPeakGradient(int ch);
 	bool checkWithinChannelPeakLimits(void);
-	void updateLastSamples(TTYPE *pSamples);
+	bool checkCoherency(void); // Check channels coherency
+	bool checkCoherencyTemplate(void); // Check channels coherency using template max/min index
+	void updateLastSamples(TTYPE *pSamples, TTYPE *pAllSamples);
 	// Array to hold copy of samples used to perform NXCOR
 	// Used to calculate minimum peaks within limits
-	TTYPE mLastSamples[TEMP_LENGTH][TEMP_WIDTH];
+	TTYPE mLastSamples[TEMP_LENGTH][TEMP_WIDTH]; // Only samples from channels used by template
+	TTYPE mAllLastSamples[TEMP_LENGTH][NUM_CHANNELS]; // Samples from all channels
 	int mLastIdx;
-	int mPeakIdx[TEMP_WIDTH];
+
+	// Index for maximum and minimum peak in template
+    int mIndexTMin;
+    int mIndexTMax;
+
+	// Variables updated when NXCOR matched
+	int mPeakMinIdx[TEMP_WIDTH]; // Index for minimum peak
 	TTYPE mPeakMin[TEMP_WIDTH];
+	int mPeakMaxIdx[TEMP_WIDTH]; // Index for maximum peak
+	TTYPE mPeakMax[TEMP_WIDTH];
+
+	// Configuration values
 	TTYPE mPeakMaxLimits[TEMP_WIDTH];
 	TTYPE mPeakMinLimits[TEMP_WIDTH];
+	TTYPE mPeakMinMaxLimits[TEMP_WIDTH];
 	int mPeakMinOffset; // Offset to minimum value where gradient is measured
 	int mPeakMinGradient; // Minimum gradient value to offset above
+	int mCoherencyMaxLimit; // Max. limit for coherency
+	int mCoherencyMinLimit; // Min. limit for coherency
 
 	// HLS FIR HW instance
 	XNxcor mNXCOR;

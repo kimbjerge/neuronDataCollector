@@ -73,8 +73,13 @@ void TemplateMatch::updateConfig(int numSamples)
 			pNXCOR[i]->setPeakThreshold(mpConfig->getMin(i), mpConfig->getMax(i));
 			pNXCOR[i]->setMaxPeakLimits(mpConfig->getPeakMaxLimits(i));
 			pNXCOR[i]->setMinPeakLimits(mpConfig->getPeakMinLimits(i));
+			pNXCOR[i]->setMinMaxPeakLimits(mpConfig->getPeakMinMaxLimits(i));
 			pNXCOR[i]->setMinGradient(mpConfig->getMinGradient(i));
+			pNXCOR[i]->setMinCoherency(mpConfig->getMinCoherency(i));
+			pNXCOR[i]->setMaxCoherency(mpConfig->getMaxCoherency(i));
 			pNXCOR[i]->setChannelMap(mpConfig->getChannelMap(i));
+			pNXCOR[i]->setMinPeakIndex(pTemplate[i]->getIndexMin());
+			pNXCOR[i]->setMaxPeakIndex(pTemplate[i]->getIndexMax());
 			pNXCOR[i]->printSettings();
 		} else
 			pTemplate[i]->clearTemplate();

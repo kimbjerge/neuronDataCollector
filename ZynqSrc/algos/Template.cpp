@@ -78,6 +78,8 @@ void Template::convertData(void)
 
 	//readChOffset(name); // NOT USED ANY MORE
 	calcMeanVariance();
+	calcMinMaxIndex();
+
 }
 
 void Template::updateData(float *data, int length, int width, int nr)
@@ -168,3 +170,26 @@ void Template::calcMeanVariance(void)
 		for (int j = 0; j < mWidth; j++)
 			mVariance += pow((mTemplateInt[j + i*TEMP_WIDTH] - mMean), 2);
 }
+
+// Seach for index of peak maximum and minimum of template length
+void Template::calcMinMaxIndex(void)
+{
+	TTYPE minValue = mTemplateInt[0];
+	TTYPE maxValue = mTemplateInt[0];
+	TTYPE currValue = 0;
+
+	for (int i = 0; i < mLength; i++) {
+		for (int j = 0; j < mWidth; j++) {
+			currValue = mTemplateInt[j + i*TEMP_WIDTH];
+			if (minValue > currValue) {
+				mIndexTMin = mLength-1-i; // Template reversed
+				minValue = currValue;
+			}
+			if (maxValue < currValue) {
+				mIndexTMax = mLength-1-i; // Template reversed
+				maxValue = currValue;
+			}
+		}
+	}
+}
+

@@ -30,6 +30,8 @@ typedef struct TemplateCfg {
 	int max;
 	int min;
 	int minGradient;
+	int maxCoherency;
+	int minCoherency;
 	string tempCfg;
 } TEMPLATECFG;
 
@@ -43,9 +45,13 @@ public:
 			tempConfig[i].length = TEMP_LENGTH;
 			tempConfig[i].threshold = 0.6;
 			tempConfig[i].counter = 0;
-			tempConfig[i].max = 30000;
-			tempConfig[i].min = -30000;
+			tempConfig[i].max = 32760;
+			tempConfig[i].min = -32760;
 			tempConfig[i].minGradient = 0;
+			tempConfig[i].maxCoherency = 32760;
+			tempConfig[i].minCoherency = -32760;
+			for (int j = 0; j < TEMP_WIDTH; j++)
+				mPeakMinMaxLimits[i][j] = 0;
 		}
 	}
 
@@ -63,8 +69,11 @@ public:
 	int getMin(int idx) { return tempConfig[idx].min; }
 	int getCounter(int idx) { return tempConfig[idx].counter; }
 	int getMinGradient(int idx) { return tempConfig[idx].minGradient; }
+	int getMaxCoherency(int idx) { return tempConfig[idx].maxCoherency; }
+	int getMinCoherency(int idx) { return tempConfig[idx].minCoherency; }
 	short *getPeakMaxLimits(int idx) { return mPeakMaxLimits[idx]; }
 	short *getPeakMinLimits(int idx) { return mPeakMinLimits[idx]; }
+	short *getPeakMinMaxLimits(int idx) { return mPeakMinMaxLimits[idx]; }
 	short *getChannelMap(int idx) { return mChannelMap[idx]; }
 	int getNumTemplates(void) { return mNumTemplates; }
 	bool isTabsValid(void) { return mTabsValid; }
@@ -73,8 +82,11 @@ public:
 	float *getCoeffsAll(int ch) { return mCoeffsAll[ch]; }
 
 	void setMinGradient(int idx, int gradient) { tempConfig[idx].minGradient = gradient; }
+	void setMaxCoherncy(int idx, int max) { tempConfig[idx].maxCoherency = max; }
+	void setMinCoherncy(int idx, int min) { tempConfig[idx].minCoherency = min; }
     void setPeakMaxLimits(int idx, short *limits) { memcpy(mPeakMaxLimits[idx], limits, sizeof(short)*TEMP_WIDTH); }
     void setPeakMinLimits(int idx, short *limits) { memcpy(mPeakMinLimits[idx], limits, sizeof(short)*TEMP_WIDTH); }
+    void setPeakMinMaxLimits(int idx, short *limits) { memcpy(mPeakMinMaxLimits[idx], limits, sizeof(short)*TEMP_WIDTH); }
     void setChannelMap(int idx, short *map) { memcpy(mChannelMap[idx], map, sizeof(short)*TEMP_WIDTH); }
     void setNumTemplates(int num) { mNumTemplates = num; }
     void setThreshold(int idx, float threshold) { tempConfig[idx].threshold = threshold; }
@@ -99,6 +111,7 @@ private:
     float mCoeffsAll[MAX_CHANNELS][MAX_TAPS];
     short mPeakMaxLimits[MAX_CFG_TEMPLATES][TEMP_WIDTH];
     short mPeakMinLimits[MAX_CFG_TEMPLATES][TEMP_WIDTH];
+    short mPeakMinMaxLimits[MAX_CFG_TEMPLATES][TEMP_WIDTH];
     short mChannelMap[MAX_CFG_TEMPLATES][TEMP_WIDTH];
 
     char mConfigTxt[MAX_CONFIG_SIZE];

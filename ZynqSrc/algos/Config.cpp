@@ -74,7 +74,7 @@ int Config::loadCoeffBin(string name)
 	}
 
 	mTabsValidAll = true;
-	printf("FIR coefficients loaded from file %s\r\n", name.c_str());
+	printf("Filter coefficients loaded from file %s\r\n", name.c_str());
 	return result;
 }
 
@@ -187,7 +187,7 @@ void Config::parseConfig(void)
 				 mPeakMinLimits[mNumTemplates][ch] = min;
 				 mChannelMap[mNumTemplates][ch] = ch+offset; // Use offset to map channels
 			}
-			printf("Using template %d file %s cfg %s\r\n", mNumTemplates, tempName, tempCfg);
+			printf("Using template %d file %s cfg %s\r\n", mNumTemplates+1, tempName, tempCfg);
 			mNumTemplates++;
 		}
 	}
@@ -201,7 +201,7 @@ void Config::parseCoeff(void)
 		sscanf(mLineTxt, "%g", &mCoeffs[idx++]);
 		if (idx == MAX_TAPS) break;
 	}
-	printf("Loaded FIR coefficients in total %d\r\n", idx);
+	printf("Loaded filter coefficients in total %d\r\n", idx);
 }
 
 void Config::parseTempConfig(int idx)
@@ -211,6 +211,7 @@ void Config::parseTempConfig(int idx)
 
 	mPos = 0;
 	while (getNextLine()) {
+#if 0 // Ver. 3.x
 		sscanf(mLineTxt, "%d %d %d %d %d %d %d %d %d",
 				          &value[0],
 				          &value[1],
@@ -222,6 +223,15 @@ void Config::parseTempConfig(int idx)
 				          &value[7],
 				          &value[8]
 						  );
+#else
+		sscanf(mLineTxt, "%d %d %d %d %d",
+				          &value[0],
+				          &value[1],
+				          &value[2],
+				          &value[3],
+				          &value[4]
+						  );
+#endif
 		switch(lineNumber) {
 			case 1: // Maximum peaks
 				for (i = 0; i < TEMP_WIDTH; i++)
@@ -234,6 +244,10 @@ void Config::parseTempConfig(int idx)
 			case 3: // Channel mapping
 				for (i = 0; i < TEMP_WIDTH; i++)
 					mChannelMap[idx][i] = value[i];
+				break;
+			case 4: // Peak min/max limits
+				for (i = 0; i < TEMP_WIDTH; i++)
+					mPeakMinMaxLimits[idx][i] = value[i];
 				break;
 			default:
 				// Ignore more lines
