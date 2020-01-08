@@ -247,9 +247,13 @@ bool NXCOR::checkMinMaxDiffPeakLimits(int ch)
 
 	if (diffMinMax < mPeakMinMaxLimits[ch])
 		return false;
-	else
+	else {
+		// printf("%d   %d\r\n", diffMinMax, mPeakMinMaxLimits[ch]);
 		return true;
+
+	}
 }
+
 
 // Check channels coherency using template max/min index
 bool NXCOR::checkCoherencyTemplate(void)
@@ -342,6 +346,47 @@ bool NXCOR::checkCoherency(void)
 }
 
 
+// made by JH
+/*
+bool NXCOR::checkWithinChannelPeakLimits(void)
+{
+	// Set min/max values to first sample in last sample buffer
+	for (int ch = 0; ch < mWidth; ch++) {
+		mPeakMin[ch] = mLastSamples[0][ch];
+		mPeakMax[ch] = mLastSamples[0][ch];
+		mPeakMinIdx[ch] = 0;
+		mPeakMaxIdx[ch] = 0;
+	}
+
+	// Search for min/max sample value for each channel in sample buffer
+	for (int i = 1; i < mLength; i++) {
+		for (int ch = 0; ch < mWidth; ch++) {
+			if (mPeakMin[ch] > mLastSamples[i][ch]) {
+				mPeakMin[ch] = mLastSamples[i][ch];
+				mPeakMinIdx[ch] = i;
+			}
+			if (mPeakMax[ch] < mLastSamples[i][ch]) {
+				mPeakMax[ch] = mLastSamples[i][ch];
+				mPeakMaxIdx[ch] = i;
+			}
+		}
+	}
+
+#if 0 // Version 3.x
+		if (!checkPeakGradient(ch))
+			return false; // Gradient not within limits
+#else // Version 4.x
+		if (!checkMinMaxDiffPeakLimits(ch))
+			return false; // Check difference between min. and max. peak is above limits
+#endif
+	}
+
+
+	return 1;
+	//return checkCoherencyTemplate();
+}
+*/
+// (kim version - above is the changed version )
 bool NXCOR::checkWithinChannelPeakLimits(void)
 {
 	// Set min/max values to first sample in last sample buffer

@@ -22,7 +22,7 @@ public:
 		mDeviceId(deviceId), mLength(length), mWidth(width),
 		mNXCORThreshold(0.7), // Default threshold
 		mMaxPeakThreshold(32767), mMinPeakThreshold(-32768), // Peak limit disabled
-		mMaxActivationCount(30), // Filter default 1 ms at fs = 30 kHz
+		mMaxActivationCount(3), // changed from 30 to 3 Filter default 1 ms at fs = 30 kHz
 		mResultAvailHlsNXCOR(0), mVarianceTemplate(1),
 		mIdxPeak(0), mPeakSample(0), mActivationCounts(0),
 		mCounts(0), mActiveState(0), mLastIdx(0),

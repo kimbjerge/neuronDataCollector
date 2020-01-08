@@ -203,16 +203,49 @@ void TemplateMatch::processResults(void)
 							pTemplate[i]->getTemplateName(),
 							(int)round(pNXCOR[i]->getNXCORResult()*100)); // Percentage
 							//pNXCOR[i]->getMaxPeak());
-			leds.setOn((Leds::LedTypes)i, true);
+			//leds.setOn((Leds::LedTypes)i, true); J
 			testOut.setOn((TestIO::IOTypes)(i+TestIO::JB1), true);
 		}
 		if (state == 3) {
-			leds.setOn((Leds::LedTypes)i, false);
+			// leds.setOn((Leds::LedTypes)i, false); J
 			testOut.setOn((TestIO::IOTypes)(i+TestIO::JB1), false);
 		}
 	}
 }
 
+// modified Jesper only in the following sequence neuron 1 -> neuron 2 should activate the light (TTL)
+void TemplateMatch::triggerTemplate12(void)
+{
+	if (mTemplate12Counter > 0) {
+		if (mTemplate12Trigger == 1) { // Reset trigger when expired
+			testOut.setOn(TestIO::JB9, false);
+			//leds.setOn(Leds::LED7, false);
+		}
+		for (int i = 0; i < 2; i++) { // Check for neuron template 1 and 2
+			if (pNXCOR[i]->getActiveState() == 1)
+			{
+
+				if (mTemplate12Trigger > 0 && mTemplate12TriggerIdx == (i+1)%2)
+				{
+					// Another neuron activated in same time interval
+					if (i == 1)
+					{
+					testOut.setOn(TestIO::JB9, true);
+					//leds.setOn(Leds::LED7, true);
+					mTemplate12Trigger = 31; // Keep trigger high in min. 1 ms set to 31 since being checked when == 1
+					if (mPrintDebug)
+						xil_printf("%06d TRIG h %d\r\n", mCount, i+1);}
+					}
+				else {
+					mTemplate12Trigger = mTemplate12Counter; // First neuron activation
+					mTemplate12TriggerIdx = i;
+				}
+			}
+		}
+		if (mTemplate12Trigger > 0) mTemplate12Trigger--; // Decrement trigger
+	}
+}
+/*
 void TemplateMatch::triggerTemplate12(void)
 {
 	if (mTemplate12Counter > 0) {
@@ -238,7 +271,7 @@ void TemplateMatch::triggerTemplate12(void)
 		if (mTemplate12Trigger > 0) mTemplate12Trigger--; // Decrement trigger
 	}
 }
-
+*/
 void TemplateMatch::reset(void)
 {
 	pNeuronData->reset();
